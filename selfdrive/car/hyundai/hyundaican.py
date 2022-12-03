@@ -128,12 +128,14 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   d = hud_control.objDist
   objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
   objGap2 = 0 if objGap == 0 else 2 if hud_control.objRelSpd < 0.0 else 1
+  if not longEnabled:
+    accel = 0
 
   driverOverride =  CS.out.driverOverride  #1:gas, 2:braking, 0: normal
   if enabled and longEnabled:
     scc12_accMode = 2 if long_override else 0 if brakePressed else 1 if longActive else 0 #Brake, Accel, LongActiveUser < 0
     scc14_accMode = 2 if long_override else 4 if brakePressed else 1 if longActive else 0
-    if softHold and brakePressed:
+    if softHold and brakePressed and longEnabled:
       scc12_accMode = 1
       scc14_accMode = 1
       stopReq = 1
