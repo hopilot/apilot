@@ -123,7 +123,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   longEnabled = CC.longEnabled
   longActive = CC.longActive
   radarAlarm = hud_control.radarAlarm
-  stopReq = 1 if stopping else 0
+  stopReq = 1 if stopping and longEnabled else 0
   accel = accel if longActive else 0.0
   d = hud_control.objDist
   objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
@@ -132,12 +132,12 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     accel = 0
 
   driverOverride =  CS.out.driverOverride  #1:gas, 2:braking, 0: normal
-  if enabled and longEnabled:
+  if enabled:
     scc12_accMode = 2 if long_override else 0 if brakePressed else 1 if longActive else 0 #Brake, Accel, LongActiveUser < 0
-    scc14_accMode = 2 if long_override else 4 if brakePressed else 1 if longActive else 0
+    scc14_accMode = 4 if long_override or not longEnabled else 4 if brakePressed else 1 if longActive else 0
     if softHold and brakePressed and longEnabled:
-      scc12_accMode = 1
-      scc14_accMode = 1
+      #scc12_accMode = 1
+      #scc14_accMode = 1
       stopReq = 1
     comfortBandUpper = 0.0
     comfortBandLower = 0.0
@@ -150,12 +150,13 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     comfortBandLower = 0.0
     jerkUpperLimit = upper_jerk
     jerkLowerLimit = 5.0
+    stopReq = 0
 
   makeNewCommands = True if CP.sccBus == 0 else False
   commands = []
   if makeNewCommands:
     scc11_values = {
-    "MainMode_ACC": 1 if longEnabled else 0 ,
+    "MainMode_ACC": 1 if enabled else 0 ,
     "TauGapSet": cruiseGap,
     "VSetDis": set_speed if longEnabled else 0,
     "AliveCounterACC": idx % 0x10,
@@ -169,7 +170,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     commands.append(packer.make_can_msg("SCC11", 0, scc11_values))
   else:
     values = CS.scc11
-    values["MainMode_ACC"] = 1 if longEnabled else 0 
+    values["MainMode_ACC"] = 1 if enabled else 0 
     values["TauGapSet"] = cruiseGap
     values["VSetDis"] = set_speed if longEnabled else 0
     values["AliveCounterACC"] = idx % 0x10

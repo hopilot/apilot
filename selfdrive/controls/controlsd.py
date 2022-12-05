@@ -622,7 +622,7 @@ class Controls:
     CC = car.CarControl.new_message()
     CC.enabled = self.enabled
     # Check which actuators can be enabled
-    CC.latEnabled = True if self.active and CS.gearShifter in [GearShifter.drive,GearShifter.neutral] else False
+    CC.latEnabled = True if self.active and CS.gearShifter in [GearShifter.drive] else False
     CC.longEnabled = True if self.enabled and CS.gearShifter in [GearShifter.drive] else False
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
                    CS.vEgo > self.CP.minSteerSpeed and not CS.standstill and CC.latEnabled

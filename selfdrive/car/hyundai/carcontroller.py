@@ -105,6 +105,8 @@ class CarController:
       self.angle_limit_counter = 0
 
     # Cut steer actuation bit for two frames and hold torque with induced temporary fault
+    max_angle_frames = MAX_ANGLE_FRAMES - 2 if self.CP.carFingerprint in (CAR.HYUNDAI_GENESIS) else MAX_ANGLE_FRAMES
+
     torque_fault = CC.latActive and self.angle_limit_counter > MAX_ANGLE_FRAMES
     lat_active = CC.latActive and not torque_fault
 
@@ -180,7 +182,7 @@ class CarController:
           current = int(CS.out.cruiseState.speed*CV.MS_TO_KPH + 0.5)
 
           #CC.debugTextCC = "BTN:00,T:{:.1f},C:{:.1f},{},{}".format(target, current, self.wait_timer, self.alive_timer)
-          if CC.enabled and (self.frame - self.last_button_frame)*DT_CTRL > 0.12:
+          if CC.enabled and (self.frame - self.last_button_frame)*DT_CTRL > 0.12 and CS.cruise_buttons[-1] == Buttons.NONE:
             self.last_button_frame = self.frame
             if not CS.out.cruiseState.enabled:
               if CC.longActive: # and hud_control.leadVisible:

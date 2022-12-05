@@ -562,7 +562,7 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   }
   drawMaxSpeed(p);
   drawSpeed(p);
-  drawSteer(p);
+  //drawSteer(p);
   drawDeviceState(p);
   drawTurnSignals(p);
   //if(width() > 1200) drawGpsStatus(p);
@@ -1086,7 +1086,6 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
 }
 
 void AnnotatedCameraWidget::drawSteer(QPainter &p) {
-#if 1
   p.save();
 
   int x = 30;
@@ -1129,7 +1128,6 @@ void AnnotatedCameraWidget::drawSteer(QPainter &p) {
 
 
   p.restore();
-#endif
 }
 
 template <class T>
