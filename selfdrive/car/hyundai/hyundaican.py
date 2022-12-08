@@ -133,9 +133,9 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   if enabled:
     scc12_accMode = 2 if long_override else 0 if brakePressed else 1 if longActive else 0 #Brake, Accel, LongActiveUser < 0
     scc14_accMode = 4 if long_override or not longEnabled else 4 if brakePressed else 1 if longActive else 0
-    if softHold and brakePressed and longEnabled:
-      #scc12_accMode = 1
-      #scc14_accMode = 1
+    if softHold and brakePressed and longActive:
+      scc12_accMode = 1
+      scc14_accMode = 1
       stopReq = 1
     comfortBandUpper = 0.0
     comfortBandLower = 0.0
