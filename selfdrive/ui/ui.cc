@@ -149,13 +149,11 @@ static void update_state(UIState *s) {
         scene.ignition = false;
         for (const auto& pandaState : pandaStates) {
           scene.ignition |= pandaState.getIgnitionLine() || pandaState.getIgnitionCan();
-          printf("ignition = %d, %d\n", pandaState.getIgnitionLine(), pandaState.getIgnitionCan());
         }
       }
     }
   } else if ((s->sm->frame - s->sm->rcv_frame("pandaStates")) > 5*UI_FREQ) {
     scene.pandaType = cereal::PandaState::PandaType::UNKNOWN;
-    printf("panda state.... error...\n");
     scene.ignition = false;
   }
   if (sm.updated("carParams")) {
@@ -294,7 +292,6 @@ void Device::setAwake(bool on) {
     awake = on;
     Hardware::set_display_power(awake);
     LOGD("setting display power %d", awake);
-    printf("setting display power %d\n", awake);
     emit displayPowerChanged(awake);
   }
 }
@@ -352,12 +349,9 @@ void Device::updateWakefulness(const UIState &s) {
 
   if (ignition_just_turned_off || motionTriggered(s)) {
     resetInteractiveTimout();
-    printf("resetInteractiveTimeout()\n");
   } else if (interactive_timeout > 0 && --interactive_timeout == 0) {
     emit interactiveTimout();
-    printf("interactiveTimeout()\n");
   }
-  printf("interactive_timeout = %d, awake=%d, ignition_on=%d\n", interactive_timeout, awake, ignition_on);
   setAwake(s.scene.ignition || interactive_timeout > 0);
 }
 
