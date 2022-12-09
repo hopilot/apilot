@@ -291,6 +291,7 @@ void Device::setAwake(bool on) {
     awake = on;
     Hardware::set_display_power(awake);
     LOGD("setting display power %d", awake);
+    printf("setting display power %d\n", awake);
     emit displayPowerChanged(awake);
   }
 }
