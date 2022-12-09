@@ -354,7 +354,7 @@ void Device::updateWakefulness(const UIState &s) {
     emit interactiveTimout();
     printf("interactiveTimeout()\n");
   }
-  printf("interactive_timeout = %d\n", interactive_timeout);
+  printf("interactive_timeout = %d, awake=%d\n", interactive_timeout, awake);
   setAwake(s.scene.ignition || interactive_timeout > 0);
 }
 
