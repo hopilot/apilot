@@ -362,7 +362,7 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   //int is_ems11_msg = (addr == 790);
   // forward cam to ccan and viceversa, except lkas cmd
   if (apilot_connected != apilot_connected_prev) {
-      print("[hyundai_fwd_hook] apilot_connected="); puth2(apilot_connected); print("\n");
+      puts("[hyundai_fwd_hook] apilot_connected="); puth2(apilot_connected); puts("\n");
       apilot_connected_prev = apilot_connected;
   }
   if (bus_num == 0) {
@@ -391,11 +391,11 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
       if (diff > LKAS11_maxTxDiffTime)
       {
           LKAS11_maxTxDiffTime = diff;
-          print("diff="); puth(diff); print("\n");
+          puts("diff="); puth(diff); puts("\n");
       }
       if (diff > 0x15000) {
           apilot_connected = false;  // Neokii코드 참조: 오픈파일럿이 죽거나 재부팅하면,,,, 강제로 끊어줌.
-          print("apilot may be reboot...\n");
+          puts("apilot may be reboot...\n");
           controls_allowed = false;
       }
   }
