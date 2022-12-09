@@ -149,6 +149,7 @@ static void update_state(UIState *s) {
         scene.ignition = false;
         for (const auto& pandaState : pandaStates) {
           scene.ignition |= pandaState.getIgnitionLine() || pandaState.getIgnitionCan();
+          printf("ignition = %d, %d\n", pandaState.getIgnitionLine(), pandaState.getIgnitionCan());
         }
       }
     }
