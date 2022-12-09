@@ -212,7 +212,7 @@ class CarController:
                                                       hud_control, set_speed_in_units, stopping, CC, CS))
 
       # 20 Hz LFA MFA message
-      if self.frame % 5 == 0 and car_fingerprint in FEATURES["send_lfa_mfa"]:
+      if self.frame % 5 == 0 and self.car_fingerprint in FEATURES["send_lfa_mfa"]:
       #if self.frame % 5 == 0 and self.car_fingerprint in (CAR.SONATA, CAR.PALISADE, CAR.IONIQ, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021,
       #                                                    CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_CEED, CAR.KIA_SELTOS, CAR.KONA_EV, CAR.KONA_EV_2022,
       #                                                    CAR.ELANTRA_2021, CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_HEV, CAR.SANTA_FE_2022,
