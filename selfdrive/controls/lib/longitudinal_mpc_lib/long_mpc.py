@@ -65,8 +65,9 @@ T_FOLLOW = 1.45
 COMFORT_BRAKE = 2.3 #2.5
 STOP_DISTANCE = 6.5
 
-def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW, stop_distance=STOP_DISTANCE):
-  return (v_lead**2) / (2 * COMFORT_BRAKE)
+def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW, stop_distance=STOP_DISTANCE, krkeegan=False):
+  if not krkeegan:
+    return (v_lead**2) / (2 * COMFORT_BRAKE)
 
   # KRKeegan방법은 lead거리값을 고의로 늘려주어. solver가 더빠른 가속을 유발하도록 하는것 같음...
   # KRKeegan this offset rapidly decreases the following distance when the lead pulls
@@ -241,7 +242,8 @@ class LongitudinalMpc:
     self.softHoldTimer = 0
     self.lo_timer = 0 
     self.v_cruise = 0.
-    self.xStopFilter = StreamingMovingAverage(11)
+    self.xStopFilter = StreamingMovingAverage(3)  #11
+    self.xStopFilter2 = StreamingMovingAverage(7) #3
     self.filter_x_lead = StreamingMovingAverage(3)  #레이더입력을 필터링했는데.... 별로 의미없는듯~~ 그래도 한번...
     self.filter_v_lead = StreamingMovingAverage(3)
     self.prev_lead = False
@@ -407,6 +409,8 @@ class LongitudinalMpc:
 
   def update(self, carstate, radarstate, model, controls, v_cruise, x, v, a, j, y, prev_accel_constraint):
     v_ego = self.x0[1]
+    a_ego = carstate.aEgo
+
     model_x = model.position.x[-1]
     self.lo_timer += 1
     if self.lo_timer > 100:
@@ -444,7 +448,9 @@ class LongitudinalMpc:
     # lead값을 고의로 줄여주면, 빨리 감속, lead값을 늘려주면 빨리가속,
     if radarstate.leadOne.status:
       self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-100., 0, 100.], [self.applyDynamicTFollow, 1.0, self.applyDynamicTFollowApart])
-      self.t_follow *= interp(self.prev_a[0], [-4, 0], [self.applyDynamicTFollowDecel, 1.0])
+      #self.t_follow *= interp(self.prev_a[0], [-4, 0], [self.applyDynamicTFollowDecel, 1.0])
+      # 선행차가속도와 내차가속도와의 차이로 거리제어... => 이걸 Apart에 적용해도 될듯~
+      self.t_follow *= interp(radarstate.leadOne.aLeadK, [-4, 0], [self.applyDynamicTFollowDecel, 1.0]) # 선행차의 accel텀은 이미 사용하고 있지만(aLeadK).... 그러나, t_follow에 추가로 적용시험
 
     self.comfort_brake = COMFORT_BRAKE
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
@@ -454,8 +460,8 @@ class LongitudinalMpc:
     # To estimate a safe distance from a moving lead, we calculate how much stopping
     # distance that lead needs as a minimum. We can add that to the current distance
     # and then treat that as a stopped car/obstacle at this new distance.
-    lead_0_obstacle = lead_xv_0[:,0] + get_stopped_equivalence_factor(lead_xv_0[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance)
-    lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance)
+    lead_0_obstacle = lead_xv_0[:,0] + get_stopped_equivalence_factor(lead_xv_0[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance, krkeegan=self.applyLongDynamicCost)
+    lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance, krkeegan=self.applyLongDynamicCost)
     self.params[:,0] = MIN_ACCEL
     self.params[:,1] = self.max_a
 
@@ -485,10 +491,12 @@ class LongitudinalMpc:
         stopSign = 1 if self.stopSignCount > 0.3 * DT_MDL else 0
 
         if self.xState == "E2E_STOP": # and abs(self.xStop - model_x) < 20.0:
-          self.xStop = self.xStopFilter.process(model_x, median = True)  # -v_ego는 longitudinalPlan에서 v_ego만큼 더해서 나옴.. 마지막에 급감속하는 문제가 발생..
+          stopFilterX = self.xStopFilter.process(model_x, median = True)  # -v_ego는 longitudinalPlan에서 v_ego만큼 더해서 나옴.. 마지막에 급감속하는 문제가 발생..
+          self.xStop = self.xStopFilter2.process(stopFilterX)
         else:
           self.xStop = model_x
           self.xStopFilter.set(model_x)
+          self.xStopFilter2.set(model_x)
           
         model_x = self.xStop
 

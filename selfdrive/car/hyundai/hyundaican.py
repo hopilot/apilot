@@ -20,7 +20,7 @@ def create_lkas11(packer, frame, car_fingerprint, apply_steer, steer_req,
   values["CF_Lkas_ToiFlt"] = torque_fault  # seems to allow actuation on CR_Lkas_StrToqReq
   values["CF_Lkas_MsgCount"] = frame % 0x10
 
-  if car_fingerprint in FEATURES["send_lfa_mfa"]:
+  if car_fingerprint in FEATURES["send_lfa_mfa"] and car_fingerprint not in [CAR.HYUNDAI_GENESIS]:
   #if car_fingerprint in (CAR.SONATA, CAR.PALISADE, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021, CAR.SANTA_FE,
   #                       CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_SELTOS, CAR.ELANTRA_2021, CAR.GENESIS_G70_2020,
   #                       CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_EV, CAR.KONA_HEV, CAR.KONA_EV_2022,
@@ -103,9 +103,9 @@ def create_clu11_button(packer, frame, clu11, button, car_fingerprint):
 def create_lfahda_mfc(packer, CC):
   values = {
     "LFA_Icon_State": 3 if CC.latOverride else 2 if CC.latActive else 1 if CC.latEnabled else 0,
-    "HDA_Active": 1 if CC.activeHda else 0,
-    "HDA_Icon_State": 2 if CC.activeHda else 0,
-    "HDA_VSetReq": CC.activeHda, #enabled,
+    "HDA_Active": 1 if CC.activeHda > 0 else 0,
+    "HDA_Icon_State": int(CC.activeHda),
+    "HDA_VSetReq": 1 if CC.activeHda > 0 else 0, #enabled,
     "HDA_USM" : 2,
     "HDA_Icon_Wheel" : 1 if CC.latActive else 0,
     "HDA_Chime" : 1 if CC.latEnabled else 0,
@@ -126,21 +126,20 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   longActive = CC.longActive
   radarAlarm = hud_control.radarAlarm
   stopReq = 1 if stopping and longEnabled else 0
-  accel = accel if longActive else 0.0
+  accel = accel if longEnabled else 0.0
   d = hud_control.objDist
   objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
   objGap2 = 0 if objGap == 0 else 2 if hud_control.objRelSpd < 0.0 else 1
-  if not longEnabled:
-    accel = 0
 
   driverOverride =  CS.out.driverOverride  #1:gas, 2:braking, 0: normal
   if enabled:
     scc12_accMode = 2 if long_override else 0 if brakePressed else 1 if longActive else 0 #Brake, Accel, LongActiveUser < 0
     scc14_accMode = 4 if long_override or not longEnabled else 4 if brakePressed else 1 if longActive else 0
-    if softHold and brakePressed and longActive:
-      scc12_accMode = 1
-      scc14_accMode = 1
-      stopReq = 1
+    if softHold and brakePressed and longEnabled: #longActive:
+      #scc12_accMode = 1
+      #scc14_accMode = 1
+      #stopReq = 1
+      pass
     comfortBandUpper = 0.0
     comfortBandLower = 0.0
     jerkUpperLimit = upper_jerk

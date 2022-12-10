@@ -339,6 +339,15 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     }
   }
 
+  if (addr == 1056 && hyundai_auto_engage) {
+      int mainModeACC = GET_BYTE(to_send, 0) & 0x1U;
+
+      if (mainModeACC == 1) {
+          controls_allowed = 1;
+          hyundai_auto_engage = 0;
+      }
+  }
+
   apilot_connected = true;
   if (addr == 832) {
       LKAS11_lastTxTime = microsecond_timer_get();

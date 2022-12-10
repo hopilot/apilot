@@ -753,11 +753,14 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   // auto hold
   const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
   const auto cs = sm["controlsState"].getControlsState();
+  auto car_control = sm["carControl"].getCarControl();
+  auto hud_control = car_control.getHudControl();
+
   QString xState = lp.getXState().cStr();
   int enabled = cs.getEnabled();
   int brake_hold = car_state.getBrakeHoldActive();
-  int autohold = (xState == "SOFT_HOLD") ? 1 : 0;
-  if(s->scene.longitudinal_control) autohold = (enabled && xState == "SOFT_HOLD") ? 1 : 0;
+  int autohold = (hud_control.getSoftHold()) ? 1 : 0;
+  if(s->scene.longitudinal_control) autohold = (enabled && hud_control.getSoftHold()) ? 1 : 0;
   else autohold = (brake_hold > 0) ? 1 : 0;
   if(true) {
 

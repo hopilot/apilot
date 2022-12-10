@@ -199,6 +199,8 @@ class Controls:
     self.pcmLongSpeed = 100.0
     self.cruiseButtonCounter = 0
     self.v_future = 100
+    self.enableAutoEngage = Params().get_bool("EnableAutoEngage")
+    self.powerOnTimer = 0
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
 
@@ -577,11 +579,16 @@ class Controls:
 
     # DISABLED
     elif self.state == State.disabled:
-      if self.events.any(ET.ENABLE):
+      autoEngage = False
+      self.powerOnTimer = self.powerOnTimer + 1 if self.powerOnTimer < 100000 else 100000
+      if self.powerOnTimer > 300 and (self.enableAutoEngage and CS.gearShifter in [GearShifter.drive] and not self.events.any(ET.NO_ENTRY)):
+        autoEngage = True
+      if self.events.any(ET.ENABLE) or autoEngage:
         if self.events.any(ET.NO_ENTRY):
           self.current_alert_types.append(ET.NO_ENTRY)
 
         else:
+          self.enableAutoEngage = False
           if self.events.any(ET.PRE_ENABLE):
             self.state = State.preEnabled
           elif self.events.any(ET.OVERRIDE_LATERAL) or self.events.any(ET.OVERRIDE_LONGITUDINAL):
@@ -628,11 +635,11 @@ class Controls:
                    CS.vEgo > self.CP.minSteerSpeed and not CS.standstill and CC.latEnabled
     #CC.longActive = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
     CC.latOverride = CC.latActive and self.events.any(ET.OVERRIDE_LATERAL)
-    longOverrideFlag = self.events.any(ET.OVERRIDE_LONGITUDINAL)
+    longOverrideFlag = self.events.any(ET.OVERRIDE_LONGITUDINAL) or CS.brakeHoldActive
     longActiveUser = self.cruise_helper.longActiveUser
     longActiveEnabled = CC.longEnabled and longActiveUser > 0 #롱컨 레디~
 
-    CC.longActive = longActiveEnabled and not longOverrideFlag
+    CC.longActive = longActiveEnabled and not longOverrideFlag# and not CS.brakeHoldActive
     CC.longOverride = longActiveEnabled and longOverrideFlag
 
     if not CC.longEnabled:
@@ -642,7 +649,7 @@ class Controls:
 
     hudControl = CC.hudControl
     xState = self.sm['longitudinalPlan'].xState
-    hudControl.softHold = True if xState == "SOFT_HOLD" else False
+    hudControl.softHold = True if xState == "SOFT_HOLD" and CC.longEnabled else False
 
 
     actuators = CC.actuators
