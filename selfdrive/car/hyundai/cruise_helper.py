@@ -197,6 +197,10 @@ class CruiseHelper:
 
   def update_cruise_buttons(self, enabled, buttonEvents, v_cruise_kph, metric):
     global ButtonCnt, LongPressed, ButtonPrev
+
+    button_speed_up_diff = 1
+    button_speed_dn_diff = 10 if self.cruiseButtonMode in [3] else 1
+
     button_type = 0
     if enabled:
       if ButtonCnt:
@@ -207,10 +211,10 @@ class CruiseHelper:
           ButtonPrev = b.type
         elif not b.pressed and ButtonCnt:
           if not LongPressed and b.type == ButtonType.accelCruise:
-            v_cruise_kph += 1 if metric else 1 * CV.MPH_TO_KPH
+            v_cruise_kph += button_speed_up_diff if metric else button_speed_up_diff * CV.MPH_TO_KPH
             button_type = ButtonType.accelCruise
           elif not LongPressed and b.type == ButtonType.decelCruise:
-            v_cruise_kph -= 1 if metric else 1 * CV.MPH_TO_KPH
+            v_cruise_kph -= button_speed_dn_diff if metric else button_speed_dn_diff * CV.MPH_TO_KPH
             button_type = ButtonType.decelCruise
           elif not LongPressed and b.type == ButtonType.gapAdjustCruise:
             pass

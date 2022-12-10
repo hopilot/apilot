@@ -154,6 +154,7 @@ static void update_state(UIState *s) {
     }
   } else if ((s->sm->frame - s->sm->rcv_frame("pandaStates")) > 5*UI_FREQ) {
     scene.pandaType = cereal::PandaState::PandaType::UNKNOWN;
+    scene.ignition = false;
   }
   if (sm.updated("carParams")) {
     scene.longitudinal_control = sm["carParams"].getCarParams().getOpenpilotLongitudinalControl();
@@ -351,7 +352,6 @@ void Device::updateWakefulness(const UIState &s) {
   } else if (interactive_timeout > 0 && --interactive_timeout == 0) {
     emit interactiveTimout();
   }
-
   setAwake(s.scene.ignition || interactive_timeout > 0);
 }
 
