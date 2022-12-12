@@ -199,7 +199,7 @@ class Controls:
     self.pcmLongSpeed = 100.0
     self.cruiseButtonCounter = 0
     self.v_future = 100
-    self.enableAutoEngage = Params().get_bool("EnableAutoEngage")
+    self.enableAutoEngage = Params().get_bool("EnableAutoEngage") and self.CP.openpilotLongitudinalControl
     self.powerOnTimer = 0
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
@@ -635,7 +635,9 @@ class Controls:
                    CS.vEgo > self.CP.minSteerSpeed and not CS.standstill and CC.latEnabled
     #CC.longActive = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
     CC.latOverride = CC.latActive and self.events.any(ET.OVERRIDE_LATERAL)
-    longOverrideFlag = self.events.any(ET.OVERRIDE_LONGITUDINAL) or CS.brakeHoldActive
+    longOverrideFlag = self.events.any(ET.OVERRIDE_LONGITUDINAL) # or CS.brakeHoldActive
+    if CS.brakeHoldActive:
+      self.cruise_helper.longActiveUser = 0
     longActiveUser = self.cruise_helper.longActiveUser
     longActiveEnabled = CC.longEnabled and longActiveUser > 0 #롱컨 레디~
 
