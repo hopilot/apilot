@@ -581,7 +581,8 @@ class Controls:
     elif self.state == State.disabled:
       autoEngage = False
       self.powerOnTimer = self.powerOnTimer + 1 if self.powerOnTimer < 100000 else 100000
-      if self.powerOnTimer > 300 and (self.enableAutoEngage and CS.gearShifter in [GearShifter.drive] and not self.events.any(ET.NO_ENTRY)):
+      ## 시간지연 넣어봐야 LKAS에러는 오히려 더 많이남... 3초지연을 다시 즉시로 수정함.. 대신판다에서 violation이 나오면 forwarding하는 방법으로 임시조치..
+      if self.powerOnTimer > 0 and (self.enableAutoEngage and CS.gearShifter in [GearShifter.drive] and not self.events.any(ET.NO_ENTRY)):
         autoEngage = True
       if self.events.any(ET.ENABLE) or autoEngage:
         if self.events.any(ET.NO_ENTRY):
@@ -635,9 +636,7 @@ class Controls:
                    CS.vEgo > self.CP.minSteerSpeed and not CS.standstill and CC.latEnabled
     #CC.longActive = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
     CC.latOverride = CC.latActive and self.events.any(ET.OVERRIDE_LATERAL)
-    longOverrideFlag = self.events.any(ET.OVERRIDE_LONGITUDINAL) # or CS.brakeHoldActive
-    if CS.brakeHoldActive:
-      self.cruise_helper.longActiveUser = 0
+    longOverrideFlag = self.events.any(ET.OVERRIDE_LONGITUDINAL) or CS.brakeHoldActive
     longActiveUser = self.cruise_helper.longActiveUser
     longActiveEnabled = CC.longEnabled and longActiveUser > 0 #롱컨 레디~
 
