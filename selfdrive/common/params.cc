@@ -244,9 +244,9 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "PrevCruiseGap", PERSISTENT },
     { "InitMyDrivingMode", PERSISTENT },
     { "MyDrivingMode", PERSISTENT },
+    { "MySafeModeFactor", PERSISTENT },
+    { "MyEcoModeFactor", PERSISTENT },
     { "AutoSyncCruiseSpeed", PERSISTENT },
-    { "LongitudinalActuatorDelayLowerBound", PERSISTENT },
-    { "LongitudinalActuatorDelayUpperBound", PERSISTENT },
     { "StopDistance", PERSISTENT },
     { "CustomMapbox", PERSISTENT },
     { "CustomMapboxTokenPk", PERSISTENT },
@@ -268,7 +268,8 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"OPKRTimeZone", PERSISTENT},
     { "KeepEngage", PERSISTENT },
     { "UseLanelines", PERSISTENT },
-    { "PathOffset", PERSISTENT },        
+    { "PathOffset", PERSISTENT },
+    { "HapticFeedbackWhenSpeedCamera", PERSISTENT },        
 };
 
 } // namespace

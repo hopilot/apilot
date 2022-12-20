@@ -274,6 +274,16 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     tx = msg_allowed(to_send, HYUNDAI_TX_MSGS, sizeof(HYUNDAI_TX_MSGS)/sizeof(HYUNDAI_TX_MSGS[0]));
   }
 
+  if (addr == 1056 && hyundai_auto_engage) {
+      int mainModeACC = GET_BYTE(to_send, 0) & 0x1U;
+
+      if (mainModeACC == 1) {
+          controls_allowed = 1;
+          hyundai_auto_engage = 0;
+          LKAS11_forwarding = true;
+      }
+  }
+
   // FCA11: Block any potential actuation
   if (addr == 909) {
     int CR_VSM_DecCmd = GET_BYTE(to_send, 1);
@@ -282,6 +292,7 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
 
     if ((CR_VSM_DecCmd != 0) || (FCA_CmdAct != 0) || (CF_VSM_DecCmdAct != 0)) {
       tx = 0;
+      puts("violation[FCA11, 909]\n");
     }
   }
 
@@ -307,6 +318,7 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     violation |= (aeb_req != 0);
 
     if (violation) {
+        puts("violation[1057]\n");
       tx = 0;
     }
   }
@@ -314,11 +326,12 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
   // LKA STEER: safety check
   if (addr == 832) {
     int desired_torque = ((GET_BYTES_04(to_send) >> 16) & 0x7ffU) - 1024U;
-    bool steer_req = GET_BIT(to_send, 27U) != 0U;
+    bool steer_req = 1;// GET_BIT(to_send, 27U) != 0U;
 
     if (steer_torque_cmd_checks(desired_torque, steer_req, HYUNDAI_STEERING_LIMITS)) {
       tx = 0;
-      LKAS11_forwarding = true;
+      LKAS11_forwarding = false;// true;
+      puts("violation[LKAS11, 832]\n");
     }
     else LKAS11_forwarding = false;
   }
@@ -340,15 +353,6 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     if (!(allowed_resume || allowed_cancel || allowed_set)) {
       tx = 0;
     }
-  }
-
-  if (addr == 1056 && hyundai_auto_engage) {
-      int mainModeACC = GET_BYTE(to_send, 0) & 0x1U;
-
-      if (mainModeACC == 1) {
-          controls_allowed = 1;
-          hyundai_auto_engage = 0;
-      }
   }
 
   apilot_connected = true;

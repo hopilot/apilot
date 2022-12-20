@@ -29,7 +29,7 @@ from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.locationd.calibrationd import Calibration
 from selfdrive.hardware import HARDWARE, TICI, EON
 from selfdrive.manager.process_config import managed_processes
-from selfdrive.car.hyundai.cruise_helper import CruiseHelper
+from selfdrive.controls.lib.cruise_helper import CruiseHelper
 
 GearShifter = car.CarState.GearShifter
 
@@ -48,6 +48,7 @@ ThermalStatus = log.DeviceState.ThermalStatus
 State = log.ControlsState.OpenpilotState
 PandaType = log.PandaState.PandaType
 Desire = log.LateralPlan.Desire
+XState = log.LongitudinalPlan.XState
 LaneChangeState = log.LateralPlan.LaneChangeState
 LaneChangeDirection = log.LateralPlan.LaneChangeDirection
 EventName = car.CarEvent.EventName
@@ -200,7 +201,10 @@ class Controls:
     self.cruiseButtonCounter = 0
     self.v_future = 100
     self.enableAutoEngage = Params().get_bool("EnableAutoEngage") and self.CP.openpilotLongitudinalControl
-    self.powerOnTimer = 0
+    self.autoEngageCounter = 200
+    self.right_lane_visible = False
+    self.left_lane_visible = False
+
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
 
@@ -580,9 +584,10 @@ class Controls:
     # DISABLED
     elif self.state == State.disabled:
       autoEngage = False
-      self.powerOnTimer = self.powerOnTimer + 1 if self.powerOnTimer < 100000 else 100000
-      ## 시간지연 넣어봐야 LKAS에러는 오히려 더 많이남... 3초지연을 다시 즉시로 수정함.. 대신판다에서 violation이 나오면 forwarding하는 방법으로 임시조치..
-      if self.powerOnTimer > 0 and (self.enableAutoEngage and CS.gearShifter in [GearShifter.drive] and not self.events.any(ET.NO_ENTRY)):
+      ## 오토인게이지 조건시, 시간지연....
+      if self.autoEngageCounter > 0 and (self.enableAutoEngage and CS.gearShifter in [GearShifter.drive] and not self.events.any(ET.NO_ENTRY)):
+        self.autoEngageCounter -= 1
+      elif self.autoEngageCounter == 0 and self.enableAutoEngage:
         autoEngage = True
       if self.events.any(ET.ENABLE) or autoEngage:
         if self.events.any(ET.NO_ENTRY):
@@ -650,7 +655,7 @@ class Controls:
 
     hudControl = CC.hudControl
     xState = self.sm['longitudinalPlan'].xState
-    hudControl.softHold = True if xState == "SOFT_HOLD" and CC.longEnabled else False
+    hudControl.softHold = True if xState == XState.softHold and CC.longEnabled else False
 
 
     actuators = CC.actuators
@@ -668,8 +673,7 @@ class Controls:
 
     if not self.joystick_mode:
       # accel PID loop
-      ecoSpeed = self.cruise_helper.accelLimitEcoSpeed or (self.cruise_helper.position_x < 20.0 and self.cruise_helper.accelLimitConfusedModel)
-      pid_accel_limits = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_helper.v_cruise_kph * CV.KPH_TO_MS, CS.myDrivingMode <= 2, ecoSpeed) # cruiseGap이 1,2는 연비운전모드
+      pid_accel_limits = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_helper.v_cruise_kph * CV.KPH_TO_MS)
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
       actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan, CC)
       #self.debugText2 = 'Accel=[{:1.2f}]: {:1.2f},{:1.2f}'.format(actuators.accel, pid_accel_limits[0], pid_accel_limits[1])
@@ -772,16 +776,18 @@ class Controls:
     else:
       hudControl.setSpeed = float(max(1, min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply) * CV.KPH_TO_MS)) #float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
 
-    #hudControl.softHold = True if self.sm['longitudinalPlan'].xState == "SOFT_HOLD" and self.cruise_helper.longActiveUser>0 else False
+    #hudControl.softHold = True if self.sm['longitudinalPlan'].xState == XState.softHold and self.cruise_helper.longActiveUser>0 else False
     hudControl.radarAlarm = True if self.cruise_helper.radarAlarmCount > 1000 else False
     hudControl.speedVisible = self.enabled
     hudControl.lanesVisible = self.enabled
     hudControl.leadVisible = self.sm['longitudinalPlan'].hasLead
 
-    hudControl.rightLaneVisible = True
-    hudControl.leftLaneVisible = True
+    hudControl.rightLaneVisible = self.right_lane_visible
+    hudControl.leftLaneVisible = self.left_lane_visible
+    #hudControl.rightLaneVisible = True
+    #hudControl.leftLaneVisible = True
 
-    hudControl.cruiseGap = CS.cruiseGap
+    hudControl.cruiseGap = self.sm['longitudinalPlan'].cruiseGap #CS.cruiseGap
     hudControl.objDist = int(self.cruise_helper.dRel)
     hudControl.objRelSpd = self.cruise_helper.vRel
 
@@ -791,9 +797,18 @@ class Controls:
 
     model_v2 = self.sm['modelV2']
     desire_prediction = model_v2.meta.desirePrediction
-    if len(desire_prediction) and ldw_allowed:
+
+    if len(desire_prediction):
       right_lane_visible = model_v2.laneLineProbs[2] > 0.5
       left_lane_visible = model_v2.laneLineProbs[1] > 0.5
+      if self.sm.frame % 100 == 0:
+        self.right_lane_visible = right_lane_visible
+        self.left_lane_visible = left_lane_visible
+
+    if len(desire_prediction) and ldw_allowed:
+      #right_lane_visible = model_v2.laneLineProbs[2] > 0.5
+      #left_lane_visible = model_v2.laneLineProbs[1] > 0.5
+
       l_lane_change_prob = desire_prediction[Desire.laneChangeLeft - 1]
       r_lane_change_prob = desire_prediction[Desire.laneChangeRight - 1]
 
@@ -871,11 +886,19 @@ class Controls:
     controlsState.debugText2 = self.debugText2
     controlsState.longActiveUser = self.cruise_helper.longActiveUser
     controlsState.cruiseButtonCounter = self.cruiseButtonCounter
+    controlsState.longCruiseGap = self.cruise_helper.longCruiseGap if self.CP.openpilotLongitudinalControl else CS.cruiseGap
+    controlsState.myDrivingMode = self.cruise_helper.myDrivingMode
+    controlsState.mySafeModeFactor = self.cruise_helper.mySafeModeFactor
 
     controlsState.upAccelCmd = float(self.LoC.pid.p)
     controlsState.uiAccelCmd = float(self.LoC.pid.i)
     controlsState.ufAccelCmd = float(self.LoC.pid.f)
     controlsState.cumLagMs = -self.rk.remaining * 1000.
+
+    #print("cumLagMsg={:5.2f}".format(-self.rk.remaining * 1000.))
+    self.debugText1 = 'cumLagMs={:5.1f}'.format(-self.rk.remaining * 1000.)
+    controlsState.debugText1 = self.debugText1
+
     controlsState.startMonoTime = int(start_time * 1e9)
     controlsState.forceDecel = bool(force_decel)
     controlsState.canErrorCounter = self.can_rcv_timeout_counter
@@ -959,9 +982,14 @@ class Controls:
 
   def controlsd_thread(self):
     while True:
+      initialized_prev = self.initialized
       self.step()
       self.rk.monitor_time()
       self.prof.display()
+
+      # ajouatom: CI.init()할때  lag가 disable_ecu(), enable_radar_tracks()로 인해 발생함... 초기화가 필요함. 
+      if self.initialized and not initialized_prev:
+        self.rk.reset_time()
 
 
 def main(sm=None, pm=None, logcan=None):

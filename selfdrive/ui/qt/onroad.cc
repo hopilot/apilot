@@ -136,9 +136,8 @@ void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
   QRect opRect(rect().right() - 300, 0, 300, 300);
   const SubMaster& sm = *(uiState()->sm);
   if (gapRect.contains(e->x(), e->y())) {
-      
-      auto car_state = sm["carState"].getCarState();
-      int myDrivingMode = car_state.getMyDrivingMode();
+      const auto cs = sm["controlsState"].getControlsState();
+      int myDrivingMode = cs.getMyDrivingMode();
       myDrivingMode++;
       if (myDrivingMode > 4) myDrivingMode = 1;
       QString values = QString::number(myDrivingMode);
@@ -295,6 +294,8 @@ void AnnotatedCameraWidget::initializeGL() {
 
   ic_trafficLight_green = QPixmap("../assets/images/traffic_green.png");
   ic_trafficLight_red = QPixmap("../assets/images/traffic_red.png");
+  ic_trafficLight_x = QPixmap("../assets/images/traffic_x.png");
+  ic_trafficLight_none = QPixmap("../assets/images/traffic_none.png");
   ic_navi = QPixmap("../assets/images/img_navi.png");
   ic_scc2 = QPixmap("../assets/images/img_scc2.png");
   ic_radartracks = QPixmap("../assets/images/img_radartracks.png");
@@ -519,6 +520,7 @@ void AnnotatedCameraWidget::drawIcon(QPainter &p, int x, int y, QPixmap &img, QB
   p.drawEllipse(x - radius / 2, y - radius / 2, radius, radius);
   p.setOpacity(opacity);
   //p.drawPixmap(x - img_size / 2, y - img_size / 2, img_size, img_size, img);
+  rotate = 0.0;
   if (rotate < 0.0 || rotate >0.0) {
       QMatrix rm;
       rm.rotate(rotate);
@@ -578,23 +580,22 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   //const auto live_params = sm["liveParameters"].getLiveParameters();
   const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
 
-  int trafficLight = 0;
   int TRsign_w = 140;
   int TRsign_h = 250;
   int TRsign_x = 65;
-  int TRsign_y = 520;
-  prev_traffic_state = (lp.getTrafficState() == 2) ? 2 : (lp.getTrafficState() == 1) ? 1 : prev_traffic_state;
-  if (prev_traffic_state == 2) {
-      trafficLight = 1;
-      p.setOpacity(0.8);
-      p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_green);
+  int TRsign_y = 550;
+
+  p.setOpacity(0.8);
+  if (lp.getTrafficState() >= 100) {
+      p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_x);
   }
-  else if (prev_traffic_state == 1) {
-      //ui_draw_image(s, { TRsign_x, TRsign_y, TRsign_w, TRsign_h }, "trafficLight_red", 0.8f);
-      //ui_draw_image(s, { 960 - 175 + 420, 540 - 150, 350, 350 }, "stopman", 0.8f);
-      trafficLight = 2;
-      p.setOpacity(0.8);
-      p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_red);
+  else {
+      switch (lp.getTrafficState() % 100) {
+      case 0: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_none); break;
+      case 1: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_red); break;
+      case 2: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_green); break;
+      case 3: p.drawPixmap(TRsign_x, TRsign_y, TRsign_w, TRsign_h, ic_trafficLight_x); break;
+      }
   }
 
   QString infoText1, infoText2;
@@ -602,10 +603,12 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   infoText2 = lp.getDebugLongText2().cStr();
 
   p.save();
-  configFont(p, "Inter", 34, "Regular");
-  p.setPen(QColor(0xff, 0xff, 0xff, 200));
-  p.drawText(rect().left() + 20, rect().height() - 15, infoText1);
-  p.drawText(rect().left() + 20, rect().height() - 45, infoText2);
+  if (s->show_debug) {
+      configFont(p, "Inter", 34, "Regular");
+      p.setPen(QColor(0xff, 0xff, 0xff, 200));
+      p.drawText(rect().left() + 20, rect().height() - 15, infoText1);
+      p.drawText(rect().left() + 20, rect().height() - 45, infoText2);
+  }
 
   auto car_state = sm["carState"].getCarState();
   float steer_angle =  car_state.getSteeringAngleDeg();
@@ -659,6 +662,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   p.save();
   const SubMaster &sm = *(uiState()->sm);
   auto car_state = sm["carState"].getCarState();
+  const auto controls_state = sm["controlsState"].getControlsState();
   //auto scc_smoother = sm["carControl"].getCarControl().getSccSmoother();
   UIState* s = uiState();
 
@@ -698,8 +702,8 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   const int y = rect().bottom() - footer_h / 2 - 10;
 
   // cruise gap
-  int gap = car_state.getCruiseGap();
-  int myDrivingMode = car_state.getMyDrivingMode();
+  int gap = controls_state.getLongCruiseGap(); // car_state.getCruiseGap();
+  int myDrivingMode = controls_state.getMyDrivingMode();
   //bool longControl = 0;// scc_smoother.getLongControl();
   //int autoTrGap = 0;// scc_smoother.getAutoTrGap();
 
@@ -737,7 +741,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   {
   case 0: strDrivingMode = "GAP"; break;
   case 1: strDrivingMode = "연비"; break;
-  case 2: strDrivingMode = "관성"; break;
+  case 2: strDrivingMode = "안전"; break;
   case 3: strDrivingMode = "일반"; break;
   case 4: strDrivingMode = "고속"; break;
   }
@@ -755,12 +759,12 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   drawIcon(p, x, y, ic_brake, QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
 
   // auto hold
-  const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
+  //const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
   const auto cs = sm["controlsState"].getControlsState();
   auto car_control = sm["carControl"].getCarControl();
   auto hud_control = car_control.getHudControl();
 
-  QString xState = lp.getXState().cStr();
+  //int xState = lp.getXState();
   int enabled = cs.getEnabled();
   int brake_hold = car_state.getBrakeHoldActive();
   int autohold = (hud_control.getSoftHold()) ? 1 : 0;
@@ -835,9 +839,9 @@ void AnnotatedCameraWidget::drawSpeed(QPainter &p) {
       QTextOption  textOpt = QTextOption(Qt::AlignLeft);
       configFont(p, "Open Sans", 110, "Bold");
       //p.drawText(QRect(270, 50, width(), 500), QDateTime::currentDateTime().toString("hh:mmap"), textOpt);
-      p.drawText(QRect(280, 35, width(), 500), QDateTime::currentDateTime().toString("hh시mm분"), textOpt);
-      configFont(p, "Open Sans", 60, "Bold");
-      p.drawText(QRect(280, 35 + 150, width(), 500), QDateTime::currentDateTime().toString("MM월dd일(ddd)"), textOpt);
+      p.drawText(QRect(280, 35, width(), 500), QDateTime::currentDateTime().toString("hh:mm"), textOpt);
+      configFont(p, "Open Sans", 50, "Bold");
+      p.drawText(QRect(280, 35 + 150, width(), 500), QDateTime::currentDateTime().toString("MM월 dd일 (ddd)"), textOpt);
   }
 
   p.restore();
@@ -897,24 +901,36 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   }
 
   int radar_tracks = Params().getBool("EnableRadarTracks");
+  QString nda_mode_str = QString::fromStdString(Params().get("AutoNaviSpeedCtrl"));
+  int nda_mode = nda_mode_str.toInt();
   // debug Code
   int w = 120;
+  int dx = w + 15;
   int h = 54;
-  int x = (width() + (bdr_s * 2)) / 2 - w / 2 - bdr_s;
+  int x = (width() + (bdr_s * 2)) / 2 - w / 2 - bdr_s - dx;
   int y = 40 - bdr_s;
 
-  if (navCluster == 1) p.drawPixmap(x + w + 15, y, w, h, ic_navi);
-  if (sccBus == 2) p.drawPixmap(x - w - 15, y, w, h, ic_scc2);
-  if (radar_tracks) p.drawPixmap(x + w * 2 + 15 + 15, y, w*2, h, ic_radartracks);
+  if (sccBus == 2) {
+      p.drawPixmap(x, y, w, h, ic_scc2); 
+      x += dx;
+  }
+  if (navCluster == 1 && nda_mode==2) {
+      p.drawPixmap(x, y, w, h, ic_navi); 
+      x += dx;
+  }
 
-  if (activeNDA > 0)
-  {
+  if (activeNDA > 0 && nda_mode>0) {
       p.setOpacity(1.f);
       p.drawPixmap(x, y, w, h, activeNDA == 1 ? ic_nda : ic_hda);
+      x += dx;
   }
   else {
       limit_speed = navi_info.getSpeedLimit();
       left_dist = navi_info.getDist();
+  }
+  if (radar_tracks) {
+      p.drawPixmap(x, y, w * 2, h, ic_radartracks);
+      x += (w + dx);
   }
 
 

@@ -68,7 +68,7 @@ const LogCameraInfo cameras_logged[] = {
     .has_qcamera = true,
     .trigger_rotate = true,
     .enable = true,
-    .record = true,
+    .record = false,
   },
   {
     .type = DriverCam,
@@ -81,7 +81,7 @@ const LogCameraInfo cameras_logged[] = {
     .has_qcamera = false,
     .trigger_rotate = Hardware::TICI(),
     .enable = true,
-    .record = Params().getBool("RecordFront"),
+    .record = false,//Params().getBool("RecordFront"),
   },
   {
     .type = WideRoadCam,
@@ -94,7 +94,7 @@ const LogCameraInfo cameras_logged[] = {
     .has_qcamera = false,
     .trigger_rotate = true,
     .enable = Hardware::TICI(),
-    .record = Hardware::TICI(),
+    .record = false,//Hardware::TICI(),
   },
 };
 const LogCameraInfo qcam_info = {

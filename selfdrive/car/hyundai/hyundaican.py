@@ -6,7 +6,7 @@ from selfdrive.car.hyundai.values import FEATURES
 
 hyundai_checksum = crcmod.mkCrcFun(0x11D, initCrc=0xFD, rev=False, xorOut=0xdf)
 
-def create_lkas11(packer, frame, car_fingerprint, apply_steer, steer_req,
+def create_lkas11(packer, frame, car_fingerprint, send_lfa_mfa, apply_steer, steer_req,
                   torque_fault, lkas11, sys_warning, sys_state, enabled,
                   left_lane, right_lane,
                   left_lane_depart, right_lane_depart):
@@ -20,7 +20,7 @@ def create_lkas11(packer, frame, car_fingerprint, apply_steer, steer_req,
   values["CF_Lkas_ToiFlt"] = torque_fault  # seems to allow actuation on CR_Lkas_StrToqReq
   values["CF_Lkas_MsgCount"] = frame % 0x10
 
-  if car_fingerprint in FEATURES["send_lfa_mfa"] and car_fingerprint not in [CAR.HYUNDAI_GENESIS]:
+  if send_lfa_mfa:
   #if car_fingerprint in (CAR.SONATA, CAR.PALISADE, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021, CAR.SANTA_FE,
   #                       CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_SELTOS, CAR.ELANTRA_2021, CAR.GENESIS_G70_2020,
   #                       CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_EV, CAR.KONA_HEV, CAR.KONA_EV_2022,
@@ -100,11 +100,11 @@ def create_clu11_button(packer, frame, clu11, button, car_fingerprint):
   return packer.make_can_msg("CLU11", bus, values)
 
 
-def create_lfahda_mfc(packer, CC):
+def create_lfahda_mfc(packer, CC, blinking_signal):
   values = {
     "LFA_Icon_State": 3 if CC.latOverride else 2 if CC.latActive else 1 if CC.latEnabled else 0,
     "HDA_Active": 1 if CC.activeHda > 0 else 0,
-    "HDA_Icon_State": 2 if CC.activeHda > 0 else 0,
+    "HDA_Icon_State": 0 if CC.activeHda > 1 and blinking_signal else 2 if CC.activeHda > 0 else 0,
     "HDA_VSetReq": 1 if CC.activeHda > 0 else 0, #enabled,
     "HDA_USM" : 2,
     "HDA_Icon_Wheel" : 1 if CC.latActive else 0,
@@ -130,6 +130,8 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   d = hud_control.objDist
   objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
   objGap2 = 0 if objGap == 0 else 2 if hud_control.objRelSpd < 0.0 else 1
+  if not longEnabled:
+    accel = 0
 
   driverOverride =  CS.out.driverOverride  #1:gas, 2:braking, 0: normal
   if enabled:
@@ -167,8 +169,6 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     #"ACC_ObjLatPos": 0,
     "ACC_ObjRelSpd": hud_control.objRelSpd,
     "ACC_ObjDist": hud_control.objDist, # close lead makes controls tighter
-    "Navi_SCC_Camera_Act": 2 if CC.activeHda == 2 else 0,
-    "Navi_SCC_Camera_Status": 2 if CC.activeHda == 2 else 0,
     "DriverAlertDisplay": 0,
     }
     commands.append(packer.make_can_msg("SCC11", 0, scc11_values))
@@ -185,8 +185,6 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     #values["ACC_ObjLatPos"] = 0
     values["ACC_ObjRelSpd"] = hud_control.objRelSpd
     values["ACC_ObjDist"] = hud_control.objDist
-    values["Navi_SCC_Camera_Act"] = 2 if CC.activeHda == 2 else 0
-    values["Navi_SCC_Camera_Status"] = 2 if CC.activeHda == 2 else 0
     values["DriverAlertDisplay"] = 0
     commands.append(packer.make_can_msg("SCC11", 0, values))
 

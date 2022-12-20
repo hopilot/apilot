@@ -9,7 +9,7 @@ from selfdrive.car import STD_CARGO_KG, create_button_event, scale_tire_stiffnes
 from selfdrive.car.interfaces import CarInterfaceBase
 from selfdrive.car.disable_ecu import disable_ecu
 from common.params import Params
-from selfdrive.car.hyundai.cruise_helper import enable_radar_tracks
+from selfdrive.controls.lib.cruise_helper import enable_radar_tracks
 
 Ecu = car.CarParams.Ecu
 ButtonType = car.CarState.ButtonEvent.Type
@@ -69,7 +69,8 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.PALISADE:
       ret.mass = 1999. + STD_CARGO_KG
       ret.wheelbase = 2.90
-      ret.steerRatio = 15.6 * 1.15
+      #ret.steerRatio = 15.6 * 1.15
+      ret.steerRatio = 13.96 # 지구별.
       tire_stiffness_factor = 0.63
     elif candidate == CAR.ELANTRA:
       ret.mass = 1275. + STD_CARGO_KG
@@ -385,17 +386,6 @@ class CarInterface(CarInterfaceBase):
 
       ret.buttonEvents = buttonEvents
 
-      if self.CS.cruise_buttons[-1] != 0: # and not self.CS.CP.openpilotLongitudinalControl:
-        # ajouatom
-        if self.CS.cruise_buttons[-1] == Buttons.GAP_DIST:
-          self.cruiseGap = 1 if self.cruiseGap == 4 else self.cruiseGap + 1
-          print("cruiseGap=", self.cruiseGap )
-          Params().put("PrevCruiseGap", str(self.cruiseGap))
-
-    if not self.CS.CP.openpilotLongitudinalControl:
-      self.cruiseGap = ret.cruiseGap
-
-    ret.cruiseGap = self.cruiseGap
     # On some newer model years, the CANCEL button acts as a pause/resume button based on the PCM state
     # To avoid re-engaging when openpilot cancels, check user engagement intention via buttons
     # Main button also can trigger an engagement on these cars

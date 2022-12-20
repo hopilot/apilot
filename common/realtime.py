@@ -66,6 +66,12 @@ class Ratekeeper:
   def remaining(self) -> float:
     return self._remaining
 
+  def reset_time(self):
+    self._next_frame_time = sec_since_boot() + self._interval
+    self._frame = 0
+    self._remaining = 0.0
+
+
   # Maintain loop rate by calling this at the end of each loop
   def keep_time(self) -> bool:
     lagged = self.monitor_time()
