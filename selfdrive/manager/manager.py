@@ -103,6 +103,7 @@ def manager_init() -> None:
     ("UseLanelines", "0"),    
     ("PathOffset", "0"),   
     ("HapticFeedbackWhenSpeedCamera", "0"),       
+    ("SoftHoldMode", "1"),       
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

@@ -269,7 +269,8 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "KeepEngage", PERSISTENT },
     { "UseLanelines", PERSISTENT },
     { "PathOffset", PERSISTENT },
-    { "HapticFeedbackWhenSpeedCamera", PERSISTENT },        
+    { "HapticFeedbackWhenSpeedCamera", PERSISTENT },
+    { "SoftHoldMode", PERSISTENT },
 };
 
 } // namespace

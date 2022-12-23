@@ -686,6 +686,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new ParamControl("UseLanelines", "레인모드사용", "", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new CValueControl("PathOffset", "차선치우침 좌우보정", "(-)좌측, (+)우측", "../assets/offroad/icon_road.png", -200, 200, 1));
   toggleLayout->addWidget(new CValueControl("HapticFeedbackWhenSpeedCamera", "핸들햅틱기능사용", "0:사용안함,1:진동,2:계기판,3:HUD표시", "../assets/offroad/icon_road.png", 0, 3, 1));
+  toggleLayout->addWidget(new CValueControl("SoftHoldMode", "소프트오토홀드기능(1)", "0:사용안함,1:사용,2:SCC제어와함께사용(단,사이드가 걸리는 차량이 있음)", "../assets/offroad/icon_road.png", 0, 2, 1));
 }
 
 TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {

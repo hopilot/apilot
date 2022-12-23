@@ -116,7 +116,7 @@ def create_lfahda_mfc(packer, CC, blinking_signal):
   # VAL_ 1157 HDA_SysWarning 0 "no_message" 1 "driving_convenience_systems_cancelled" 2 "highway_drive_assist_system_cancelled";
   return packer.make_can_msg("LFAHDA_MFC", 0, values)
 
-def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud_control, set_speed, stopping, CC, CS):
+def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud_control, set_speed, stopping, CC, CS, softHoldMode):
   lead_visible = hud_control.leadVisible
   cruiseGap = hud_control.cruiseGap
   softHold = hud_control.softHold
@@ -137,11 +137,10 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   if enabled:
     scc12_accMode = 2 if long_override else 0 if brakePressed else 1 if longActive else 0 #Brake, Accel, LongActiveUser < 0
     scc14_accMode = 4 if long_override or not longEnabled else 4 if brakePressed else 1 if longActive else 0
-    if softHold and brakePressed and longEnabled: #longActive:
-      #scc12_accMode = 1
-      #scc14_accMode = 1
-      #stopReq = 1
-      pass
+    if softHold and brakePressed and longEnabled and softHoldMode == 2: #longActive:
+      scc12_accMode = 1
+      scc14_accMode = 1
+      stopReq = 1
     comfortBandUpper = 0.0
     comfortBandLower = 0.0
     jerkUpperLimit = upper_jerk

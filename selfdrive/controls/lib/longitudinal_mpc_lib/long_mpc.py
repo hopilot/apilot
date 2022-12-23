@@ -238,6 +238,7 @@ class LongitudinalMpc:
     self.applyDynamicTFollow = 1.0
     self.applyDynamicTFollowApart = 1.0
     self.applyDynamicTFollowDecel = 1.0
+    self.softHoldMode = 1
     self.tFollowRatio = 1.0
     self.stopDistance = STOP_DISTANCE
     self.softHoldTimer = 0
@@ -427,6 +428,7 @@ class LongitudinalMpc:
       self.applyDynamicTFollowDecel = float(int(Params().get("ApplyDynamicTFollowDecel", encoding="utf8"))) / 100.
     elif self.lo_timer == 140:
       self.tFollowRatio = float(int(Params().get("TFollowRatio", encoding="utf8"))) / 100.     
+      self.softHoldMode = int(Params().get("SoftHoldMode", encoding="utf8"))
 
     self.trafficState = 0
     self.debugLongText1 = ""
@@ -512,7 +514,7 @@ class LongitudinalMpc:
           self.trafficState += 100  # 이렇게하면.... 이벤트발생이 안됨...
 
         # SOFT_HOLD: 기능
-        if carstate.brakePressed and v_ego < 0.1:  
+        if carstate.brakePressed and v_ego < 0.1 and self.softHoldMode > 0:  
           self.softHoldTimer += 1
           if self.softHoldTimer*DT_MDL >= 0.7: 
             self.xState = XState.softHold
