@@ -50,8 +50,13 @@ class CarInterface(CarInterfaceBase):
     ret.steerRatio = 16.
     tire_stiffness_factor = 1.
     CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
-
-    if candidate in (CAR.SANTA_FE, CAR.SANTA_FE_2022, CAR.SANTA_FE_HEV_2022, CAR.SANTA_FE_PHEV_2022):
+    if candidate in (CAR.GRANDEUR_IG_FL, CAR.GRANDEUR_IG_FL_HEV):
+      ret.mass = 1675. + STD_CARGO_KG
+      ret.wheelbase = 2.885
+      ret.steerRatio = 16.5  
+      tire_stiffness_factor = 0.8
+      ret.steerActuatorDelay = 0.25
+    elif candidate in (CAR.SANTA_FE, CAR.SANTA_FE_2022, CAR.SANTA_FE_HEV_2022, CAR.SANTA_FE_PHEV_2022):
       ret.mass = 3982. * CV.LB_TO_KG + STD_CARGO_KG
       ret.wheelbase = 2.766
       # Values from optimizer
@@ -225,12 +230,6 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1570. + STD_CARGO_KG
       ret.wheelbase = 2.845
       ret.steerRatio = 16.
-      tire_stiffness_factor = 0.8
-      ret.centerToFront = ret.wheelbase * 0.385
-    elif candidate in [CAR.GRANDEUR_IG_FL, CAR.GRANDEUR_IG_FL_HEV]:
-      ret.mass = 1600. + STD_CARGO_KG
-      ret.wheelbase = 2.885
-      ret.steerRatio = 17.
       tire_stiffness_factor = 0.8
       ret.centerToFront = ret.wheelbase * 0.385
     elif candidate == CAR.NEXO: # fix PolorBear - 22.06.05
