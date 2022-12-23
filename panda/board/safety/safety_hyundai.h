@@ -1,8 +1,8 @@
 #include "safety_hyundai_common.h"
 
 const SteeringLimits HYUNDAI_STEERING_LIMITS = {
-  .max_steer = 409,
-  .max_rt_delta = 112,
+  .max_steer = 800,
+  .max_rt_delta = 120,
   .max_rt_interval = 250000,
   .max_rate_up = 3,
   .max_rate_down = 7,
@@ -388,7 +388,7 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 
       //int block_msg = is_lkas11_msg || is_lfahda_mfc_msg || is_scc_msg;
       int block_msg = is_lfahda_mfc_msg || is_scc_msg;
-      block_msg |= (LKAS11_forwarding) ? 0 : is_lkas11_msg;  // LKAS¸Þ½ÃÁö¿¡ ºÒ·®ÀÌ ÀÖÀ¸¸é TX¸¦ ¾ÈÇÔ.. ¿©±â¼­ ±×³É Æ÷¿öµùÇØ¹ö¸®ÀÚ => ½ÃÇè..
+      block_msg |= (LKAS11_forwarding) ? 0 : is_lkas11_msg;  // LKASï¿½Þ½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ TXï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.. ï¿½ï¿½ï¿½â¼­ ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½ï¿½ï¿½ => ï¿½ï¿½ï¿½ï¿½..
 
       if (apilot_connected) {
           if (!block_msg) {
@@ -412,7 +412,7 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
           puts("diff="); puth(diff); puts("\n");
       }
       if (diff > 0x15000) {
-          apilot_connected = false;  // NeokiiÄÚµå ÂüÁ¶: ¿ÀÇÂÆÄÀÏ·µÀÌ Á×°Å³ª ÀçºÎÆÃÇÏ¸é,,,, °­Á¦·Î ²÷¾îÁÜ.
+          apilot_connected = false;  // Neokiiï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½×°Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½,,,, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
           puts("apilot may be reboot...\n");
           controls_allowed = false;
       }
