@@ -48,12 +48,10 @@ class CarControllerParams:
     elif CP.carFingerprint in (CAR.KIA_STINGER, CAR.KONA_HEV):
       self.STEER_MAX = 384
     # Default for most HKG
-    elif CP.carFingerprint in (CAR.GRANDEUR_IG_FL_HEV):
-      self.STEER_MAX = 800
-      self.STEER_DELTA_UP = 3
-      self.STEER_DELTA_DOWN = 5
     else:
       self.STEER_MAX = 409
+      self.STEER_DELTA_UP = 3
+      self.STEER_DELTA_DOWN = 5
 
 
 class HyundaiFlags(IntFlag):
