@@ -82,6 +82,7 @@ def manager_init() -> None:
     ("CruiseButtonMode", "0"),      
     ("InitMyDrivingMode", "3"),      
     ("MySafeModeFactor", "80"),      
+    ("LiveSteerRatioApply", "100"),      
     ("MyEcoModeFactor", "80"),      
     ("PrevCruiseGap", "4"),      
     ("AutoSyncCruiseSpeed", "1"),       

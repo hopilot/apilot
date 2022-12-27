@@ -711,7 +711,8 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     // 튜닝
     toggleLayout->addWidget(new CValueControl("StopDistance", "StopDistance(600cm)", "선행차와 정지하는 거리를 입력합니다.", "../assets/offroad/icon_road.png", 200, 1000, 50));
     toggleLayout->addWidget(new CValueControl("TrafficStopDistanceAdjust", "신호정지 위치 조정(200cm)", "+값으로 하면 정지선에 다가갑니다.", "../assets/offroad/icon_road.png", -1000, 1000, 10));
-    toggleLayout->addWidget(horizontal_line());
+    toggleLayout->addWidget(horizontal_line());    
+    toggleLayout->addWidget(new CValueControl("LiveSteerRatioApply", "종컨: LiveSteerRatioApply(100)", "", "../assets/offroad/icon_road.png", 50, 110, 1));
     toggleLayout->addWidget(new CValueControl("JerkUpperLowerLimit", "롱컨: JERK값(8)", "값이 커지면 가감속반응이 빨라지지만, 기분이 안좋음.", "../assets/offroad/icon_road.png", 5, 50, 1));
     toggleLayout->addWidget(new CValueControl("LongitudinalTuningKf", "롱컨: FF게인(110%)", "(시험용) ACCEL을 좀 더 강력하게 적용합니다.", "../assets/offroad/icon_road.png", 100, 120, 1));
     toggleLayout->addWidget(new CValueControl("LongitudinalTuningKpV", "롱컨: P게인(100)", "(시험용) ", "../assets/offroad/icon_road.png", 50, 150, 1));

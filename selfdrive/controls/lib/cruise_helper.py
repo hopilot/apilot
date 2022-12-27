@@ -101,6 +101,7 @@ class CruiseHelper:
     self.autoResumeFromGasSpeedMode = int(Params().get("AutoResumeFromGasSpeedMode"))
     self.myDrivingMode = int(Params().get("InitMyDrivingMode"))
     self.mySafeModeFactor = float(int(Params().get("MySafeModeFactor", encoding="utf8"))) / 100. if self.myDrivingMode == 2 else 1.0
+    self.liveSteerRatioApply  = float(int(Params().get("LiveSteerRatioApply", encoding="utf8"))) / 100.
 
   def update_params(self, frame):
     if frame % 20 == 0:
@@ -143,6 +144,7 @@ class CruiseHelper:
       elif self.update_params_count == 11:
         #self.myDrivingMode = int(Params().get("InitMyDrivingMode")) #초기에 한번만 읽어옴...
         self.mySafeModeFactor = float(int(Params().get("MySafeModeFactor", encoding="utf8"))) / 100. if self.myDrivingMode == 2 else 1.0
+        self.liveSteerRatioApply  = float(int(Params().get("LiveSteerRatioApply", encoding="utf8"))) / 100.
 
   @staticmethod
   def get_lead(sm):
@@ -421,7 +423,7 @@ class CruiseHelper:
               v_cruise_kph = 3
               self.cruise_control(controls, CS, -1)
               pass
-            elif v_cruise_kph > v_ego_kph_set+1 and self.cruiseButtonMode in [0,1,2]:
+            elif v_cruise_kph > v_ego_kph_set+1 and self.cruiseButtonMode in [1,2]:
               v_cruise_kph = v_ego_kph_set
               self.v_cruise_kph_backup = v_cruise_kph #버튼으로할땐 백업
             else:
