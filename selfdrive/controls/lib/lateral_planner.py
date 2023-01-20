@@ -23,7 +23,7 @@ LATERAL_JERK_COST = 0.05
 # when it does not cause bad jerk.
 # TODO this cost should be lowered when low
 # speed lateral control is stable on all cars
-STEERING_RATE_COST = 800.0
+STEERING_RATE_COST = 600.0
 
 
 class LateralPlanner:
@@ -116,7 +116,7 @@ class LateralPlanner:
 
     self.lat_mpc.set_weights(PATH_COST, LATERAL_MOTION_COST,
                              LATERAL_ACCEL_COST, LATERAL_JERK_COST,
-                             STEERING_RATE_COST)
+                             interp(self.v_ego, [2., 10.], [STEERING_RATE_COST, STEERING_RATE_COST/2.]))
 
     y_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(d_path_xyz, axis=1), d_path_xyz[:, 1])
     heading_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw)

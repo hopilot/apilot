@@ -55,7 +55,7 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.885
       ret.steerRatio = 16.5  
       tire_stiffness_factor = 0.8
-      ret.steerActuatorDelay = 0.25
+      ret.steerActuatorDelay = 0.40
     elif candidate in (CAR.SANTA_FE, CAR.SANTA_FE_2022, CAR.SANTA_FE_HEV_2022, CAR.SANTA_FE_PHEV_2022):
       ret.mass = 3982. * CV.LB_TO_KG + STD_CARGO_KG
       ret.wheelbase = 2.766
