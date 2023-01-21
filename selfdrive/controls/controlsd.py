@@ -319,8 +319,14 @@ class Controls:
     # Handle lane change
     if self.sm['lateralPlan'].laneChangeState == LaneChangeState.preLaneChange:
       direction = self.sm['lateralPlan'].laneChangeDirection
+      left_road_edge = -self.sm['modelV2'].roadEdges[0].y[0]
+      right_road_edge = self.sm['modelV2'].roadEdges[1].y[0]
+
       if (CS.leftBlindspot and direction == LaneChangeDirection.left) or \
          (CS.rightBlindspot and direction == LaneChangeDirection.right):
+        self.events.add(EventName.laneChangeBlocked)
+      elif ((left_road_edge < 3.5) and direction == LaneChangeDirection.left) or \
+         ((right_road_edge < 3.5) and direction == LaneChangeDirection.right):
         self.events.add(EventName.laneChangeBlocked)
       else:
         if direction == LaneChangeDirection.left:
