@@ -336,20 +336,30 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
   const UIScene &scene = s->scene;
   SubMaster &sm = *(s->sm);
 
+  float red_lvl_line = 0;
+  float green_lvl_line = 0;
+
   // lanelines
-  for (int i = 0; i < std::size(scene.lane_line_vertices); ++i) {
-    painter.setBrush(QColor::fromRgbF(1.0, 1.0, 1.0, std::clamp<float>(scene.lane_line_probs[i], 0.0, 0.7)));
+  for (int i = 0; i < std::size(scene.lane_line_vertices); i++) {
+    if (scene.lane_line_probs[i] > 0.4){
+      red_lvl_line = 1.0 - ((scene.lane_line_probs[i] - 0.4) * 1.0);
+      green_lvl_line = 1.0;
+    } else {
+      red_lvl_line = 1.0;
+      green_lvl_line = 1.0 - ((0.4 - scene.lane_line_probs[i]) * 2.0);
+    }
+    painter.setBrush(QColor::fromRgbF(red_lvl_line, green_lvl_line, 0, std::clamp<float>(scene.lane_line_probs[i], 0.2, 0.8)));
     painter.drawPolygon(scene.lane_line_vertices[i].v, scene.lane_line_vertices[i].cnt);
   }
 	
-  // TODO: Fix empty spaces when curiving back on itself
-  painter.setBrush(QColor(255, 215, 000, 150));
+  // blindspot path
+  painter.setBrush(QColor(220, 100, 000, 200));
   if (left_blindspot) painter.drawPolygon(scene.lane_barrier_vertices[0].v, scene.lane_barrier_vertices[0].cnt);
   if (right_blindspot) painter.drawPolygon(scene.lane_barrier_vertices[1].v, scene.lane_barrier_vertices[1].cnt);
 
   // road edges
-  for (int i = 0; i < std::size(scene.road_edge_vertices); ++i) {
-    painter.setBrush(QColor::fromRgbF(1.0, 0, 0, std::clamp<float>(1.0 - scene.road_edge_stds[i], 0.0, 1.0)));
+  for (int i = 0; i < std::size(scene.road_edge_vertices); i++) {
+    painter.setBrush(QColor::fromRgbF(0.8, 0.1, 0.1, std::clamp<float>(1.0 - scene.road_edge_stds[i], 0.0, 0.8)));
     painter.drawPolygon(scene.road_edge_vertices[i].v, scene.road_edge_vertices[i].cnt);
   }
 
@@ -442,7 +452,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   str.sprintf("%.1fm", radar_detected ? radar_dist : vision_dist);
   QColor textColor = QColor(255, 255, 255, 200);
   configFont(painter, "Inter", 75, "Bold");
-  drawTextWithColor(painter, x, y + sz / 1.5f + 80.0, str, textColor);
+  drawTextWithColor(painter, x, y + sz / 1.5f - 80.0, str, textColor);
 
   if (radar_detected) {
       float radar_rel_speed = lead_radar.getVRel();
@@ -451,7 +461,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
       else if (radar_rel_speed > 0.1) textColor = QColor(0, 255, 0, 200);
       else textColor = QColor(255, 255, 255, 200);
       configFont(painter, "Inter", 60, "Bold");
-      drawTextWithColor(painter, x, y + sz / 1.5f - 80.0, str, textColor);
+      drawTextWithColor(painter, x, y + sz / 1.5f + 80.0, str, textColor);
   }
   painter.restore();
 }
