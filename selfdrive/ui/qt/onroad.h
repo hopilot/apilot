@@ -89,6 +89,7 @@ protected:
   QPixmap ic_trafficLight_red;
   QPixmap ic_trafficLight_x;
   QPixmap ic_trafficLight_none;
+  QPixmap ic_stopman;
   QPixmap ic_navi;
   QPixmap ic_scc2;
   QPixmap ic_radartracks;
