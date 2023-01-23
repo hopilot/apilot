@@ -1306,29 +1306,24 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     bool left_on = car_state.getLeftBlinker();
     bool right_on = car_state.getRightBlinker();
 
-    const float img_alpha = 0.8f;
-    const int fb_w = width() / 2 - 200;
+    const float img_alpha = 0.9f;
     const int center_x = width() / 2;
-    const int w = fb_w / 25;
-    const int h = 160;
-    const int gap = fb_w / 25;
-    const int margin = (int)(fb_w / 3.8f);
-    const int base_y = (height() - h) / 2;
-    const int draw_count = 8;
-
+    const int w = 150; 
+    const int h = 80; 
+    const int gap = -110; 
+    const int base_y = 20;
+    const int draw_count = 16;
     int x = center_x;
-    int y = base_y;
+    int y = base_y + 500;
 
     if(left_on) {
       for(int i = 0; i < draw_count; i++) {
         float alpha = img_alpha;
         int d = std::abs(blink_index - i);
         if(d > 0)
-          alpha /= d*2;
-
+          alpha /= d*1.1;
         p.setOpacity(alpha);
-        float factor = (float)draw_count / (i + draw_count);
-        p.drawPixmap(x - w - margin, y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_l);
+        p.drawPixmap(x - w, y, w, h, ic_turn_signal_l);
         x -= gap + w;
       }
     }
@@ -1339,11 +1334,9 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
         float alpha = img_alpha;
         int d = std::abs(blink_index - i);
         if(d > 0)
-          alpha /= d*2;
-
-        float factor = (float)draw_count / (i + draw_count);
+          alpha /= d*1.1;
         p.setOpacity(alpha);
-        p.drawPixmap(x + margin, y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_r);
+        p.drawPixmap(x, y, w, h, ic_turn_signal_r);
         x += gap + w;
       }
     }
@@ -1351,14 +1344,14 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     if(left_on || right_on) {
 
       double now = millis_since_boot();
-      if(now - prev_ts > 900/UI_FREQ) {
+      if(now - prev_ts > 20/UI_FREQ) {
         prev_ts = now;
         blink_index++;
       }
 
       if(blink_index >= draw_count) {
         blink_index = draw_count - 1;
-        blink_wait = UI_FREQ/4;
+        blink_wait = UI_FREQ/20;
       }
     }
     else {
