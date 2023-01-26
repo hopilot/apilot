@@ -126,6 +126,44 @@ void update_model(UIState *s, const cereal::ModelDataV2::Reader &model) {
   }
   max_idx = get_path_length_idx(model_position, max_distance);
   update_line_data(s, model_position, 0.9, 1.22, 1.22, &scene.track_vertices, max_idx, false);
+
+  // update driver
+  const auto driver_orient = (*s->sm)["driverStateV2"].getDriverStateV2().getLeftDriverData().getFaceOrientation();
+  float p_this = driver_orient[0];
+  float y_this = driver_orient[1];
+  float r_this = driver_orient[2];
+  p_this = 0.33 * p_this + 0.66 * scene.driver_pose_pitch;
+  y_this = 0.33 * y_this + 0.66 * scene.driver_pose_yaw;
+  r_this = 0.33 * r_this + 0.66 * scene.driver_pose_roll;
+  scene.driver_pose_pitch = p_this;
+  scene.driver_pose_yaw = y_this;
+  scene.driver_pose_roll = r_this;
+
+  const mat3 rx = (mat3){{
+    1, 0, 0,
+    0, cosf(scene.driver_pose_pitch), -sinf(scene.driver_pose_pitch),
+    0, sinf(scene.driver_pose_pitch), cosf(scene.driver_pose_pitch),
+  }};
+
+  const mat3 ry = (mat3){{
+    cosf(-scene.driver_pose_yaw), 0, sinf(-scene.driver_pose_yaw),
+    0, 1, 0,
+    -sinf(-scene.driver_pose_yaw), 0, cosf(-scene.driver_pose_yaw),
+  }};
+
+  const mat3 rz = (mat3){{
+    cosf(-scene.driver_pose_roll), -sinf(-scene.driver_pose_roll), 0,
+    sinf(-scene.driver_pose_roll), cosf(-scene.driver_pose_roll), 0,
+    0, 0, 1,
+  }};
+
+  // transform vertices
+  for (int kpi = 0; kpi < std::size(default_face_kpts_3d); kpi++) {
+    vec3 kpt_this = default_face_kpts_3d[kpi];
+    kpt_this = matvecmul3(rz, matvecmul3(ry, matvecmul3(rx, kpt_this)));
+    scene.face_kpts_draw[kpi] = QPointF(kpt_this.v[0], kpt_this.v[1]);
+    scene.face_kpts_draw_d[kpi] = kpt_this.v[2];
+  }
 }
 
 static void update_sockets(UIState *s) {
@@ -258,7 +296,7 @@ UIState::UIState(QObject *parent) : QObject(parent) {
   sm = std::make_unique<SubMaster, const std::initializer_list<const char *>>({
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "roadCameraState",
     "pandaStates", "carParams", "driverMonitoringState", "sensorEvents", "carState", "liveLocationKalman",
-    "wideRoadCameraState", "lateralPlan", "longitudinalPlan",
+    "wideRoadCameraState", "lateralPlan", "longitudinalPlan", "driverStateV2",
     "gpsLocationExternal", "carControl", "liveParameters", "roadLimitSpeed",
   });
 
