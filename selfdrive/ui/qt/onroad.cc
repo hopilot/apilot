@@ -308,7 +308,6 @@ void AnnotatedCameraWidget::updateState(const UIState &s) {
  // TODO: Add minimum speed?
   setProperty("left_blindspot", cs_alive && sm["carState"].getCarState().getLeftBlindspot());
   setProperty("right_blindspot", cs_alive && sm["carState"].getCarState().getRightBlindspot());
-  setProperty("isStandstill", cs_alive && sm["carState"].getCarState().getStandstill());  
 }
 
 void AnnotatedCameraWidget::updateFrameMat(int w, int h) {
