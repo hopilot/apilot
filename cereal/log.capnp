@@ -1762,6 +1762,25 @@ struct DriverState {
   irPwrDEPRECATED @10 :Float32;
   descriptorDEPRECATED @1 :List(Float32);
   stdDEPRECATED @2 :Float32;
+
+  leftDriverData @26 :DriverData;
+  rightDriverData @27 :DriverData;  
+
+  struct DriverData {
+    faceOrientation @0 :List(Float32);
+    faceOrientationStd @1 :List(Float32);
+    facePosition @2 :List(Float32);
+    facePositionStd @3 :List(Float32);
+    faceProb @4 :Float32;
+    leftEyeProb @5 :Float32;
+    rightEyeProb @6 :Float32;
+    leftBlinkProb @7 :Float32;
+    rightBlinkProb @8 :Float32;
+    sunglassesProb @9 :Float32;
+    occludedProb @10 :Float32;
+    readyProb @11 :List(Float32);
+    notReadyProb @12 :List(Float32);
+  }
 }
 
 struct DriverMonitoringState @0xb83cda094a1da284 {

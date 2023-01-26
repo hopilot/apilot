@@ -619,7 +619,7 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   bg.setColorAt(1, QColor::fromRgbF(0, 0, 0, 0));
   p.fillRect(0, 0, width(), header_h, bg);
 
-  UIState *s = uiState();
+  // UIState *s = uiState();
 
   const SubMaster &sm = *(s->sm);
 
@@ -698,8 +698,8 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
   drawBottomIcons(p);
 
   // dm icon (Middle 1eft 1)
-  x = radius / 2 + (bdr_s * 2) + (radius + 50);
-  y = rect().bottom() - footer_h / 2 - 10 - (radius + 50) * 2;
+  const int x = radius / 2 + (bdr_s * 2) + (radius + 50);
+  const int y = rect().bottom() - footer_h / 2 - 10 - (radius + 50) * 2;
   drawDriverState(p, s, x, y);
 
   const auto cs = sm["controlsState"].getControlsState();
