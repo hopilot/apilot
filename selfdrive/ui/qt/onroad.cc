@@ -308,6 +308,7 @@ void AnnotatedCameraWidget::updateState(const UIState &s) {
  // TODO: Add minimum speed?
   setProperty("left_blindspot", cs_alive && sm["carState"].getCarState().getLeftBlindspot());
   setProperty("right_blindspot", cs_alive && sm["carState"].getCarState().getRightBlindspot());
+  setProperty("isStandstill", cs_alive && sm["carState"].getCarState().getStandstill());  
 }
 
 void AnnotatedCameraWidget::updateFrameMat(int w, int h) {
@@ -407,6 +408,54 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
   painter.restore();
 }
 
+void AnnotatedCameraWidget::drawDriverState(QPainter &painter, const UIState *s, int x, int y) {
+  const UIScene &scene = s->scene;
+
+  painter.save();
+
+  painter.setOpacity(1.0);
+  painter.setPen(Qt::NoPen);
+  painter.setBrush(blackColor(70));
+  painter.drawEllipse(x - radius / 2, y - radius / 2, radius, radius);
+
+  QLinearGradient linearGrad;
+  QPointF start_p;
+  QPointF end_p;
+  int face_segment_idx = 0;
+  bool in_end_idxs;
+  for (int i = 0; i < std::size(scene.face_kpts_draw); ++i) {
+    in_end_idxs = false;
+    for (int ei = face_segment_idx; ei < std::size(face_end_idxs); ei++) {
+      if (i == face_end_idxs[ei]) {
+        in_end_idxs = true;
+        break;
+      }
+    }
+
+    if (in_end_idxs) {
+      face_segment_idx +=1;
+      continue;
+    }
+
+    start_p = QPointF(scene.face_kpts_draw[i].x() + x, scene.face_kpts_draw[i].y() + y);
+    end_p = QPointF(scene.face_kpts_draw[i+1].x() + x, scene.face_kpts_draw[i+1].y() + y);
+
+    linearGrad.setStart(start_p);
+    float start_shade = std::fmax(std::fmin(0.5 + 0.5*(scene.face_kpts_draw_d[i] + 20)/120, 1.0), 0.0);
+    linearGrad.setColorAt(0, QColor::fromRgbF(start_shade, start_shade, start_shade, 1.0));
+
+    linearGrad.setFinalStop(end_p);
+    float end_shade = std::fmax(std::fmin(0.5 + 0.5*(scene.face_kpts_draw_d[i+1] + 20)/120, 1.0), 0.0);
+    linearGrad.setColorAt(1, QColor::fromRgbF(end_shade, end_shade, end_shade, 1.0));
+
+    painter.setPen(QPen(linearGrad, i<16 ? 5 : 2, Qt::SolidLine, Qt::RoundCap));
+    painter.drawLine(start_p, end_p);
+  }
+
+  painter.restore();
+}
+
+
 void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV2::LeadDataV3::Reader &lead_data, const QPointF &vd, bool is_radar) {
   painter.save();
   const float speedBuff = 10.;
@@ -487,7 +536,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
         update_leads(s, sm["radarState"].getRadarState(), sm["modelV2"].getModelV2().getPosition());
       }
     }
-    drawHud(p, model);
+    drawHud(p, model, s);
   }
   p.endNativePainting();
 
@@ -559,7 +608,7 @@ void AnnotatedCameraWidget::drawText2(QPainter &p, int x, int y, int flags, cons
   p.drawText(QRect(x, y, rect.width()+1, rect.height()), flags, text);
 }
 
-void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model) {
+void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model, const UIState *s) {
 
   p.setRenderHint(QPainter::Antialiasing);
   p.setPen(Qt::NoPen);
@@ -649,6 +698,10 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
 
   drawBottomIcons(p);
 
+  // dm icon (Middle 1eft 1)
+  x = radius / 2 + (bdr_s * 2) + (radius + 50);
+  y = rect().bottom() - footer_h / 2 - 10 - (radius + 50) * 2;
+  drawDriverState(p, s, x, y);
 
   const auto cs = sm["controlsState"].getControlsState();
   bool engageable = cs.getEngageable() || cs.getEnabled();

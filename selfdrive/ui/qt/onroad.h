@@ -104,7 +104,8 @@ protected:
   void drawTurnSignals(QPainter &p);
   void drawGpsStatus(QPainter &p);
   void drawDebugText(QPainter &p);
-  void drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model);
+  void drawDriverState(QPainter &painter, const UIState *s, int x, int y);
+  void drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model, const UIState *s);
 
   int m_fps = 0;
   float m_cur_speed = 0;
