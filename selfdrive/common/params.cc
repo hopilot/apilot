@@ -254,7 +254,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "CustomMapbox", PERSISTENT },
     { "CustomMapboxTokenPk", PERSISTENT },
     { "CustomMapboxTokenSk", PERSISTENT },    
-    { "EnableGmap", PERSISTENT},
+    {"EnableGmap", PERSISTENT},
     { "GmapKey", PERSISTENT },
     { "E2eDecelSpeed", PERSISTENT },
     { "LongitudinalTuningKf", PERSISTENT },
@@ -268,18 +268,12 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "SccConnectedBus2", PERSISTENT },
     { "TFollowRatio", PERSISTENT },
     { "JerkUpperLowerLimit", PERSISTENT },
-    { "OPKRTimeZone", PERSISTENT},
+    {"OPKRTimeZone", PERSISTENT},
     { "KeepEngage", PERSISTENT },
     { "UseLanelines", PERSISTENT },
     { "PathOffset", PERSISTENT },
-    { "PathOffsetAdj", PERSISTENT},    
-    { "CameraOffsetAdj", PERSISTENT},    
     { "HapticFeedbackWhenSpeedCamera", PERSISTENT },
     { "SoftHoldMode", PERSISTENT },
-    { "UseNpilotManager", PERSISTENT},    
-    { "CloseToRoadEdge", PERSISTENT},    
-    { "LeftEdgeOffset", PERSISTENT},    
-    { "RightEdgeOffset", PERSISTENT},    
 };
 
 } // namespace
