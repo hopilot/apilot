@@ -3,14 +3,34 @@ from cereal import log
 from common.filter_simple import FirstOrderFilter
 from common.numpy_fast import interp, clip, mean
 from common.realtime import DT_MDL
+from selfdrive.hardware import EON, TICI
+from selfdrive.swaglog import cloudlog
+from common.params import Params
+from decimal import Decimal
+from selfdrive.ntune import ntune_common_get, ntune_common_enabled
+
+ENABLE_ZORROBYTE = True
+ENABLE_INC_LANE_PROB = True
 
 TRAJECTORY_SIZE = 33
+# camera offset is meters from center car to camera
+# model path is in the frame of the camera. Empirically 
+# the model knows the difference between TICI and EON
+# so a path offset is not needed
 
-ENABLE_ZORROBYTE = False
+#PATH_OFFSET = 0.00
+PATH_OFFSET = ntune_common_get('pathOffset') if Params().get_bool('UseNpilotManager') else -(float(Decimal(Params().get("PathOffsetAdj", encoding="utf8")) * Decimal('0.001')))  # default 0.0
+if EON:
+  #CAMERA_OFFSET = 0.00
+  CAMERA_OFFSET = ntune_common_get('cameraOffset') if Params().get_bool('UseNpilotManager') else -(float(Decimal(Params().get("CameraOffsetAdj", encoding="utf8")) * Decimal('0.001')))  # m from center car to camera
+elif TICI:
+  CAMERA_OFFSET = 0.0
+else:
+  CAMERA_OFFSET = 0.0
 
 
 class LanePlanner:
-  def __init__(self,):
+  def __init__(self, wide_camera=False):
     self.ll_t = np.zeros((TRAJECTORY_SIZE,))
     self.ll_x = np.zeros((TRAJECTORY_SIZE,))
     self.lll_y = np.zeros((TRAJECTORY_SIZE,))
@@ -29,19 +49,74 @@ class LanePlanner:
     self.l_lane_change_prob = 0.
     self.r_lane_change_prob = 0.
 
-    self.camera_offset = 0.0
+    self.camera_offset = CAMERA_OFFSET
+    self.path_offset = PATH_OFFSET
 
     self.readings = []
     self.frame = 0
 
+    self.wide_camera = wide_camera
+
+    #opkr
+    self.params = Params()
+    if Params().get_bool('UseNpilotManager'):
+      self.drive_close_to_edge = ntune_common_enabled('closeToRoadEdge')
+      self.left_edge_offset = ntune_common_get('leftEdgeOffset') * 0.01 #0.15 move to right
+      self.right_edge_offset = ntune_common_get('rightEdgeOffset') * 0.01 #-0.15 move to lef 
+    else:
+      self.drive_close_to_edge = self.params.get_bool("CloseToRoadEdge")
+      self.left_edge_offset = float(Decimal(self.params.get("LeftEdgeOffset", encoding="utf8")) * Decimal('0.01')) #0.15 move to right
+      self.right_edge_offset = float(Decimal(self.params.get("RightEdgeOffset", encoding="utf8")) * Decimal('0.01')) #-0.15 move to left
+
+    self.road_edge_offset = 0.0
+    self.total_camera_offset = self.camera_offset
+    self.lp_timer = 0
+    self.lp_timer2 = 0
+    self.lp_timer3 = 0
+
   def parse_model(self, md):
+
+    #opkr
+    self.lp_timer += DT_MDL
+    if self.lp_timer > 1.0:
+      self.lp_timer = 0.0
+      self.camera_offset = ntune_common_get('cameraOffset') if Params().get_bool('UseNpilotManager') else -(float(Decimal(Params().get("CameraOffsetAdj", encoding="utf8")) * Decimal('0.001')))  # m from center car to camera
+
+    #opkr
+    if self.drive_close_to_edge:
+      left_edge_prob = np.clip(1.0 - md.roadEdgeStds[0], 0.0, 1.0)
+      left_nearside_prob = md.laneLineProbs[0]
+      left_close_prob = md.laneLineProbs[1]
+      right_close_prob = md.laneLineProbs[2]
+      right_nearside_prob = md.laneLineProbs[3]
+      right_edge_prob = np.clip(1.0 - md.roadEdgeStds[1], 0.0, 1.0)
+
+      self.lp_timer3 += DT_MDL
+      if self.lp_timer3 > 3.0:
+        self.lp_timer3 = 0.0
+        if right_nearside_prob < 0.1 and left_nearside_prob < 0.1:
+          self.road_edge_offset = 0.0
+        elif right_edge_prob > 0.35 and right_nearside_prob < 0.2 and right_close_prob > 0.5 and left_nearside_prob >= right_nearside_prob:
+          self.road_edge_offset = -self.right_edge_offset
+        elif left_edge_prob > 0.35 and left_nearside_prob < 0.2 and left_close_prob > 0.5 and right_nearside_prob >= left_nearside_prob:
+          self.road_edge_offset = -self.left_edge_offset
+        else:
+          self.road_edge_offset = 0.0
+    else:
+      self.road_edge_offset = 0.0
+
+    self.total_camera_offset = self.camera_offset + self.road_edge_offset
+
+
     lane_lines = md.laneLines
     if len(lane_lines) == 4 and len(lane_lines[0].t) == TRAJECTORY_SIZE:
       self.ll_t = (np.array(lane_lines[1].t) + np.array(lane_lines[2].t))/2
       # left and right ll x is the same
       self.ll_x = lane_lines[1].x
-      self.lll_y = np.array(lane_lines[1].y) + self.camera_offset
-      self.rll_y = np.array(lane_lines[2].y) + self.camera_offset
+      # only offset left and right lane lines; offsetting path does not make sense
+
+      self.lll_y = np.array(lane_lines[1].y) + self.total_camera_offset
+      self.rll_y = np.array(lane_lines[2].y) + self.total_camera_offset
       self.lll_prob = md.laneLineProbs[1]
       self.rll_prob = md.laneLineProbs[2]
       self.lll_std = md.laneLineStds[1]
@@ -55,6 +130,7 @@ class LanePlanner:
   def get_d_path(self, v_ego, path_t, path_xyz):
     # Reduce reliance on lanelines that are too far apart or
     # will be in a few seconds
+    path_xyz[:, 1] += self.path_offset
     l_prob, r_prob = self.lll_prob, self.rll_prob
     width_pts = self.rll_y - self.lll_y
     prob_mods = []
@@ -104,7 +180,7 @@ class LanePlanner:
     self.d_prob = l_prob + r_prob - l_prob * r_prob
 
     # neokii
-    if self.d_prob > 0.65:
+    if ENABLE_INC_LANE_PROB and self.d_prob > 0.65:
       self.d_prob = min(self.d_prob * 1.3, 1.0)
 
     lane_path_y = (l_prob * path_from_left_lane + r_prob * path_from_right_lane) / (l_prob + r_prob + 0.0001)
@@ -112,4 +188,6 @@ class LanePlanner:
     if safe_idxs[0]:
       lane_path_y_interp = np.interp(path_t, self.ll_t[safe_idxs], lane_path_y[safe_idxs])
       path_xyz[:,1] = self.d_prob * lane_path_y_interp + (1.0 - self.d_prob) * path_xyz[:,1]
+    else:
+      cloudlog.warning("Lateral mpc - NaNs in laneline times, ignoring")
     return path_xyz
