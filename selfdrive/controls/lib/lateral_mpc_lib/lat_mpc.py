@@ -6,6 +6,7 @@ from casadi import SX, vertcat, sin, cos
 
 from common.realtime import sec_since_boot
 from selfdrive.modeld.constants import T_IDXS
+from selfdrive.controls.lib.drive_helpers import LAT_MPC_N as N
 
 if __name__ == '__main__':  # generating code
   from pyextra.acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver
@@ -17,7 +18,7 @@ EXPORT_DIR = os.path.join(LAT_MPC_DIR, "c_generated_code")
 JSON_FILE = os.path.join(LAT_MPC_DIR, "acados_ocp_lat.json")
 X_DIM = 4
 P_DIM = 2
-N = 16
+N = 32
 COST_E_DIM = 3
 COST_DIM = COST_E_DIM + 2
 SPEED_OFFSET = 10.0
