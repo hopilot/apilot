@@ -107,6 +107,8 @@ def manager_init() -> None:
     ("PathOffset", "0"),   
     ("HapticFeedbackWhenSpeedCamera", "0"),       
     ("SoftHoldMode", "1"),       
+    ("SteerActuatorDelay", "30"),       
+    ("SteerActuatorDelayLow", "30"),  
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

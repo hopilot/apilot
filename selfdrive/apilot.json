@@ -42,6 +42,46 @@
       "unit": 1
     },
     {
+      "group": "조향튜닝",
+      "name": "SteerActuatorDelay",
+      "title": "SteerActuatorDelay(30)",
+      "descr": "값이크면 조향을 좀더 미리함(일반,10msec)",
+      "min": 0,
+      "max": 100,
+      "default": 30,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "SteerActuatorDelayLow",
+      "title": "SteerActuatorDelayLow(30)",
+      "descr": "저속일때 값을 크게하여 좀더 빠른 조향",
+      "min": 0,
+      "max": 200,
+      "default": 100,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "SteerDeltaUp",
+      "title": "SteerDeltaUp(3)",
+      "descr": "",
+      "min": 1,
+      "max": 20,
+      "default": 3,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "SteerDeltaDown",
+      "title": "SteerDeltaDown(7)",
+      "descr": "",
+      "min": 1,
+      "max": 20,
+      "default": 7,
+      "unit": 1
+    },    
+    {
       "group": "주행설정",
       "name": "MyEcoModeFactor",
       "title": "연비가속비율(80%)",

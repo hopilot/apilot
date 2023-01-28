@@ -104,6 +104,8 @@ class CruiseHelper:
     self.mySafeModeFactor = float(int(Params().get("MySafeModeFactor", encoding="utf8"))) / 100. if self.myDrivingMode == 2 else 1.0
     self.liveSteerRatioApply  = float(int(Params().get("LiveSteerRatioApply", encoding="utf8"))) / 100.
     self.autoCancelFromGas = int(Params().get("AutoCancelFromGas"))
+    self.steerActuatorDelay = float(int(Params().get("SteerActuatorDelay", encoding="utf8"))) / 100.
+    self.steerActuatorDelayLow = float(int(Params().get("SteerActuatorDelayLow", encoding="utf8"))) / 100.
 
   def update_params(self, frame):
     if frame % 20 == 0:
@@ -150,6 +152,15 @@ class CruiseHelper:
       elif self.update_params_count == 12:
         self.autoCancelFromGas = int(Params().get("AutoCancelFromGas"))
         self.gapButtonMode = int(Params().get("GapButtonMode"))
+      elif self.update_params_count == 13:
+        self.steerActuatorDelay = float(int(Params().get("SteerActuatorDelay", encoding="utf8"))) / 100.
+        self.steerActuatorDelayLow = float(int(Params().get("SteerActuatorDelayLow", encoding="utf8"))) / 100.
+
+
+  def getSteerActuatorDelay(self, v_ego):
+    v_ego_kph = v_ego * 3.6
+
+    return interp(v_ego_kph, [0, 100], [self.steerActuatorDelayLow, self.steerActuatorDelay])
 
   @staticmethod
   def get_lead(sm):
