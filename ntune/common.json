@@ -1,7 +1,7 @@
 {
   "useLiveSteerRatio": 0.0,
   "steerRatio": 16.5,
-  "steerActuatorDelay": 0.3,
+  "steerActuatorDelay": 0.2,
   "cameraOffset": -0.02,
   "closeToRoadEdge": 0.0,
   "leftEdgeOffset": 0.0,
