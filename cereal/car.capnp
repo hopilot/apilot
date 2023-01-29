@@ -569,8 +569,6 @@ struct CarParams {
     steeringAngleDeadzoneDeg @5 :Float32;
     latAccelFactor @6 :Float32;
     latAccelOffset @7 :Float32;
-    latAngleFactor @8 :Float32;
-    linear @9 :Bool;
   }
 
   struct LongitudinalPIDTuning {

@@ -134,7 +134,7 @@ class CarInterfaceBase(ABC):
     return self.get_steer_feedforward_default
 
   @staticmethod
-  def torque_from_lateral_accel_linear(lateral_accel_value, torque_params, lateral_accel_error, lateral_accel_deadzone, steering_angle, friction_compensation):
+  def torque_from_lateral_accel_linear(lateral_accel_value, torque_params, lateral_accel_error, lateral_accel_deadzone, friction_compensation):
     # The default is a linear relationship between torque and lateral acceleration (accounting for road roll and steering friction)
     friction_interp = interp(
       apply_center_deadzone(lateral_accel_error, lateral_accel_deadzone),
@@ -144,21 +144,8 @@ class CarInterfaceBase(ABC):
     friction = friction_interp if friction_compensation else 0.0
     return (lateral_accel_value / torque_params.latAccelFactor) + friction
 
-  @staticmethod
-  def torque_from_lateral_accel_non_linear(lateral_accel_value, torque_params, lateral_accel_error, lateral_accel_deadzone, steering_angle, friction_compensation):
-    # The is a non-linear relationship between torque and lateral acceleration (accounting for road roll and steering friction)
-    # This function adjusts the lateral accel factor based on the steering angle
-    friction_interp = interp(
-      apply_center_deadzone(lateral_accel_error, lateral_accel_deadzone),
-      [-FRICTION_THRESHOLD, FRICTION_THRESHOLD],
-      [-torque_params.friction, torque_params.friction]
-    )
-    lat_factor = torque_params.latAccelFactor * ((abs(steering_angle) * torque_params.latAngleFactor) + 1) # This is the non-linear part. Adding 1 to avoid a zero factor seems apropriate
-    friction = friction_interp if friction_compensation else 0.0
-    return (lateral_accel_value / lat_factor) + friction
-
-  def torque_from_lateral_accel(self, linear) -> TorqueFromLateralAccelCallbackType:
-    return self.torque_from_lateral_accel_linear if linear else self.torque_from_lateral_accel_non_linear
+  def torque_from_lateral_accel(self) -> TorqueFromLateralAccelCallbackType:
+    return self.torque_from_lateral_accel_linear
 
   @staticmethod
   def get_torque_params(candidate):
@@ -222,19 +209,17 @@ class CarInterfaceBase(ABC):
     return ret
 
   @staticmethod
-  def configure_torque_tune(candidate, tune, steering_angle_deadzone_deg=0.0, use_steering_angle=True, linear=True):
+  def configure_torque_tune(candidate, tune, steering_angle_deadzone_deg=0.0, use_steering_angle=True):
     params = CarInterfaceBase.get_torque_params(candidate)
 
     tune.init('torque')
     tune.torque.useSteeringAngle = use_steering_angle
-    tune.torque.linear = linear # specify if we want to use linear or non-linear torque function
     tune.torque.kp = 1.0
     tune.torque.kf = 1.0
     tune.torque.ki = 0.1
     tune.torque.friction = params['FRICTION']
     tune.torque.latAccelFactor = params['LAT_ACCEL_FACTOR']
     tune.torque.latAccelOffset = 0.0
-    tune.torque.latAngleFactor = .15 # TODO add to torque_data yaml. 0 means linear, anything above 0 means non-linear. Could eliminate the need for the linear param and a separate non-linear function.
     tune.torque.steeringAngleDeadzoneDeg = steering_angle_deadzone_deg
 
   @abstractmethod
