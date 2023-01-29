@@ -6,5 +6,5 @@
   "pathOffset": 0.0,
   "steerLimitTimer": 2.0,
   "steerRatioScale": 0.01,
-  "steerRateCost": 1.0
+  "steerRateCost": 0.4
 }
