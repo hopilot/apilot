@@ -9,7 +9,7 @@ from common.params import Params
 from decimal import Decimal
 from selfdrive.ntune import ntune_common_get, ntune_common_enabled
 
-ENABLE_ZORROBYTE = True
+ENABLE_ZORROBYTE = False
 ENABLE_INC_LANE_PROB = True
 
 TRAJECTORY_SIZE = 33
