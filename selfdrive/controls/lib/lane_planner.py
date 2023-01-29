@@ -61,12 +61,12 @@ class LanePlanner:
     self.params = Params()
     if True: #Params().get_bool('UseNpilotManager'):
       # self.drive_close_to_edge = ntune_common_enabled('closeToRoadEdge')
-      self.left_edge_offset = 0.05 # ntune_common_get('leftEdgeOffset') * 0.01 #0.15 move to right
-      self.right_edge_offset = -0.05 # ntune_common_get('rightEdgeOffset') * 0.01 #-0.15 move to left
+      self.left_edge_offset = 0.0 # ntune_common_get('leftEdgeOffset') * 0.01 #0.15 move to right
+      self.right_edge_offset = -0.0 # ntune_common_get('rightEdgeOffset') * 0.01 #-0.15 move to left
     else:
       # self.drive_close_to_edge = self.params.get_bool("CloseToRoadEdge")
-      self.left_edge_offset = 0.05 #float(Decimal(self.params.get("LeftEdgeOffset", encoding="utf8")) * Decimal('0.01')) #0.15 move to right
-      self.right_edge_offset = -0.05 #float(Decimal(self.params.get("RightEdgeOffset", encoding="utf8")) * Decimal('0.01')) #-0.15 move to left
+      self.left_edge_offset = 0.0 #float(Decimal(self.params.get("LeftEdgeOffset", encoding="utf8")) * Decimal('0.01')) #0.15 move to right
+      self.right_edge_offset = -0.0 #float(Decimal(self.params.get("RightEdgeOffset", encoding="utf8")) * Decimal('0.01')) #-0.15 move to left
 
     self.road_edge_offset = 0.0
     self.total_camera_offset = self.camera_offset
