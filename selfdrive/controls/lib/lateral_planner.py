@@ -98,10 +98,10 @@ class LateralPlanner:
       # Calculate final driving path and set MPC costs
       if self.lanelines_active:
         d_path_xyz = self.LP.get_d_path(self.v_ego, self.t_idxs, self.path_xyz)
-        d_path_xyz[:, 1] += self.pathOffset #ntune_common_get('pathOffset')
       else:
         d_path_xyz = self.path_xyz
-      
+      d_path_xyz[:, 1] += self.pathOffset
+
     else:
       # Lane change logic
       desire_state = md.meta.desireState
