@@ -478,8 +478,9 @@ class CruiseHelper:
           if self.longActiveUser <= 0:
             if ((resume_cond and v_ego_kph >= self.autoResumeFromGasSpeed) or CS.gas >= 0.6) and self.autoResumeFromGas:
               if self.autoResumeFromGasSpeedMode == 0: #현재속도로 세트
-                if self.preGasPressedMax > 0.25:
-                  v_cruise_kph = self.v_cruise_kph_backup # 25%이상 GAS를 밟으면..
+                # 60% 이상 밟으면...
+                if self.preGasPressedMax >= 0.6:
+                  v_cruise_kph = self.v_cruise_kph_backup # 60%이상 GAS를 밟으면..
                 else:
                   v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
               elif self.autoResumeFromGasSpeedMode == 1:   #기존속도
