@@ -113,6 +113,7 @@ class LateralPlanner:
 
       d_path_xyz = self.path_xyz
 
+      self.lanelines_active = False
 
     self.lat_mpc.set_weights(PATH_COST, LATERAL_MOTION_COST,
                              LATERAL_ACCEL_COST, LATERAL_JERK_COST,
@@ -171,7 +172,7 @@ class LateralPlanner:
     lateralPlan.solverExecutionTime = self.lat_mpc.solve_time
 
     lateralPlan.desire = self.DH.desire
-    lateralPlan.useLaneLines = self.use_lanelines
+    lateralPlan.useLaneLines = self.lanelines_active
     lateralPlan.laneChangeState = self.DH.lane_change_state
     lateralPlan.laneChangeDirection = self.DH.lane_change_direction
 
