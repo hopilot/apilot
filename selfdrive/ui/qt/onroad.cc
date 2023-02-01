@@ -342,6 +342,7 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
 
   // lanelines
   for (int i = 0; i < std::size(scene.lane_line_vertices); i++) {
+    float prob = std::clamp<float>(scene.lane_line_probs[i]*2.0, 0.5, 1.0);    
     if (scene.lane_line_probs[i] > 0.4){
       red_lvl_line = 1.0 - ((scene.lane_line_probs[i] - 0.4) * 1.0);
       green_lvl_line = 1.0;
@@ -349,18 +350,19 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
       red_lvl_line = 1.0;
       green_lvl_line = 1.0 - ((0.4 - scene.lane_line_probs[i]) * 2.0);
     }
-    painter.setBrush(QColor::fromRgbF(red_lvl_line, green_lvl_line, 0, std::clamp<float>(scene.lane_line_probs[i], 0.2, 0.8)));
+    painter.setBrush(QColor::fromRgbF(red_lvl_line, green_lvl_line, 0, std::clamp<float>(scene.lane_line_probs[i], 0.2, prob)));
     painter.drawPolygon(scene.lane_line_vertices[i].v, scene.lane_line_vertices[i].cnt);
   }
 	
   // blindspot path
-  painter.setBrush(QColor(220, 100, 000, 200));
+  painter.setBrush(QColor(220, 110, 0, 200));
   if (left_blindspot) painter.drawPolygon(scene.lane_barrier_vertices[0].v, scene.lane_barrier_vertices[0].cnt);
   if (right_blindspot) painter.drawPolygon(scene.lane_barrier_vertices[1].v, scene.lane_barrier_vertices[1].cnt);
 
   // road edges
   for (int i = 0; i < std::size(scene.road_edge_vertices); i++) {
-    painter.setBrush(QColor::fromRgbF(0.8, 0.1, 0.1, std::clamp<float>(1.0 - scene.road_edge_stds[i], 0.0, 0.8)));
+    float prob = std::clamp<float>((2.0 - scene.road_edge_stds[i])*2.0, 0.5, 1.0);
+    painter.setBrush(QColor::fromRgbF(0.9, 0.1, 0.1, prob));    
     painter.drawPolygon(scene.road_edge_vertices[i].v, scene.road_edge_vertices[i].cnt);
   }
 
