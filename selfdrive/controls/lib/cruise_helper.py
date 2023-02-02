@@ -390,6 +390,10 @@ class CruiseHelper:
         #self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
       elif xState == XState.e2eCruise and self.trafficState != 2 and trafficState == 2 and CS.vEgo < 0.1:
         controls.events.add(EventName.trafficSignGreen)
+      elif xState == XState.e2eStop and self.xState in [XState.e2eCruise, XState.lead]: # and self.longControlActiveSound >= 2:
+        if (frame - self.trafficSignedFrame)*DT_CTRL > 20.0: # 알리고 20초가 지나면 알리자.
+          controls.events.add(EventName.trafficStopping)
+          self.trafficSignedFrame = frame
     self.trafficState = trafficState
     self.dRel = dRel
     self.vRel = vRel
@@ -501,7 +505,7 @@ class CruiseHelper:
       # 브레이크해제시
       elif not CS.brakePressed and self.preBrakePressed:
         # 정지상태, 소프트홀드일때 크루즈 ON
-        if v_ego_kph < 3.0 and xState == XState.softHold:
+        if v_ego_kph < 5.0 and xState == XState.softHold:
           self.cruise_control(controls, CS, 3)
         # 브레이크해제 켜지고, 크루즈갭이 5가 아닌경우에만 작동.
         elif self.autoResumeFromBrakeRelease and self.longCruiseGap != 5: # 브레이크 해제에 대한 크루즈 ON
@@ -518,7 +522,7 @@ class CruiseHelper:
             v_cruise_kph = v_ego_kph_set
             self.cruise_control(controls, CS, 3)
           # 정지중, 전방차량이 10M이내인경우
-          elif v_ego_kph < 1.0 and 2 < dRel < 10 and self.autoResumeFromBrakeReleaseLeadCar:
+          elif v_ego_kph < 5.0 and 2 < dRel < 10 and self.autoResumeFromBrakeReleaseLeadCar:
             self.cruise_control(controls, CS, 3)
       elif self.userCruisePaused:
         if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:          
