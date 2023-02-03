@@ -355,14 +355,14 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
   }
 	
   // blindspot path
-  painter.setBrush(QColor(220, 110, 0, 200));
+  painter.setBrush(QColor::fromRgbF(1.0, 0.8, 0.1, 0.8));
   if (left_blindspot) painter.drawPolygon(scene.lane_barrier_vertices[0].v, scene.lane_barrier_vertices[0].cnt);
   if (right_blindspot) painter.drawPolygon(scene.lane_barrier_vertices[1].v, scene.lane_barrier_vertices[1].cnt);
 
   // road edges
   for (int i = 0; i < std::size(scene.road_edge_vertices); i++) {
     float prob = std::clamp<float>((2.0 - scene.road_edge_stds[i])*2.0, 0.5, 1.0);
-    painter.setBrush(QColor::fromRgbF(0.9, 0.1, 0.1, prob));    
+    painter.setBrush(QColor::fromRgbF(0.8, 0.1, 0.1, prob));    
     painter.drawPolygon(scene.road_edge_vertices[i].v, scene.road_edge_vertices[i].cnt);
   }
 
@@ -391,16 +391,16 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
     if (orientation.getZ().size() > 16) {
       orientation_future = std::abs(orientation.getZ()[16]);  // 2.5 seconds
     }
-    start_hue = 148;
-    // straight: 112, in turns: 70
-    end_hue = fmax(70, 112 - (orientation_future * 420));
+    start_hue = 240;
+    // straight: 220~ in turns: 10
+    end_hue = fmax(10, 220 - (orientation_future * 420));
 
     // FIXME: painter.drawPolygon can be slow if hue is not rounded
     end_hue = int(end_hue * 100 + 0.5) / 100;
 
-    bg.setColorAt(0.0, QColor::fromHslF(start_hue / 360., 0.94, 0.51, 0.4));
-    bg.setColorAt(0.5, QColor::fromHslF(end_hue / 360., 1.0, 0.68, 0.35));
-    bg.setColorAt(1.0, QColor::fromHslF(end_hue / 360., 1.0, 0.68, 0.0));
+    bg.setColorAt(0.0, QColor::fromHslF(start_hue / 360., 0.94, 0.51, 0.9));
+    bg.setColorAt(0.5, QColor::fromHslF(end_hue / 360., 1.0, 0.40, 0.7));
+    bg.setColorAt(1.0, QColor::fromHslF(end_hue / 360., 1.0, 0.30, 0.5));
   }
 
   painter.setBrush(bg);
