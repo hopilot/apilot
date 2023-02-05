@@ -75,7 +75,7 @@ class CruiseHelper:
 
     self.update_params_count = 0
 
-    self.longCruiseGap = 4 #int(Params().get("PrevCruiseGap"))
+    self.longCruiseGap = int(Params().get("PrevCruiseGap"))
 
     self.autoCurveSpeedCtrl = int(Params().get("AutoCurveSpeedCtrl"))
     self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
