@@ -496,7 +496,7 @@ class CruiseHelper:
                   v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
               self.cruise_control(controls, CS, 3)
           else:
-            if self.gasPressedCount * DT_CTRL < 0.6 and v_ego_kph_set > 30.0:  #1초이내에 Gas페달을 잡았다가 놓으면...
+            if self.gasPressedCount * DT_CTRL < 0.6 and v_ego_kph_set > 30.0 and v_cruise_kph < self.autoSyncCruiseSpeedMax:  #1초이내에 Gas페달을 잡았다가 놓으면...
               v_cruise_kph = self.v_cruise_speed_up(v_cruise_kph, roadSpeed)
               if self.autoSyncCruiseSpeedMax > 0 and v_cruise_kph > self.autoSyncCruiseSpeedMax:
                 v_cruise_kph = self.autoSyncCruiseSpeedMax
