@@ -414,6 +414,9 @@ def main() -> None:
   wait_helper = WaitTimeHelper(proc)
   wait_helper.sleep(30)
 
+  # invalidate old finalized update
+  set_consistent_flag(False)
+
   # Run the update loop
   #  * every 5m, do a lightweight internet/update check
   #  * every 10m, do a full git fetch
