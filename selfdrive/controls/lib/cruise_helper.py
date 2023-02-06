@@ -517,7 +517,7 @@ class CruiseHelper:
             if resume_cond and v_ego_kph > 1.0 and 0 < self.autoResumeFromBrakeReleaseDist < dRel:
               v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
               self.cruise_control(controls, CS, 3)
-          elif v_ego_kph < 60.0 and xState == XState.e2eStop and abs(self.position_y) < 3.0 and self.autoResumeFromBrakeReleaseTrafficSign:
+            elif v_ego_kph < 60.0 and xState == XState.e2eStop and abs(self.position_y) < 3.0 and self.autoResumeFromBrakeReleaseTrafficSign:
               v_cruise_kph = v_ego_kph_set  
               self.cruise_control(controls, CS, 3)
             # 전방차량이 없고, 속도가 40km/h(변수) 이상인경우
