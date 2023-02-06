@@ -130,13 +130,16 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   accel = accel if longEnabled else 0.0
   d = hud_control.objDist
   objGap = 0 if d == 0 else 2 if d < 25 else 3 if d < 40 else 4 if d < 70 else 5 
-  objGap2 = 0 if objGap == 0 else 2 if hud_control.objRelSpd < 0.0 else 1
+  objGap2 = 0 if objGap == 0 else 2 if hud_control.objRelSpd < -0.1 else 1
 
   driverOverride =  CS.out.driverOverride  #1:gas, 2:braking, 0: normal
   if enabled:
     scc12_accMode = 2 if long_override else 0 if brakePressed else 1 if longActive else 0 #Brake, Accel, LongActiveUser < 0
     scc14_accMode = 4 if long_override or not longEnabled else 4 if brakePressed else 1 if longActive else 0
-    if softHold and brakePressed and longEnabled and softHoldMode == 2: #longActive:
+    if CS.out.brakeHoldActive: # autoHold가 작동한경우..
+      scc12_accMode = 0
+      scc14_accMode = 4
+    elif softHold and brakePressed and longEnabled and softHoldMode == 2: #longActive:
       scc12_accMode = 1
       scc14_accMode = 1
       stopReq = 1

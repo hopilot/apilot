@@ -4,7 +4,7 @@
   .max_steer = (steer), \
   .max_rate_up = (rate_up), \
   .max_rate_down = (rate_down), \
-  .max_rt_delta = 120, \
+  .max_rt_delta = 300, /*120 */ \
   .max_rt_interval = 250000, \
   .driver_torque_allowance = 350, \
   .driver_torque_factor = 2, \
@@ -18,7 +18,7 @@
 }
 
 //const SteeringLimits HYUNDAI_STEERING_LIMITS = HYUNDAI_LIMITS(409, 3, 7);
-const SteeringLimits HYUNDAI_STEERING_LIMITS = HYUNDAI_LIMITS(509, 20, 20);
+const SteeringLimits HYUNDAI_STEERING_LIMITS = HYUNDAI_LIMITS(509, 30, 30);
 const SteeringLimits HYUNDAI_STEERING_LIMITS_ALT = HYUNDAI_LIMITS(409, 11, 11);
 
 const LongitudinalLimits HYUNDAI_LONG_LIMITS = {
@@ -325,7 +325,7 @@ static int hyundai_tx_hook(CANPacket_t *to_send) {
   // LKA STEER: safety check
   if (addr == 832) {
     int desired_torque = ((GET_BYTES_04(to_send) >> 16) & 0x7ffU) - 1024U;
-    bool steer_req = 1;// GET_BIT(to_send, 27U) != 0U;
+    bool steer_req = 1; // GET_BIT(to_send, 27U) != 0U;
 
     const SteeringLimits limits = hyundai_alt_limits ? HYUNDAI_STEERING_LIMITS_ALT : HYUNDAI_STEERING_LIMITS;
     if (steer_torque_cmd_checks(desired_torque, steer_req, limits)) {

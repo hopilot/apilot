@@ -17,13 +17,13 @@ CAMERA_OFFSET = 0.04
 
 PATH_COST = 1.0
 LATERAL_MOTION_COST = 0.11
-LATERAL_ACCEL_COST = 1.0
-LATERAL_JERK_COST = 0.05
+LATERAL_ACCEL_COST = 0.0
+LATERAL_JERK_COST = 0.04
 # Extreme steering rate is unpleasant, even
 # when it does not cause bad jerk.
 # TODO this cost should be lowered when low
 # speed lateral control is stable on all cars
-STEERING_RATE_COST = 800.0
+STEERING_RATE_COST = 700.0
 
 
 class LateralPlanner:
@@ -36,7 +36,11 @@ class LateralPlanner:
 
     self.use_lanelines = Params().get_bool('UseLanelines')
     self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
+    self.pathCostApply = float(int(Params().get("PathCostApply", encoding="utf8")))*0.01
+    self.lateralMotionCost = float(int(Params().get("LateralMotionCost", encoding="utf8")))*0.01
     self.lateralAccelCost = float(int(Params().get("LateralAccelCost", encoding="utf8")))*0.01
+    self.lateralJerkCost = float(int(Params().get("LateralJerkCost", encoding="utf8")))*0.01
+    self.lateralTestMode = int(Params().get("LateralTestMode", encoding="utf8"))
 
     # Vehicle model parameters used to calculate lateral movement of car
     self.factor1 = CP.wheelbase - CP.centerToFront
@@ -45,6 +49,7 @@ class LateralPlanner:
     self.solution_invalid_cnt = 0
 
     self.path_xyz = np.zeros((TRAJECTORY_SIZE, 3))
+    self.velocity_xyz = np.zeros((TRAJECTORY_SIZE, 3))
     self.plan_yaw = np.zeros((TRAJECTORY_SIZE,))
     self.plan_yaw_rate = np.zeros((TRAJECTORY_SIZE,))
     self.t_idxs = np.arange(TRAJECTORY_SIZE)
@@ -54,7 +59,7 @@ class LateralPlanner:
     self.lat_mpc = LateralMpc()
     self.reset_mpc(np.zeros(4))
 
-    self.steeringRateCost = 800.
+    self.steeringRateCost = 700.
 
   def reset_mpc(self, x0=np.zeros(4)):
     self.x0 = x0
@@ -66,12 +71,15 @@ class LateralPlanner:
       self.readParams = 100
       self.use_lanelines = Params().get_bool('UseLanelines')
       self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
+      self.pathCostApply = float(int(Params().get("PathCostApply", encoding="utf8")))*0.01
       self.steeringRateCost = float(int(Params().get("SteeringRateCost", encoding="utf8")))
     elif self.readParams == 50:
+      self.lateralMotionCost = float(int(Params().get("LateralMotionCost", encoding="utf8")))*0.01
       self.lateralAccelCost = float(int(Params().get("LateralAccelCost", encoding="utf8")))*0.01
+      self.lateralJerkCost = float(int(Params().get("LateralJerkCost", encoding="utf8")))*0.01
+      self.lateralTestMode = int(Params().get("LateralTestMode", encoding="utf8"))
 
     # clip speed , lateral planning is not possible at 0 speed
-    self.v_ego = max(MIN_SPEED, sm['carState'].vEgo)
     measured_curvature = sm['controlsState'].curvature
 
     # Parse model predictions
@@ -81,6 +89,10 @@ class LateralPlanner:
       self.t_idxs = np.array(md.position.t)
       self.plan_yaw = np.array(md.orientation.z)
       self.plan_yaw_rate = np.array(md.orientationRate.z)
+      self.velocity_xyz = np.column_stack([md.velocity.x, md.velocity.y, md.velocity.z])
+      car_speed = np.linalg.norm(self.velocity_xyz, axis=1)
+      self.v_plan = np.clip(car_speed, MIN_SPEED, np.inf)
+      self.v_ego = self.v_plan[0]
 
     if self.use_lanelines:
       # Parse model predictions
@@ -104,10 +116,9 @@ class LateralPlanner:
   
       # Calculate final driving path and set MPC costs
       if self.lanelines_active:
-        d_path_xyz = self.LP.get_d_path(self.v_ego, self.t_idxs, self.path_xyz)
+        self.path_xyz = self.LP.get_d_path(self.v_ego, self.t_idxs, self.path_xyz)
       else:
-        d_path_xyz = self.path_xyz
-      d_path_xyz[:, 1] += self.pathOffset
+        pass #d_path_xyz = self.path_xyz
       
     else:
       # Lane change logic
@@ -118,29 +129,35 @@ class LateralPlanner:
       lane_change_prob = self.l_lane_change_prob + self.r_lane_change_prob
       self.DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob, md)
 
-      d_path_xyz = self.path_xyz
-
       self.lanelines_active = False
+
+    self.path_xyz[:, 1] += self.pathOffset
 
     #pathCost = interp(self.v_ego, [2., 10.], [PATH_COST, PATH_COST * self.pathCostApply])
     #steeringRateCost = interp(self.v_ego, [2., 10.], [self.steeringRateCost, self.steeringRateCost/3.])
     #self.lat_mpc.set_weights(pathCost, LATERAL_MOTION_COST,
     #                         LATERAL_ACCEL_COST, LATERAL_JERK_COST,
     #                         steeringRateCost)
-    self.lat_mpc.set_weights(PATH_COST, LATERAL_MOTION_COST,
-                             self.lateralAccelCost, LATERAL_JERK_COST,
+    self.lat_mpc.set_weights(self.pathCostApply, self.lateralMotionCost,
+                             self.lateralAccelCost, self.lateralJerkCost,
                              self.steeringRateCost)
 
-    y_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(d_path_xyz, axis=1), d_path_xyz[:, 1])
-    heading_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw)
-    yaw_rate_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw_rate)
+    if self.lateralTestMode == 1:
+      d_path_xyz = self.path_xyz
+      y_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(d_path_xyz, axis=1), d_path_xyz[:, 1])
+      heading_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw)
+      yaw_rate_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw_rate)
+    else:
+      y_pts = self.path_xyz[:LAT_MPC_N+1, 1]
+      heading_pts = self.plan_yaw[:LAT_MPC_N+1]
+      yaw_rate_pts = self.plan_yaw_rate[:LAT_MPC_N+1]
     self.y_pts = y_pts
 
     assert len(y_pts) == LAT_MPC_N + 1
     assert len(heading_pts) == LAT_MPC_N + 1
     assert len(yaw_rate_pts) == LAT_MPC_N + 1
-    lateral_factor = max(0, self.factor1 - (self.factor2 * self.v_ego**2))
-    p = np.array([self.v_ego, lateral_factor])
+    lateral_factor = np.clip(self.factor1 - (self.factor2 * self.v_plan**2), 0.0, np.inf)
+    p = np.column_stack([self.v_plan, lateral_factor])
     self.lat_mpc.run(self.x0,
                      p,
                      y_pts,

@@ -38,6 +38,12 @@ def convert_ublox_gps_ephem(ublox_ephem, current_time: Optional[datetime] = None
     roll_overs = GPSTime.from_datetime(current_time).week // 1024
     week += (roll_overs - (week // 1024)) * 1024
 
+  # GPS week refers to current week, the ephemeris can be valid for the next
+  # if toe equals 0, this can be verified by the TOW count if it is within the
+  # last 2 hours of the week (gps ephemeris valid for 4hours)
+  if ublox_ephem.toe == 0 and ublox_ephem.towCount*6 >= (SECS_IN_WEEK - 2*SECS_IN_HR):
+    week += 1
+
   ephem = {}
   ephem['sv_id'] = ublox_ephem.svId
   ephem['toe'] = GPSTime(week, ublox_ephem.toe)
@@ -574,9 +580,9 @@ def parse_qcom_ephem(qcom_poly, current_week):
   t0 = data.t0
   # fix glonass time
   prn = get_prn_from_nmea_id(svId)
-  if prn == 'GLONASS':
+  if prn[0] == 'R':
     # TODO should handle leap seconds better
-    epoch = GPSTime(current_week, (t0 + 3*SECS_IN_WEEK) % (SECS_IN_WEEK) + 18)
+    epoch = GPSTime(current_week, (t0 - 3*SECS_IN_HR + SECS_IN_DAY) % (SECS_IN_WEEK) + 18)
   else:
     epoch = GPSTime(current_week, t0)
   poly_data = {}

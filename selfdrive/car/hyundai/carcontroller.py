@@ -3,7 +3,7 @@ from common.conversions import Conversions as CV
 from common.numpy_fast import clip
 from common.realtime import DT_CTRL
 from opendbc.can.packer import CANPacker
-from selfdrive.car import apply_std_steer_torque_limits
+from selfdrive.car import apply_driver_steer_torque_limits
 from selfdrive.car.hyundai import hyundaicanfd, hyundaican
 from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerParams, CANFD_CAR, CAR, FEATURES
 import random
@@ -67,7 +67,7 @@ class CarController:
     self.steerDeltaUp = 3
     self.steerDeltaDown = 7
 
-  def update(self, CC, CS):
+  def update(self, CC, CS, now_nanos):
     actuators = CC.actuators
     hud_control = CC.hudControl
 
@@ -75,7 +75,7 @@ class CarController:
     new_steer = int(round(actuators.steer * self.params.STEER_MAX))
     self.params.STEER_DELTA_UP = self.steerDeltaUp
     self.params.STEER_DELTA_DOWN = self.steerDeltaDown
-    apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, self.params)
+    apply_steer = apply_driver_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, self.params)
 
     if not CC.latActive:
       apply_steer = 0
@@ -248,12 +248,7 @@ class CarController:
                                                       hud_control, set_speed_in_units, stopping, CC, CS, self.softHoldMode))
 
       # 20 Hz LFA MFA message
-      if self.frame % 5 == 0 and self.send_lfa_mfa:
-      #if self.frame % 5 == 0 and self.car_fingerprint in (CAR.SONATA, CAR.PALISADE, CAR.IONIQ, CAR.KIA_NIRO_EV, CAR.KIA_NIRO_HEV_2021,
-      #                                                    CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KIA_CEED, CAR.KIA_SELTOS, CAR.KONA_EV, CAR.KONA_EV_2022,
-      #                                                    CAR.ELANTRA_2021, CAR.ELANTRA_HEV_2021, CAR.SONATA_HYBRID, CAR.KONA_HEV, CAR.SANTA_FE_2022,
-      #                                                    CAR.KIA_K5_2021, CAR.IONIQ_HEV_2022, CAR.SANTA_FE_HEV_2022, CAR.GENESIS_G70_2020, CAR.SANTA_FE_PHEV_2022, CAR.KIA_STINGER_2022,
-      #                                                    CAR.SANTA_FE, CAR.HYUNDAI_GENESIS, CAR.TUCSON_TL_SCC):
+      if self.frame % 5 == 0 and self.CP.flags & HyundaiFlags.SEND_LFA.value:
         can_sends.append(hyundaican.create_lfahda_mfc(self.packer, CC, self.blinking_signal))
 
       # 5 Hz ACC options

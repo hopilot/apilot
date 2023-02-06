@@ -311,18 +311,6 @@
         <source>Installing...</source>
         <translation>설치중...</translation>
     </message>
-    <message>
-        <source>Receiving objects: </source>
-        <translation>수신중： </translation>
-    </message>
-    <message>
-        <source>Resolving deltas: </source>
-        <translation>델타병합： </translation>
-    </message>
-    <message>
-        <source>Updating files: </source>
-        <translation>파일갱신： </translation>
-    </message>
 </context>
 <context>
     <name>MapETA</name>
@@ -587,16 +575,8 @@ location set</source>
         <translation>장치를 초기화 하시겠습니까?</translation>
     </message>
     <message>
-        <source>Resetting device...</source>
-        <translation>장치 초기화중...</translation>
-    </message>
-    <message>
         <source>System Reset</source>
         <translation>장치 초기화</translation>
-    </message>
-    <message>
-        <source>System reset triggered. Press confirm to erase all content and settings. Press cancel to resume boot.</source>
-        <translation>장치를 초기화 합니다. 확인버튼을 누르면 모든 내용과 설정이 초기화됩니다. 부팅을 재개하려면 취소를 누르세요.</translation>
     </message>
     <message>
         <source>Cancel</source>
@@ -611,8 +591,17 @@ location set</source>
         <translation>확인</translation>
     </message>
     <message>
-        <source>Unable to mount data partition. Press confirm to reset your device.</source>
-        <translation>데이터 파티션을 마운트할 수 없습니다. 확인 버튼을 눌러 장치를 리셋합니다.</translation>
+        <source>Unable to mount data partition. Partition may be corrupted. Press confirm to erase and reset your device.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Press confirm to erase all content and settings. Press cancel to resume boot.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Resetting device...
+This may take up to a minute.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -685,18 +674,6 @@ location set</source>
         <translation>네트워크 접속을 기다립니다</translation>
     </message>
     <message>
-        <source>Choose Software to Install</source>
-        <translation>설치할 소프트웨어를 선택하세요</translation>
-    </message>
-    <message>
-        <source>Dashcam</source>
-        <translation>Dashcam</translation>
-    </message>
-    <message>
-        <source>Custom Software</source>
-        <translation>Custom Software</translation>
-    </message>
-    <message>
         <source>Enter URL</source>
         <translation>URL 입력</translation>
     </message>
@@ -723,6 +700,14 @@ location set</source>
     <message>
         <source>Start over</source>
         <translation>다시 시작</translation>
+    </message>
+    <message>
+        <source>No custom software found at this URL.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Something went wrong. Reboot the device.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

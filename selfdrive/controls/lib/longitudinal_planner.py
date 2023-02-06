@@ -21,7 +21,7 @@ A_CRUISE_MIN = -1.2
 #A_CRUISE_MAX_VALS = [1.6, 1.2, 0.8, 0.6]
 #A_CRUISE_MAX_VALS = [2.0, 1.2, 0.8, 0.6]
 A_CRUISE_MAX_VALS = [2.0, 1.4, 0.5, 0.2, 0.15]
-A_CRUISE_MAX_BP = [0., 40 * CV.KPH_TO_MS, 70 * CV.KPH_TO_MS, 100 * CV.KPH_TO_MS, 140 * CV.KPH_TO_MS]
+A_CRUISE_MAX_BP = [0., 40 * CV.KPH_TO_MS, 60 * CV.KPH_TO_MS, 80 * CV.KPH_TO_MS, 110 * CV.KPH_TO_MS, 140 * CV.KPH_TO_MS]
 
 # Lookup table for turns
 _A_TOTAL_MAX_V = [1.7, 3.2]
@@ -69,13 +69,31 @@ class LongitudinalPlanner:
     self.accelBoost = 1.0
     self.myEcoModeFactor = 1.0
     self.params_count = 0
+    self.cruiseMaxVals1 = float(int(Params().get("CruiseMaxVals1", encoding="utf8"))) / 100.
+    self.cruiseMaxVals2 = float(int(Params().get("CruiseMaxVals2", encoding="utf8"))) / 100.
+    self.cruiseMaxVals3 = float(int(Params().get("CruiseMaxVals3", encoding="utf8"))) / 100.
+    self.cruiseMaxVals4 = float(int(Params().get("CruiseMaxVals4", encoding="utf8"))) / 100.
+    self.cruiseMaxVals5 = float(int(Params().get("CruiseMaxVals5", encoding="utf8"))) / 100.
+    self.cruiseMaxVals6 = float(int(Params().get("CruiseMaxVals6", encoding="utf8"))) / 100.
 
   def update_params(self):
     self.params_count = (self.params_count + 1) % 200
-    if (self.params_count % 50) == 0:
+    if self.params_count == 50:
       self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
       self.myEcoModeFactor = float(int(Params().get("MyEcoModeFactor", encoding="utf8"))) / 100.
+    elif self.params_count == 100:
+      self.cruiseMaxVals1 = float(int(Params().get("CruiseMaxVals1", encoding="utf8"))) / 100.
+      self.cruiseMaxVals2 = float(int(Params().get("CruiseMaxVals2", encoding="utf8"))) / 100.
+    elif self.params_count == 130:
+      self.cruiseMaxVals3 = float(int(Params().get("CruiseMaxVals3", encoding="utf8"))) / 100.
+      self.cruiseMaxVals4 = float(int(Params().get("CruiseMaxVals4", encoding="utf8"))) / 100.
+    elif self.params_count == 150:
+      self.cruiseMaxVals5 = float(int(Params().get("CruiseMaxVals5", encoding="utf8"))) / 100.
+      self.cruiseMaxVals6 = float(int(Params().get("CruiseMaxVals6", encoding="utf8"))) / 100.
     
+  def get_max_accel(self, v_ego):
+    cruiseMaxVals = [self.cruiseMaxVals1, self.cruiseMaxVals2, self.cruiseMaxVals3, self.cruiseMaxVals4, self.cruiseMaxVals5, self.cruiseMaxVals6]
+    return interp(v_ego, A_CRUISE_MAX_BP, cruiseMaxVals)
   @staticmethod
   def parse_model(model_msg, model_error):
     if (len(model_msg.position.x) == 33 and
@@ -128,13 +146,13 @@ class LongitudinalPlanner:
     if self.mpc.mode == 'acc':
       #accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]      
       if myDrivingMode in [1]: # 연비
-        myMaxAccel = clip(get_max_accel(v_ego)*self.accelBoost*self.myEcoModeFactor, 0, MAX_ACCEL)
+        myMaxAccel = clip(self.get_max_accel(v_ego)*self.accelBoost*self.myEcoModeFactor, 0, MAX_ACCEL)
       elif myDrivingMode in [2]: # 안전
-        myMaxAccel = clip(get_max_accel(v_ego)*self.accelBoost*self.myEcoModeFactor*mySafeModeFactor, 0, MAX_ACCEL)
+        myMaxAccel = clip(self.get_max_accel(v_ego)*self.accelBoost*self.myEcoModeFactor*mySafeModeFactor, 0, MAX_ACCEL)
       elif myDrivingMode in [3,4]: # 일반, 고속
-        myMaxAccel = clip(get_max_accel(v_ego)*self.accelBoost, 0, MAX_ACCEL)
+        myMaxAccel = clip(self.get_max_accel(v_ego)*self.accelBoost, 0, MAX_ACCEL)
       else:
-        myMaxAccel = get_max_accel(v_ego)
+        myMaxAccel = self.get_max_accel(v_ego)
       accel_limits = [A_CRUISE_MIN, myMaxAccel]
       accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
     else:
@@ -165,8 +183,10 @@ class LongitudinalPlanner:
 
     self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise_sol, x, v, a, j, y, prev_accel_constraint)
 
-    self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
-    self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)
+    self.v_desired_trajectory_full = np.interp(T_IDXS, T_IDXS_MPC, self.mpc.v_solution)
+    self.a_desired_trajectory_full = np.interp(T_IDXS, T_IDXS_MPC, self.mpc.a_solution)
+    self.v_desired_trajectory = self.v_desired_trajectory_full[:CONTROL_N]
+    self.a_desired_trajectory = self.a_desired_trajectory_full[:CONTROL_N]
     self.j_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC[:-1], self.mpc.j_solution)
 
     # TODO counter is only needed because radar is glitchy, remove once radar is gone
