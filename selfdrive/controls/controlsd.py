@@ -320,9 +320,8 @@ class Controls:
     # Handle lane change
     if self.sm['lateralPlan'].laneChangeState == LaneChangeState.preLaneChange:
       direction = self.sm['lateralPlan'].laneChangeDirection
-      md = self.sm['modelV2']
-      left_road_edge = -interp(2.0, md.roadEdges[0].x, md.roadEdges[0].y)
-      right_road_edge = interp(2.0, md.roadEdges[1].x, md.roadEdges[1].y)
+      left_road_edge = -self.sm['modelV2'].roadEdges[0].y[0]
+      right_road_edge = self.sm['modelV2'].roadEdges[1].y[0]
 
       if (CS.leftBlindspot and direction == LaneChangeDirection.left) or \
          (CS.rightBlindspot and direction == LaneChangeDirection.right):
