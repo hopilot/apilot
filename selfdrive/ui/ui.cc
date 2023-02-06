@@ -107,11 +107,9 @@ void update_model(UIState *s, const cereal::ModelDataV2::Reader &model) {
   // lane barriers for blind spot
   int max_distance_barrier =  40;
   int max_idx_barrier = std::min(max_idx, get_path_length_idx(lane_lines[0], max_distance_barrier));
-  scene.lane_line_probs[0] = lane_line_probs[1];  
-  update_line_data(s, lane_lines[1], 2.8 * scene.lane_line_probs[0], 0, 0, &scene.lane_barrier_vertices[0], max_idx_barrier, false);
-  scene.lane_line_probs[1] = lane_line_probs[2];
-  update_line_data(s, lane_lines[2], 0, 2.8 * scene.lane_line_probs[1], 0, &scene.lane_barrier_vertices[1], max_idx_barrier, false);
-
+  update_line_data(s, lane_lines[1], 0, -0.05, -0.6, &scene.lane_barrier_vertices[0], max_idx_barrier, false);
+  update_line_data(s, lane_lines[2], 0, -0.05, -0.6, &scene.lane_barrier_vertices[1], max_idx_barrier, false);
+  
   // update road edges
   const auto road_edges = model.getRoadEdges();
   const auto road_edge_stds = model.getRoadEdgeStds();
