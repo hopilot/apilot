@@ -244,10 +244,13 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "CruiseButtonMode", PERSISTENT },
     { "GapButtonMode", PERSISTENT },
     { "PrevCruiseGap", PERSISTENT },
+    { "CruiseSpeedMin", PERSISTENT },
     { "InitMyDrivingMode", PERSISTENT },
     { "MyDrivingMode", PERSISTENT },
     { "MySafeModeFactor", PERSISTENT },
     { "LiveSteerRatioApply", PERSISTENT },
+    { "SteerActuatorDelay", PERSISTENT },
+    { "SteerActuatorDelayLow", PERSISTENT },
     { "MyEcoModeFactor", PERSISTENT },
     { "AutoSyncCruiseSpeedMax", PERSISTENT },
     { "StopDistance", PERSISTENT },
@@ -275,6 +278,10 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "CameraOffsetAdj", PERSISTENT},    
     { "HapticFeedbackWhenSpeedCamera", PERSISTENT },
     { "SoftHoldMode", PERSISTENT },
+    { "SteeringRateCost", PERSISTENT },
+    { "LateralAccelCost", PERSISTENT },
+    { "SteerDeltaUp", PERSISTENT },
+    { "SteerDeltaDown", PERSISTENT },
 };
 
 } // namespace

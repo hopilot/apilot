@@ -86,7 +86,8 @@ def manager_init() -> None:
     ("MySafeModeFactor", "80"),      
     ("LiveSteerRatioApply", "100"),      
     ("MyEcoModeFactor", "80"),      
-    ("PrevCruiseGap", "4"),      
+    ("PrevCruiseGap", "4"),     
+    ("CruiseSpeedMin", "10"),   
     ("AutoSyncCruiseSpeedMax", "120"),       
     ("StopDistance", "600"), 
     ("CustomMapbox", "0"),    
@@ -107,6 +108,12 @@ def manager_init() -> None:
     ("PathOffset", "0"),   
     ("HapticFeedbackWhenSpeedCamera", "0"),       
     ("SoftHoldMode", "1"),       
+    ("SteeringRateCost", "800"),       
+    ("LateralAccelCost", "100"),       
+    ("SteerActuatorDelay", "30"),       
+    ("SteerActuatorDelayLow", "30"),       
+    ("SteerDeltaUp", "3"),       
+    ("SteerDeltaDown", "7"),        
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))

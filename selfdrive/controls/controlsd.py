@@ -526,8 +526,8 @@ class Controls:
         self.v_cruise_helper.v_cruise_kph = self.cruise_helper.update_v_cruise_apilot(self.v_cruise_helper.v_cruise_kph, CS.buttonEvents, self.enabled, self.is_metric, self, CS)
         self.v_cruise_helper.v_cruise_cluster_kph = self.v_cruise_helper.v_cruise_kph
     else:
-      self.v_cruise_helper.v_cruise_kph = 30#V_CRUISE_INITIAL
-      self.v_cruise_helper.v_cruise_cluster_kph = 30#V_CRUISE_INITIAL
+      self.v_cruise_helper.v_cruise_kph = self.cruise_helper.cruiseSpeedMin #30#V_CRUISE_INITIAL
+      self.v_cruise_helper.v_cruise_cluster_kph = self.cruise_helper.cruiseSpeedMin #30#V_CRUISE_INITIAL
 
     # decrement the soft disable timer at every step, as it's reset on
     # entrance in SOFT_DISABLING state
@@ -692,10 +692,11 @@ class Controls:
       self.desired_curvature, self.desired_curvature_rate = get_lag_adjusted_curvature(self.CP, CS.vEgo,
                                                                                        lat_plan.psis,
                                                                                        lat_plan.curvatures,
-                                                                                       lat_plan.curvatureRates)
+                                                                                       lat_plan.curvatureRates, self.cruise_helper.getSteerActuatorDelay(CS.vEgo))
       actuators.steer, actuators.steeringAngleDeg, lac_log = self.LaC.update(CC.latActive, CS, self.VM, lp,
                                                                              self.last_actuators, self.steer_limited, self.desired_curvature,
                                                                              self.desired_curvature_rate, self.sm['liveLocationKalman'])
+      actuators.curvature = self.desired_curvature
     else:
       lac_log = log.ControlsState.LateralDebugState.new_message()
       if self.sm.rcv_frame['testJoystick'] > 0:

@@ -120,6 +120,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
   lead_visible = hud_control.leadVisible
   cruiseGap = hud_control.cruiseGap
   softHold = hud_control.softHold
+  softHoldInfo = softHold  #계기판에 표시안하게 하려면 False로 하면됨~
   long_override = CC.cruiseControl.override
   brakePressed = CS.out.brakePressed
   longEnabled = CC.longEnabled
@@ -162,7 +163,7 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     "TauGapSet": cruiseGap,
     "VSetDis": set_speed if longEnabled else 0,
     "AliveCounterACC": idx % 0x10,
-    "SCCInfoDisplay" : 3 if longActive and radarAlarm else 4 if longActive and softHold else 0 if enabled else 0,   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비 <= 주의 2를 선택하면... 선행차아이콘이 안나옴.
+    "SCCInfoDisplay" : 3 if longActive and radarAlarm else 4 if longActive and softHoldInfo else 0 if enabled else 0,   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비 <= 주의 2를 선택하면... 선행차아이콘이 안나옴.
     "ObjValid": 1 if lead_visible else 0, # close lead makes controls tighter
     "ACC_ObjStatus": 1 if lead_visible else 0, # close lead makes controls tighter
     #"ACC_ObjLatPos": 0,
@@ -177,8 +178,8 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     values["TauGapSet"] = cruiseGap
     values["VSetDis"] = set_speed if longEnabled else 0
     values["AliveCounterACC"] = idx % 0x10
-    #values["SCCInfoDisplay"] = 4 if longEnabled and softHold else 3 if longEnabled and radarAlarm else 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
-    values["SCCInfoDisplay"] = 3 if longActive and radarAlarm else 4 if longActive and softHold else 0 if enabled else 0   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비
+    #values["SCCInfoDisplay"] = 4 if longEnabled and softHoldInfo else 3 if longEnabled and radarAlarm else 2 if enabled else 0   #3: 전방상황주의, 4: 출발준비
+    values["SCCInfoDisplay"] = 3 if longActive and radarAlarm else 4 if longActive and softHoldInfo else 0 if enabled else 0   #2: 크루즈 선택, 3: 전방상황주의, 4: 출발준비
     values["ObjValid"] = 1 if lead_visible else 0
     values["ACC_ObjStatus"] = 1 if lead_visible else 0
     #values["ACC_ObjLatPos"] = 0
