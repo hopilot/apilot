@@ -527,10 +527,11 @@ class CruiseHelper:
           # 브레이크해제 켜지고, 크루즈갭이 5가 아닌경우에만 작동.
           elif self.autoResumeFromBrakeRelease and self.longCruiseGap != 5: # 브레이크 해제에 대한 크루즈 ON
             # 주행중, 전방차량이 20M(변수)이내이면
-            if resume_cond and v_ego_kph > 1.0 and 0 < self.autoResumeFromBrakeReleaseDist < dRel:
-              v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
+            if resume_cond and v_ego_kph > 1.0 and 0 < self.autoResumeFromBrakeReleaseDist < dRel and CS.rightBlinker == False:
+              #v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
               self.cruise_control(controls, CS, 3)
-            elif v_ego_kph < 60.0 and xState == XState.e2eStop and abs(self.position_y) < 3.0 and self.autoResumeFromBrakeReleaseTrafficSign:
+            # 70km/h미만, 신호정지신호, 직선도로인경우
+            elif v_ego_kph < 70.0 and xState == XState.e2eStop and abs(self.position_y) < 5.0 and self.autoResumeFromBrakeReleaseTrafficSign and CS.rightBlinker == False:
               v_cruise_kph = v_ego_kph_set  
               self.cruise_control(controls, CS, 3)
             # 전방차량이 없고, 속도가 40km/h(변수) 이상인경우
@@ -540,6 +541,9 @@ class CruiseHelper:
             # 정지중, 전방차량이 10M이내인경우
             elif v_ego_kph < 5.0 and 2 < dRel < 10 and self.autoResumeFromBrakeReleaseLeadCar:
               self.cruise_control(controls, CS, 3)
+          # 그 밖에 전방 차량이 있으면 크루즈 온
+          elif dRel > 0 :
+            self.cruise_control(controls, CS, 3)
       elif self.userCruisePaused:
         if v_ego_kph > 3.0 and dRel > 0 and vRel < 0:          
           v_cruise_kph = v_ego_kph_set
