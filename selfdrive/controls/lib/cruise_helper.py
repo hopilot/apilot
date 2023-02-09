@@ -81,6 +81,8 @@ class CruiseHelper:
     self.autoCurveSpeedCtrl = int(Params().get("AutoCurveSpeedCtrl"))
     self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
     self.autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
+    self.autoNaviSpeedCtrlStart = float(Params().get("AutoNaviSpeedCtrlStart"))
+    self.autoNaviSpeedCtrlEnd = float(Params().get("AutoNaviSpeedCtrlEnd"))
     self.autoRoadLimitCtrl = int(Params().get("AutoRoadLimitCtrl", encoding="utf8"))
     self.naviSpeedLimitDecelRate = float(Params().get("NaviSpeedLimitDecelRate", encoding="utf8"))*0.01
     #self.naviDecelMarginDist = float(int(Params().get("NaviDecelMarginDist", encoding="utf8")))
@@ -156,9 +158,11 @@ class CruiseHelper:
       elif self.update_params_count == 13:
         self.steerActuatorDelay = float(int(Params().get("SteerActuatorDelay", encoding="utf8"))) / 100.
         self.steerActuatorDelayLow = float(int(Params().get("SteerActuatorDelayLow", encoding="utf8"))) / 100.
-
       elif self.update_params_count == 14:
         self.cruiseSpeedMin = int(Params().get("CruiseSpeedMin"))
+      elif self.update_params_count == 15:
+        self.autoNaviSpeedCtrlStart = float(Params().get("AutoNaviSpeedCtrlStart"))
+        self.autoNaviSpeedCtrlEnd = float(Params().get("AutoNaviSpeedCtrlEnd"))
 
   def getSteerActuatorDelay(self, v_ego):
     v_ego_kph = v_ego * 3.6
@@ -334,7 +338,7 @@ class CruiseHelper:
     road_speed_limiter = get_road_speed_limiter()
     self.ndaActive = 1 if road_speed_limiter_get_active() > 0 else 0
     apply_limit_speed, road_limit_speed, left_dist, first_started, max_speed_log = \
-      road_speed_limiter.get_max_speed(clu11_speed, True) #self.is_metric)
+      road_speed_limiter.get_max_speed(clu11_speed, True, self.autoNaviSpeedCtrlStart, self.autoNaviSpeedCtrlEnd) #self.is_metric)
 
     self.active_cam = road_limit_speed > 0 and left_dist > 0
 
