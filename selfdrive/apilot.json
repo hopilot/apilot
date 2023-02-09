@@ -112,6 +112,56 @@
       "unit": 1
     },
     {
+      "group": "가속설정",
+      "name": "CruiseMaxVals1",
+      "title": "가속설정1:0km/h(200)",
+      "descr": "가속도를 설정합니다. (x0.01m/s^2)",
+      "min": 1,
+      "max": 300,
+      "default": 200,
+      "unit": 5
+    },
+    {
+      "group": "가속설정",
+      "name": "CruiseMaxVals2",
+      "title": "가속설정2:40km/h(140)",
+      "descr": "가속도를 설정합니다. (x0.01m/s^2)",
+      "min": 1,
+      "max": 300,
+      "default": 140,
+      "unit": 5
+    },
+    {
+      "group": "가속설정",
+      "name": "CruiseMaxVals3",
+      "title": "가속설정3:70km/h(50)",
+      "descr": "가속도를 설정합니다. (x0.01m/s^2)",
+      "min": 1,
+      "max": 300,
+      "default": 50,
+      "unit": 5
+    },
+    {
+      "group": "가속설정",
+      "name": "CruiseMaxVals4",
+      "title": "가속설정4:100km/h(20)",
+      "descr": "가속도를 설정합니다. (x0.01m/s^2)",
+      "min": 1,
+      "max": 300,
+      "default": 20,
+      "unit": 5
+    },
+    {
+      "group": "가속설정",
+      "name": "CruiseMaxVals5",
+      "title": "가속설정5:140km/h(15)",
+      "descr": "가속도를 설정합니다. (x0.01m/s^2)",
+      "min": 1,
+      "max": 300,
+      "default": 15,
+      "unit": 5
+    },
+    {
       "group": "���༳��",
       "name": "MySafeModeFactor",
       "title": "��������(80%)",

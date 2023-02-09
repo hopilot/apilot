@@ -748,7 +748,12 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(horizontal_line());
     //toggleLayout->addWidget(new CValueControl("AccelLimitEcoSpeed", "초기가속제한 속도(3km/h)", "지정속도까지 가속도를 제한합니다. 출발시 충격 방지!!", "../assets/offroad/icon_road.png", 0, 100, 1));
     //toggleLayout->addWidget(new ParamControl("AccelLimitConfusedModel", "모델혼잡시 조향가속비율적용(ON)", "E2E모드에서 모델예측이 20M이내인경우 가속을 제한합니다.", "../assets/offroad/icon_road.png", this));
-    toggleLayout->addWidget(new CValueControl("AccelBoost", "가속도 제어(100%)", "가속도를 제어합니다.", "../assets/offroad/icon_road.png", 50, 200, 10));
+    toggleLayout->addWidget(new CValueControl("AccelBoost", "가속도 제어(100%)", "가속도를 제어합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 50, 200, 1));
+    toggleLayout->addWidget(new CValueControl("MaxCruiseVals1", "가속설정:0km/h(200)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 300, 5));
+    toggleLayout->addWidget(new CValueControl("MaxCruiseVals2", "가속설정:40km/h(150)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 300, 5));
+    toggleLayout->addWidget(new CValueControl("MaxCruiseVals3", "가속설정:70km/h(50)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 300, 5));
+    toggleLayout->addWidget(new CValueControl("MaxCruiseVals4", "가속설정:100km/h(20)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 300, 5));
+    toggleLayout->addWidget(new CValueControl("MaxCruiseVals5", "가속설정:140km/h(15)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 300, 5));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("AutoCurveSpeedCtrl", "모델커브속도조절(1)", "곡선도로를 만나면 속도를 줄여줍니다. 0:사용안함,1:방법1,2:방법2", "../assets/offroad/icon_road.png", 0, 2, 1));
     toggleLayout->addWidget(new CValueControl("AutoCurveSpeedFactor", "모델커브속도조절비율(100%)", "커브속도조절(커브속도 조절 2일때 적용)", "../assets/offroad/icon_road.png", 50, 150, 1));
