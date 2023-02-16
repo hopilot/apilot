@@ -69,6 +69,7 @@ services = {
   "navInstruction": (True, 0., 10),
   "navRoute": (True, 0.),
   "navThumbnail": (True, 0.),
+  "uiPlan": (True, 20., 40.),  
   "userFlag": (True, 0., 1),
   "roadLimitSpeed": (False, 0.),
 
