@@ -62,11 +62,6 @@ protected:
   FirstOrderFilter fps_filter;
   FirstOrderFilter accel_filter;
 
-  bool dmActive = false;
-  bool hideDM = false;
-  QPixmap dm_img;
-  float dm_fade_state = 1.0;
-
   // neokii
   void drawIcon(QPainter &p, int x, int y, QPixmap &img, QBrush bg, float opacity, float rotate=0.0);
   void drawText(QPainter &p, int x, int y, const QString &text, int alpha = 255);
@@ -109,7 +104,6 @@ protected:
   void drawTurnSignals(QPainter &p);
   void drawGpsStatus(QPainter &p);
   void drawDebugText(QPainter &p);
-  void drawDriverState(QPainter &painter, const UIState *s);
   void drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model);
 
   int m_fps = 0;
