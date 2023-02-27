@@ -483,7 +483,7 @@ class CruiseHelper:
         if not self.preBrakePressed:
           self.v_cruise_kph_backup = v_cruise_kph
       elif CS.gasPressed:
-        if self.autoCancelFromGas > 0 and v_ego_kph < self.autoCancelFromGas: # 일정속도 이하에서 가속페달을 밟으면 크루즈해제함. 이상한 레이더가 수신되거나, 주차장, 복잡한 도로에서 사용..
+        if self.autoCancelFromGas > 0 and v_ego_kph < self.autoCancelFromGas and dRel == 0: # 일정속도 이하에서 가속페달을 밟으면 크루즈해제함. 이상한 주차장, 복잡한 도로에서 사용..
           self.cruise_control(controls, CS, -2)
         elif v_ego_kph > v_cruise_kph and self.autoSyncCruiseSpeedMax > self.autoResumeFromGasSpeed:
           if self.autoResumeFromGasSpeed < v_ego_kph < self.autoSyncCruiseSpeedMax: # 오토크루즈 ON속도보다 높고, 130키로보다 작을때만 싱크
