@@ -134,7 +134,7 @@
     {
       "group": "가속설정",
       "name": "CruiseMaxVals3",
-      "title": "가속설정3:70km/h(50)",
+      "title": "가속설정3:60km/h(50)",
       "descr": "가속도를 설정합니다. (x0.01m/s^2)",
       "min": 1,
       "max": 300,
@@ -144,7 +144,7 @@
     {
       "group": "가속설정",
       "name": "CruiseMaxVals4",
-      "title": "가속설정4:100km/h(20)",
+      "title": "가속설정4:80km/h(20)",
       "descr": "가속도를 설정합니다. (x0.01m/s^2)",
       "min": 1,
       "max": 300,
@@ -154,7 +154,17 @@
     {
       "group": "가속설정",
       "name": "CruiseMaxVals5",
-      "title": "가속설정5:140km/h(15)",
+      "title": "가속설정5:110km/h(15)",
+      "descr": "가속도를 설정합니다. (x0.01m/s^2)",
+      "min": 1,
+      "max": 300,
+      "default": 15,
+      "unit": 5
+    },
+    {
+      "group": "가속설정",
+      "name": "CruiseMaxVals6",
+      "title": "가속설정6:140km/h(15)",
       "descr": "가속도를 설정합니다. (x0.01m/s^2)",
       "min": 1,
       "max": 300,
@@ -209,6 +219,16 @@
       "min": 10,
       "max": 120,
       "default": 5,
+      "unit": 1
+    },
+    {
+      "group": "주행튜닝",
+      "name": "ApplyModelDistOrder",
+      "title": "신호정지 감속모델선택 (32)",
+      "descr": "숫자가 작을수록 감속을 미리합니다.",
+      "min": 1,
+      "max": 32,
+      "default": 32,
       "unit": 1
     },
     {
@@ -292,10 +312,10 @@
       "unit": 1
     },
     {
-      "group": "�ڵ�ũ����",
+      "group": "자동크루즈",
       "name": "AutoCancelFromGas",
-      "title": "����ũ����OFF:�ӵ�",
-      "descr": "�����ӵ����Ͽ��� ������ ������ ũ���� OFF",
+      "title": "엑셀크루즈OFF:속도(25)",
+      "descr": "설정속도이하에서 엑셀을 밟으면 크루즈 OFF",
       "min": 0,
       "max": 140,
       "default": 0,
@@ -409,16 +429,6 @@
       "min": 0,
       "max": 1,
       "default": 1,
-      "unit": 1
-    },
-    {
-      "group": "����",
-      "name": "PathOffset",
-      "title": "����ġ��ħ�¿캸��",
-      "descr": "(-)����,(+)����",
-      "min": -200,
-      "max": 200,
-      "default": 0,
       "unit": 1
     },
     {

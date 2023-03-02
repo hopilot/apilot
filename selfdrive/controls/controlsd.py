@@ -320,8 +320,9 @@ class Controls:
     # Handle lane change
     if self.sm['lateralPlan'].laneChangeState == LaneChangeState.preLaneChange:
       direction = self.sm['lateralPlan'].laneChangeDirection
-      left_road_edge = -self.sm['modelV2'].roadEdges[0].y[0]
-      right_road_edge = self.sm['modelV2'].roadEdges[1].y[0]
+      md = self.sm['modelV2']
+      left_road_edge = -md.roadEdges[0].y[0]
+      right_road_edge = md.roadEdges[1].y[0]
 
       if (CS.leftBlindspot and direction == LaneChangeDirection.left) or \
          (CS.rightBlindspot and direction == LaneChangeDirection.right):
@@ -654,7 +655,8 @@ class Controls:
     longActiveEnabled = CC.longEnabled and longActiveUser > 0 #롱컨 레디~
 
     CC.longActive = longActiveEnabled and not longOverrideFlag# and not CS.brakeHoldActive
-    CC.longOverride = longActiveEnabled and longOverrideFlag
+    #CC.longOverride = longActiveEnabled and longOverrideFlag
+    CC.longOverride = CC.longEnabled and longOverrideFlag
 
     if not CC.longEnabled:
       self.cruise_helper.longActiveUser = 0

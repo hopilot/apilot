@@ -12,6 +12,7 @@ from selfdrive.controls.lib.longcontrol import LongCtrlState
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc, MIN_ACCEL, MAX_ACCEL
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDXS as T_IDXS_MPC
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, CONTROL_N
+from selfdrive.controls.lib.vision_turn_controller import VisionTurnController
 from selfdrive.swaglog import cloudlog
 from common.params import Params
 
@@ -19,8 +20,9 @@ LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2  # car smoothly decel at .2m/s^2 when user is distracted
 A_CRUISE_MIN = -1.2
 #A_CRUISE_MAX_VALS = [1.6, 1.2, 0.8, 0.6]
-A_CRUISE_MAX_VALS = [2.0, 1.2, 0.8, 0.6]
-A_CRUISE_MAX_BP = [0., 10.0, 25., 40.]
+#A_CRUISE_MAX_VALS = [2.0, 1.2, 0.8, 0.6]
+A_CRUISE_MAX_VALS = [2.0, 1.4, 0.5, 0.2, 0.15]
+A_CRUISE_MAX_BP = [0., 40 * CV.KPH_TO_MS, 60 * CV.KPH_TO_MS, 80 * CV.KPH_TO_MS, 110 * CV.KPH_TO_MS, 140 * CV.KPH_TO_MS]
 
 # Lookup table for turns
 _A_TOTAL_MAX_V = [1.7, 3.2]
@@ -71,6 +73,7 @@ class LongitudinalPlanner:
     self.cruiseMaxVals3 = float(int(Params().get("CruiseMaxVals3", encoding="utf8"))) / 100.
     self.cruiseMaxVals4 = float(int(Params().get("CruiseMaxVals4", encoding="utf8"))) / 100.
     self.cruiseMaxVals5 = float(int(Params().get("CruiseMaxVals5", encoding="utf8"))) / 100.
+    self.cruiseMaxVals6 = float(int(Params().get("CruiseMaxVals6", encoding="utf8"))) / 100.
 
   def update_params(self):
     self.params_count = (self.params_count + 1) % 200
@@ -85,9 +88,10 @@ class LongitudinalPlanner:
       self.cruiseMaxVals4 = float(int(Params().get("CruiseMaxVals4", encoding="utf8"))) / 100.
     elif self.params_count == 150:
       self.cruiseMaxVals5 = float(int(Params().get("CruiseMaxVals5", encoding="utf8"))) / 100.
-
+      self.cruiseMaxVals6 = float(int(Params().get("CruiseMaxVals6", encoding="utf8"))) / 100.
+    
   def get_max_accel(self, v_ego):
-    cruiseMaxVals = [self.cruiseMaxVals1, self.cruiseMaxVals2, self.cruiseMaxVals3, self.cruiseMaxVals4, self.cruiseMaxVals5]
+    cruiseMaxVals = [self.cruiseMaxVals1, self.cruiseMaxVals2, self.cruiseMaxVals3, self.cruiseMaxVals4, self.cruiseMaxVals5, self.cruiseMaxVals6]
     return interp(v_ego, A_CRUISE_MAX_BP, cruiseMaxVals)
   @staticmethod
   def parse_model(model_msg, model_error):
@@ -162,9 +166,7 @@ class LongitudinalPlanner:
       self.v_model_error = sm['modelV2'].temporalPose.trans[0] - v_ego
 
     if force_slow_decel:
-      # if required so, force a smooth deceleration
-      accel_limits_turns[1] = min(accel_limits_turns[1], AWARENESS_DECEL)
-      accel_limits_turns[0] = min(accel_limits_turns[0], accel_limits_turns[1])
+      v_cruise = 0.0
     # clip limits, cannot init MPC outside of bounds
     accel_limits_turns[0] = min(accel_limits_turns[0], self.a_desired + 0.05)
     accel_limits_turns[1] = max(accel_limits_turns[1], self.a_desired - 0.05)
@@ -176,10 +178,8 @@ class LongitudinalPlanner:
 
     self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise, x, v, a, j, y, prev_accel_constraint)
 
-    self.v_desired_trajectory_full = np.interp(T_IDXS, T_IDXS_MPC, self.mpc.v_solution)
-    self.a_desired_trajectory_full = np.interp(T_IDXS, T_IDXS_MPC, self.mpc.a_solution)
-    self.v_desired_trajectory = self.v_desired_trajectory_full[:CONTROL_N]
-    self.a_desired_trajectory = self.a_desired_trajectory_full[:CONTROL_N]
+    self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
+    self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)
     self.j_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC[:-1], self.mpc.j_solution)
 
     # TODO counter is only needed because radar is glitchy, remove once radar is gone
