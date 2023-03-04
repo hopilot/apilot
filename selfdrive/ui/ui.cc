@@ -134,9 +134,9 @@ void update_model(UIState *s,
   update_line_data(s, plan_position, (lp.getUseLaneLines()) ? 0.3 : 1.0, 1.22, 1.22, &scene.track_vertices, max_idx, false);
 }
 
-void update_dmonitoring(UIState *s, const cereal::DriverStateV2::Reader &driverstate, float dm_fade_state, bool is_rhd) {
+void update_dmonitoring(UIState *s, const cereal::DriverState::Reader &driverstate, float dm_fade_state) {
   UIScene &scene = s->scene;
-  const auto driver_orient = is_rhd ? driverstate.getFaceOrientation() : driverstate.getFaceOrientation();
+  const auto driver_orient = driverstate.getFaceOrientation();
   for (int i = 0; i < std::size(scene.driver_pose_vals); i++) {
     float v_this = (i == 0 ? (driver_orient[i] < 0 ? 0.7 : 0.9) : 0.4) * driver_orient[i];
     scene.driver_pose_diff[i] = fabs(scene.driver_pose_vals[i] - v_this);
@@ -296,7 +296,7 @@ void UIState::updateStatus() {
 UIState::UIState(QObject *parent) : QObject(parent) {
   sm = std::make_unique<SubMaster, const std::initializer_list<const char *>>({
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "roadCameraState",
-    "pandaStates", "carParams", "driverMonitoringState", "sensorEvents", "carState", "liveLocationKalman", "driverStateV2",
+    "pandaStates", "carParams", "driverMonitoringState", "sensorEvents", "carState", "liveLocationKalman", "driverState",
     "wideRoadCameraState", "lateralPlan", "longitudinalPlan",
     "gpsLocationExternal", "carControl", "liveParameters", "roadLimitSpeed",
     "uiPlan",
