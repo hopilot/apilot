@@ -156,11 +156,20 @@ class CruiseHelper:
       elif self.update_params_count == 12:
         self.autoCancelFromGas = int(Params().get("AutoCancelFromGas"))
         self.gapButtonMode = int(Params().get("GapButtonMode"))
+      elif self.update_params_count == 13:
+        self.steerActuatorDelay = float(int(Params().get("SteerActuatorDelay", encoding="utf8"))) / 100.
+        self.steerActuatorDelayLow = float(int(Params().get("SteerActuatorDelayLow", encoding="utf8"))) / 100.
+        self.steerActuatorDelayMid = float(int(Params().get("SteerActuatorDelayMid", encoding="utf8"))) / 100.
       elif self.update_params_count == 14:
         self.cruiseSpeedMin = int(Params().get("CruiseSpeedMin"))
       elif self.update_params_count == 15:
         self.autoNaviSpeedCtrlStart = float(Params().get("AutoNaviSpeedCtrlStart"))
         self.autoNaviSpeedCtrlEnd = float(Params().get("AutoNaviSpeedCtrlEnd"))
+
+  def getSteerActuatorDelay(self, v_ego):
+    v_ego_kph = v_ego * 3.6
+
+    return interp(v_ego_kph, [0, 50, 200], [self.steerActuatorDelayLow, self.steerActuatorDelayMid, self.steerActuatorDelay])
 
   @staticmethod
   def get_lead(sm):

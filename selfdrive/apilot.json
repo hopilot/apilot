@@ -74,11 +74,21 @@
     {
       "group": "조향튜닝",
       "name": "SteerActuatorDelayLow",
-      "title": "SteerActuatorDelayLow(30)",
-      "descr": "저속일때 값을 크게하여 좀더 빠른 조향",
+      "title": "SteerActuatorDelayLow(60)",
+      "descr": "0키로일때 SAD",
       "min": 0,
       "max": 200,
-      "default": 100,
+      "default": 60,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "SteerActuatorDelayMid",
+      "title": "SteerActuatorDelayMid(40)",
+      "descr": "50키로속도 SAD",
+      "min": 0,
+      "max": 200,
+      "default": 40,
       "unit": 1
     },
     {
