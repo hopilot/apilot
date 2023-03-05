@@ -37,6 +37,8 @@ class LateralPlanner:
     self.use_lanelines = Params().get_bool('UseLanelines')
     self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
 
+    self.lateralTestMode = int(Params().get("LateralTestMode", encoding="utf8"))
+
     # Vehicle model parameters used to calculate lateral movement of car
     self.factor1 = CP.wheelbase - CP.centerToFront
     self.factor2 = (CP.centerToFront * CP.mass) / (CP.wheelbase * CP.tireStiffnessRear)
@@ -64,6 +66,8 @@ class LateralPlanner:
       self.readParams = 100
       self.use_lanelines = Params().get_bool('UseLanelines')
       self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
+      self.lateralTestMode = int(Params().get("LateralTestMode", encoding="utf8"))
+
     # clip speed , lateral planning is not possible at 0 speed
     measured_curvature = sm['controlsState'].curvature
 
@@ -121,9 +125,15 @@ class LateralPlanner:
     self.lat_mpc.set_weights(PATH_COST, LATERAL_MOTION_COST,
                              LATERAL_ACCEL_COST, LATERAL_JERK_COST,
                              interp(self.v_ego, [2., 10.], [STEERING_RATE_COST, STEERING_RATE_COST/2.]))
-    y_pts = self.path_xyz[:LAT_MPC_N+1, 1]
-    heading_pts = self.plan_yaw[:LAT_MPC_N+1]
-    yaw_rate_pts = self.plan_yaw_rate[:LAT_MPC_N+1]
+    if self.lateralTestMode == 1:
+      d_path_xyz = self.path_xyz
+      y_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(d_path_xyz, axis=1), d_path_xyz[:, 1])
+      heading_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw)
+      yaw_rate_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw_rate)
+    else:
+      y_pts = self.path_xyz[:LAT_MPC_N+1, 1]
+      heading_pts = self.plan_yaw[:LAT_MPC_N+1]
+      yaw_rate_pts = self.plan_yaw_rate[:LAT_MPC_N+1]
     self.y_pts = y_pts
 
     assert len(y_pts) == LAT_MPC_N + 1

@@ -119,6 +119,8 @@ def manager_init() -> None:
     ("ApplyModelDistOrder", "32"),        
     ("SteeringRateCost", "800"),       
     ("LateralAccelCost", "100"),       
+    ("LateralTestMode", "0"),       
+    ("SteerActuatorDelay", "30"), 
     ("SteerActuatorDelay", "30"),       
     ("SteerActuatorDelayLow", "30"),       
     ("SteerActuatorDelayMid", "30"),         

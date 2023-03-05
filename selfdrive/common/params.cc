@@ -290,6 +290,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "ApplyModelDistOrder", PERSISTENT },
     { "SteeringRateCost", PERSISTENT },
     { "LateralAccelCost", PERSISTENT },
+    { "LateralTestMode", PERSISTENT },
     { "SteerDeltaUp", PERSISTENT },
     { "SteerDeltaDown", PERSISTENT },
 };
