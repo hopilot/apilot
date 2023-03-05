@@ -747,11 +747,12 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   //auto scc_smoother = sm["carControl"].getCarControl().getSccSmoother();
   UIState* s = uiState();
 
+#if 0
   // tire pressure
   if(width()>1200) {
     const int w = 58;
     const int h = 126;
-    const int x = 110;
+    const int x = radius / 2 + (bdr_s * 2) + (radius + 50);
     const int y = height() - h - 85 + 15;
 
     auto tpms = car_state.getTpms();
@@ -768,7 +769,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
     QFontMetrics fm(p.font());
     QRect rcFont = fm.boundingRect("9");
 
-    int center_x = x + 3 + (radius + 50) * 4;
+    int center_x = x + 3;
     int center_y = y + h/2;
     const int marginX = (int)(rcFont.width() * 2.7f);
     const int marginY = (int)((h/2 - rcFont.height()) * 0.7f);
@@ -778,9 +779,10 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
     drawText2(p, center_x-marginX, center_y+marginY, Qt::AlignRight, get_tpms_text(rl), get_tpms_color(rl));
     drawText2(p, center_x+marginX, center_y+marginY, Qt::AlignLeft, get_tpms_text(rr), get_tpms_color(rr));
   }
-
+#endif
+#if 0
   int x = radius / 2 + (bdr_s * 2) + (radius + 50);
-  const int y = rect().bottom() - footer_h / 2 - 10;
+  const int y = rect().bottom() - footer_h / 2 - 10 + 15;
 
   // cruise gap
   int gap = controls_state.getLongCruiseGap(); // car_state.getCruiseGap();
@@ -831,7 +833,9 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
 
   configFont(p, "Inter", textSize, "Bold");
   drawTextWithColor(p, x, y+50, str, textColor);
+#endif
 
+#if 0
   // brake
   x = radius / 2 + (bdr_s * 2) + (radius + 50) * 2;
   bool brake_valid = car_state.getBrakeLights();
@@ -859,12 +863,14 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
     drawIcon(p, x, y, autohold ? ic_autohold_warning : ic_autohold_active,
             QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
   }
+#endif
   p.restore();
 }
 
 void AnnotatedCameraWidget::drawSpeed(QPainter &p) {
   p.save();
   UIState *s = uiState();
+#if 1
   const SubMaster &sm = *(s->sm);
   float v_ego;
   if (sm["carState"].getCarState().getVEgoCluster() == 0.0 && !v_ego_cluster_seen) {
@@ -903,7 +909,7 @@ void AnnotatedCameraWidget::drawSpeed(QPainter &p) {
 
   configFont(p, "Inter", 66, "Regular");
   //drawText(p, rect().center().x(), 310, s->scene.is_metric ? "km/h" : "mph", 200);
-
+#endif
 #if 0
   const auto lmd = sm["liveMapData"].getLiveMapData();
   const uint64_t lmd_fix_time = lmd.getLastGpsTimestamp();
@@ -917,12 +923,22 @@ void AnnotatedCameraWidget::drawSpeed(QPainter &p) {
   
   if (s->show_datetime && width() > 1200) {
       // ajouatom: 현재시간표시
+#if 1
+      int y = height() - 280;
+      QTextOption  textOpt = QTextOption(Qt::AlignLeft);
+      configFont(p, "Open Sans", 110, "Bold");
+      //p.drawText(QRect(270, 50, width(), 500), QDateTime::currentDateTime().toString("hh:mmap"), textOpt);
+      p.drawText(QRect(280, y+35, width(), 500), QDateTime::currentDateTime().toString("hh:mm"), textOpt);
+      configFont(p, "Open Sans", 50, "Bold");
+      p.drawText(QRect(280, y+35 + 130, width(), 500), QDateTime::currentDateTime().toString("MM월 dd일 (ddd)"), textOpt);
+#else
       QTextOption  textOpt = QTextOption(Qt::AlignLeft);
       configFont(p, "Open Sans", 110, "Bold");
       //p.drawText(QRect(270, 50, width(), 500), QDateTime::currentDateTime().toString("hh:mmap"), textOpt);
       p.drawText(QRect(280, 35, width(), 500), QDateTime::currentDateTime().toString("hh:mm"), textOpt);
       configFont(p, "Open Sans", 50, "Bold");
       p.drawText(QRect(280, 35 + 150, width(), 500), QDateTime::currentDateTime().toString("MM월 dd일 (ddd)"), textOpt);
+#endif
   }
 
   p.restore();
@@ -1615,8 +1631,8 @@ void AnnotatedCameraWidget::drawDriverState(QPainter &painter, const UIState *s)
   painter.save();
 
   // base icon
-  int x = radius / 2 + (bdr_s * 2) + (radius + 50) + (radius + 50) * 4;
-  int y = rect().bottom() - footer_h / 2 - 10;
+  int x = (btn_size - 24) / 2 + (bdr_s * 2);
+  int y = rect().bottom() - footer_h / 2;
 
   float opacity = dmActive ? 0.65f : 0.15f;
   drawIcon(painter, x, y, dm_img, blackColor(0), opacity);
