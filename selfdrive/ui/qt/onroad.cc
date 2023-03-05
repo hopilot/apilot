@@ -743,9 +743,33 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   p.save();
   const SubMaster &sm = *(uiState()->sm);
   auto car_state = sm["carState"].getCarState();
-  const auto controls_state = sm["controlsState"].getControlsState();
+  //const auto controls_state = sm["controlsState"].getControlsState();
   //auto scc_smoother = sm["carControl"].getCarControl().getSccSmoother();
-  UIState* s = uiState();
+  //UIState* s = uiState();
+
+  {
+      const int x = (btn_size - 24) / 2 + (bdr_s * 2);
+      const int y = rect().bottom() - footer_h / 2;
+      auto tpms = car_state.getTpms();
+      const float fl = tpms.getFl();
+      const float fr = tpms.getFr();
+      const float rl = tpms.getRl();
+      const float rr = tpms.getRr();
+      configFont(p, "Inter", 38, "Bold");
+
+      QFontMetrics fm(p.font());
+      QRect rcFont = fm.boundingRect("9");
+
+      int center_x = x - 30;
+      int center_y = y - 0;
+      const int marginX = (int)(rcFont.width() * 3.2f);
+      const int marginY = (int)((footer_h / 2 - rcFont.height()) * 0.6f);
+
+      drawText2(p, center_x - marginX, center_y - marginY - rcFont.height(), Qt::AlignRight, get_tpms_text(fl), get_tpms_color(fl));
+      drawText2(p, center_x + marginX, center_y - marginY - rcFont.height(), Qt::AlignLeft, get_tpms_text(fr), get_tpms_color(fr));
+      drawText2(p, center_x - marginX, center_y + marginY, Qt::AlignRight, get_tpms_text(rl), get_tpms_color(rl));
+      drawText2(p, center_x + marginX, center_y + marginY, Qt::AlignLeft, get_tpms_text(rr), get_tpms_color(rr));
+  }
 
 #if 0
   // tire pressure
