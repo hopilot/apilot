@@ -109,7 +109,7 @@ class CruiseHelper:
     self.autoCancelFromGas = int(Params().get("AutoCancelFromGas"))
     self.steerActuatorDelay = float(int(Params().get("SteerActuatorDelay", encoding="utf8"))) / 100.
     self.steerActuatorDelayLow = float(int(Params().get("SteerActuatorDelayLow", encoding="utf8"))) / 100.
-    self.SteerActuatorDelayMid = float(int(Params().get("SteerActuatorDelayMid", encoding="utf8"))) / 100.
+    self.steerActuatorDelayMid = float(int(Params().get("SteerActuatorDelayMid", encoding="utf8"))) / 100.
 
   def update_params(self, frame):
     if frame % 20 == 0:
