@@ -64,21 +64,21 @@
     {
       "group": "조향튜닝",
       "name": "SteerActuatorDelay",
-      "title": "SteerActuatorDelay(30)",
+      "title": "SteerActuatorDelay(40)",
       "descr": "값이크면 조향을 좀더 미리함(일반,10msec)",
       "min": 0,
       "max": 100,
-      "default": 30,
+      "default": 40,
       "unit": 1
     },
     {
       "group": "조향튜닝",
       "name": "SteerActuatorDelayLow",
-      "title": "SteerActuatorDelayLow(60)",
+      "title": "SteerActuatorDelayLow(40)",
       "descr": "0키로일때 SAD",
       "min": 0,
       "max": 200,
-      "default": 60,
+      "default": 40,
       "unit": 1
     },
     {
