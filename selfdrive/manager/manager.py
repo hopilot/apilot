@@ -121,6 +121,7 @@ def manager_init() -> None:
     ("LateralAccelCost", "100"),       
     ("SteerActuatorDelay", "30"),       
     ("SteerActuatorDelayLow", "30"),       
+    ("SteerActuatorDelayMid", "30"),         
     ("SteerDeltaUp", "3"),       
     ("SteerDeltaDown", "7"),        
   ]
