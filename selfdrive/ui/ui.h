@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QColor>
 #include <QFuture>
+#include <QPolygonF>
 #include <QTransform>
 
 #include "cereal/messaging/messaging.h"
@@ -111,10 +112,10 @@ typedef struct UIScene {
   // modelV2
   float lane_line_probs[4];
   float road_edge_stds[2];
-  line_vertices_data track_vertices;
-  line_vertices_data lane_line_vertices[4];
-  line_vertices_data road_edge_vertices[2];
-  line_vertices_data lane_barrier_vertices[2];
+  QPolygonF track_vertices;
+  QPolygonF lane_line_vertices[4];
+  QPolygonF road_edge_vertices[2];
+  QPolygonF lane_barrier_vertices[2];
 
   // lead
   QPointF lead_vertices[2];

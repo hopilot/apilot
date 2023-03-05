@@ -58,7 +58,7 @@ void update_leads(UIState *s, const cereal::RadarState::Reader &radar_state, con
 }
 
 void update_line_data(const UIState *s, const cereal::XYZTData::Reader &line,
-                      float y_off, float z_off_left, float z_off_right, line_vertices_data *pvd, int max_idx, bool allow_invert=true) { 
+                      float y_off, float z_off_left, float z_off_right, QPolygonF *pvd, int max_idx, bool allow_invert=true) { 
   const auto line_x = line.getX(), line_y = line.getY(), line_z = line.getZ();
 
   std::vector<QPointF> left_points, right_points;
