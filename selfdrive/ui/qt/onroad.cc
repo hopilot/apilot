@@ -331,8 +331,6 @@ AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* par
   ic_navi = QPixmap("../assets/images/img_navi.png");
   ic_scc2 = QPixmap("../assets/images/img_scc2.png");
   ic_radartracks = QPixmap("../assets/images/img_radartracks.png");
-  ic_radar = QPixmap("../assets/images/radar.png");
-  ic_radar_vision = QPixmap("../assets/images/radar_vision.png");
 }
 
 void AnnotatedCameraWidget::initializeGL() {
