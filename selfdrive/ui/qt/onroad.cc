@@ -449,8 +449,8 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
     }
 //    float gradient_height = bg.finalStop().y();
     for (int i = 0; i < right_points.length(); i++) {
-      //const auto &acceleration = sm["uiPlan"].getUiPlan().getAccel();
-      const auto &acceleration = sm["modelV2"].getModelV2().getAcceleration();
+      const auto &acceleration = sm["uiPlan"].getUiPlan().getAccel();
+      // const auto &acceleration = sm["modelV2"].getModelV2().getAcceleration();
       float acceleration_future = 0;
       if (i >= acceleration.size()) {
         break;
