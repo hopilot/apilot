@@ -126,6 +126,7 @@ protected:
 
   void drawMaxSpeed(QPainter &p);
   void drawSpeed(QPainter &p);
+  void drawApilot(QPainter& p);
   void drawBottomIcons(QPainter &p);
   void drawSteer(QPainter &p);
   void drawDeviceState(QPainter &p);
