@@ -591,14 +591,15 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
 
   //float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35;
   //float x = std::clamp((float)vd.x(), 0.f, width() - sz / 2);
-  float x = std::clamp((float)vd.x(), 220.f, width() - 220.f);
+  float x = std::clamp((float)vd.x(), 220.f, width() - 300.f);
   //float y = std::fmin(height() - sz * .6, (float)vd.y());
   float y = std::clamp((float)vd.y(), 300.f, height() - 180.f);
 
   y -= ((256/2)-d_rel);  // 과녁 위로~
 
   if (no_radar) {
-      x = path_x;
+      //x = path_x;
+      x = std::clamp(path_x, 300.f, width() - 300.f);
       y = path_y; // height() - 250;
   }
   if (y > height() - 400) y = height() - 400;
@@ -730,49 +731,29 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   str.sprintf("%d", gap1);
   drawTextWithColor(painter, x1+30, y + 100, str, textColor);
 
-  //int brake_hold = car_state.getBrakeHoldActive();
-  //int soft_hold = (hud_control.getSoftHold()) ? 1 : 0;
-  //bool brake_valid = car_state.getBrakeLights();
-  if (brake_hold || soft_hold || brake_valid ) {
-      if (brake_hold) str.sprintf("AUTOHOLD");
-      else if (soft_hold && longActiveUser > 0) str.sprintf("SOFTHOLD");
-      else str.sprintf("BRAKE");
-
-      int len = 30 * str.length();
-      QRect rectBrake(x-len/2, y + 125, len+4, 45);
-      painter.setPen(Qt::NoPen);
-      painter.setBrush(redColor(200));
-      painter.drawRect(rectBrake);
-
-      configFont(painter, "Inter", 40, "Bold");
-      textColor = whiteColor(200);
-      drawTextWithColor(painter, x - 0, y + 160, str, textColor);
+  if (brake_hold) str.sprintf("AUTOHOLD"); 
+  else if (longActiveUser > 0) {
+      auto xState = lp.getXState();
+      if (xState == cereal::LongitudinalPlan::XState::E2E_STOP) str.sprintf("e2eSTOP");
+      else if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) str.sprintf("SOFTHOLD");
+      else if (xState == cereal::LongitudinalPlan::XState::LEAD) str.sprintf("LEAD");
+      else if (xState == cereal::LongitudinalPlan::XState::E2E_CRUISE) str.sprintf("e2eCRUISE");
+      else if (xState == cereal::LongitudinalPlan::XState::CRUISE) str.sprintf("CRUISE");
+      else str.sprintf("UNKNOWN");
   }
-  else if(longActiveUser > 0) {
-      //const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
-      const auto lpSource = lp.getLongitudinalPlanSource();
-      if (lpSource == cereal::LongitudinalPlan::LongitudinalPlanSource::CRUISE) str.sprintf("CRUISE");
-      else if (lpSource == cereal::LongitudinalPlan::LongitudinalPlanSource::LEAD0) str.sprintf("LEAD");
-      else if (lpSource == cereal::LongitudinalPlan::LongitudinalPlanSource::LEAD1) str.sprintf("LEAD1");
-      else if (lpSource == cereal::LongitudinalPlan::LongitudinalPlanSource::LEAD2) str.sprintf("LEAD2");
-      else if (lpSource == cereal::LongitudinalPlan::LongitudinalPlanSource::TURN) str.sprintf("TURN");
-      else if (lpSource == cereal::LongitudinalPlan::LongitudinalPlanSource::E2E) str.sprintf("E2E");
-      else str.sprintf("LS: UNKNOWN");
-
-      int len = 30 * str.length();
-      QRect rectBrake(x - len / 2, y + 125, len + 4, 45);
-      painter.setPen(Qt::NoPen);
-      painter.setBrush(greenColor(200));
-      painter.drawRect(rectBrake);
-
-      configFont(painter, "Inter", 40, "Bold");
-      textColor = whiteColor(200);
-      drawTextWithColor(painter, x - 0, y + 160, str, textColor);
-  }
+  else str.sprintf("MANUAL"); 
+  int len = 30 * str.length();
+  QRect rectBrake(x - len / 2, y + 125, len + 4, 45);
+  painter.setPen(Qt::NoPen);
+  painter.setBrush((brake_valid)?redColor(200):greenColor(200));
+  painter.drawRect(rectBrake);
+  configFont(painter, "Inter", 40, "Bold");
+  textColor = whiteColor(200);
+  drawTextWithColor(painter, x - 0, y + 160, str, textColor);
   float accel = car_state.getAEgo();
   QRect rectAccel(x + 128 + 5, y - 128, 40, 256);
   painter.setPen(Qt::NoPen);
-  painter.setBrush(blackColor(20));
+  painter.setBrush(blackColor(80));
   painter.drawRect(rectAccel);
   QRect rectAccelPos(x + 128 + 5, y, 40, -accel / 4. * 128);
   painter.setBrush((accel>=0.0)?yellowColor(200):redColor(200));
@@ -816,6 +797,8 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
       drawTextWithColor(painter, x + 260, y - 50, speed, color);
   }
 
+
+  drawApilotTarget(painter, x, y);
 
   painter.restore();
 }
@@ -1378,9 +1361,172 @@ void AnnotatedCameraWidget::drawApilot(QPainter& p) {
         drawTextWithColor(p, x - 500 + 75, y + 150, str, blackColor);
     }
 }
+void AnnotatedCameraWidget::drawApilotTarget(QPainter& p, float bx, float by) {
+
+    UIState* s = uiState();
+    const SubMaster& sm = *(s->sm);
+    const auto cs = sm["controlsState"].getControlsState();
+    const auto car_state = sm["carState"].getCarState();
+    //const auto scc_smoother = sm["carControl"].getCarControl().getSccSmoother();
+    const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
+    const auto navi_info = car_state.getNaviSafetyInfo();
+    const auto car_params = sm["carParams"].getCarParams();
+
+    //bool is_metric = s->scene.is_metric;
+    bool long_control = 1;// scc_smoother.getLongControl();
+
+    // kph
+    float applyMaxSpeed = cs.getVCruiseOut();// scc_smoother.getApplyMaxSpeed();
+    float cruiseMaxSpeed = cs.getVCruiseCluster();// scc_smoother.getCruiseMaxSpeed();
+
+    //bool is_cruise_set = (cruiseMaxSpeed > 0 && cruiseMaxSpeed < 255);
+    //bool is_cruise_set = (applyMaxSpeed > 0 && applyMaxSpeed < 255);
+    int longActiveUser = cs.getLongActiveUser();
+
+    int sccBus = (int)car_params.getSccBus();
+    int navCluster = (int)car_params.getNaviCluster();
+
+    int enabled = cs.getEnabled();
+
+    int activeNDA = road_limit_speed.getActive();
+    int roadLimitSpeed = road_limit_speed.getRoadLimitSpeed();
+    int camLimitSpeed = road_limit_speed.getCamLimitSpeed();
+    int camLimitSpeedLeftDist = road_limit_speed.getCamLimitSpeedLeftDist();
+    int sectionLimitSpeed = road_limit_speed.getSectionLimitSpeed();
+    int sectionLeftDist = road_limit_speed.getSectionLeftDist();
+
+    int limit_speed = 0;
+    int left_dist = 0;
+
+    if (camLimitSpeed > 0 && camLimitSpeedLeftDist > 0) {
+        limit_speed = camLimitSpeed;
+        left_dist = camLimitSpeedLeftDist;
+    }
+    else if (sectionLimitSpeed > 0 && sectionLeftDist > 0) {
+        limit_speed = sectionLimitSpeed;
+        left_dist = sectionLeftDist;
+    }
+
+    int radar_tracks = Params().getBool("EnableRadarTracks");
+    QString nda_mode_str = QString::fromStdString(Params().get("AutoNaviSpeedCtrl"));
+    int nda_mode = nda_mode_str.toInt();
+
+    if (activeNDA > 0 && nda_mode > 0);
+    else {
+        limit_speed = navi_info.getSpeedLimit();
+        left_dist = navi_info.getDist();
+    }
+
+    QString top_str;
+    top_str.sprintf("%s %s %s %s", (sccBus) ? "SCC2" : "", (navCluster == 1 && nda_mode == 2) ? "NAVI" : "", (activeNDA > 0 && nda_mode > 0) ? ((activeNDA == 1) ? "NDA" : "HDA") : "", (radar_tracks) ? "RadarTracks" : "");
+
+    float v_ego;
+    if (sm["carState"].getCarState().getVEgoCluster() == 0.0 && !v_ego_cluster_seen) {
+        v_ego = sm["carState"].getCarState().getVEgo();
+    }
+    else {
+        v_ego = sm["carState"].getCarState().getVEgoCluster();
+        v_ego_cluster_seen = true;
+    }
+
+    const bool cs_alive = sm.alive("controlsState");
+    float cur_speed = cs_alive ? std::max<float>(0.0, v_ego) : 0.0;
+    cur_speed *= s->scene.is_metric ? MS_TO_KPH : MS_TO_MPH;
+    m_cur_speed = cur_speed;
+    float accel = car_state.getAEgo();
+
+    QColor color = QColor(255, 255, 255, 230);
+
+    if (accel > 0) {
+        int a = (int)(255.f - (180.f * (accel / 2.f)));
+        a = std::min(a, 255);
+        a = std::max(a, 80);
+        color = QColor(a, a, 255, 230);
+    }
+    else {
+        int a = (int)(255.f - (255.f * (-accel / 3.f)));
+        a = std::min(a, 255);
+        a = std::max(a, 60);
+        color = QColor(255, a, a, 230);
+    }
+
+    int x = bx;
+    int y = by + 300;
+    if (width() < 1200) x += 300;
+    QRect rectSpeed(x - 500, y + 215, 1000, 5);
+    //QRect rect1(x - 500, y+90, 10, 100);
+    //QRect rect2(x + 500 - 10, y+90, 10, 100);
+    p.setPen(Qt::NoPen);
+    p.setBrush(whiteColor(255));
+    //p.drawRect(rectSpeed);
+    //p.drawRect(rect1);
+    //p.drawRect(rect2);
+    configFont(p, "Inter", 35, "Bold");
+    drawTextWithColor(p, top_str.length()/2*35/2+50, 40, top_str, color);
+
+    QString speed, str;
+    speed.sprintf("%.0f", cur_speed);
+    configFont(p, "Inter", 150, "Bold");
+    drawTextWithColor(p, x, y, speed, color);
+
+    color = whiteColor(255);
+
+    x = bx + speed.length() * 150 / 2 + 60;
+    QRect rect2(x - 65, y - 130, 130, 140);
+    p.setPen(Qt::NoPen);
+    p.setBrush(QBrush(blackColor(100)));
+    p.drawRoundedRect(rect2, 16, 16);
+    configFont(p, "Inter", 60, "Bold");
+    if (enabled && longActiveUser > 0) str.sprintf("%d", (int)(cruiseMaxSpeed + 0.5));
+    else str = "N/A";
+    drawTextWithColor(p, x, y - 150 + 85, str, color);
+    configFont(p, "Inter", 50, "Bold");
+    if (enabled && longActiveUser > 0) str.sprintf("%d", (int)(applyMaxSpeed + 0.5));
+    else str = long_control ? "OP" : "MAX";
+    drawTextWithColor(p, x, y -150 + 135, str, color);
+
+    QColor blackColor = QColor(0, 0, 0, 230);
+    x = bx + 280;
+    y = by - 40;
+    if (limit_speed > 0) {
+        QRect rectLimit(x-70, y-70, 140, 140);
+        p.setBrush(QBrush(Qt::white));
+        p.drawEllipse(rectLimit);
+        int padding = 10;
+        rectLimit.adjust(padding, padding, -padding, -padding);
+        p.setBrush(Qt::NoBrush);
+        p.setPen(QPen(Qt::red, 12));
+        p.drawEllipse(rectLimit);
+        configFont(p, "Inter", 60, "Bold");
+        str.sprintf("%d", limit_speed);
+        drawTextWithColor(p, x, y+20, str, blackColor);
+        if (left_dist > 0) {
+            configFont(p, "Inter", 40, "Bold");
+            if (left_dist < 1000) str.sprintf("%dm", left_dist);
+            else  str.sprintf("%.1fkm", left_dist / 1000.f);
+            drawTextWithColor(p, x, y + 120, str, color);
+        }
+    }
+    else if (roadLimitSpeed > 0 && roadLimitSpeed < 200) {
+        QRect rect(x - 70, y-80, 140, 170);
+        p.setBrush(QBrush(Qt::white));
+        p.drawRoundedRect(rect, 16, 16);
+        int padding = 10;
+        rect.adjust(padding, padding, -padding, -padding);
+        p.setBrush(Qt::NoBrush);
+        p.setPen(QPen(Qt::black, padding));
+        p.drawRoundedRect(rect, 8, 8);
+
+        str.sprintf("%d", roadLimitSpeed);
+        configFont(p, "Inter", 35, "Bold");
+        drawTextWithColor(p, x, y-10, "LIMIT", blackColor);
+        configFont(p, "Inter", 50, "Bold");
+        drawTextWithColor(p, x, y+50, str, blackColor);
+    }
+}
 void AnnotatedCameraWidget::drawSpeed(QPainter &p) {
   p.save();
-  drawApilot(p);
+  // drawApilot(p);
   UIState* s = uiState();
 #if 0
   const SubMaster &sm = *(s->sm);
@@ -1813,6 +1959,7 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
 
   const SubMaster &sm = *(uiState()->sm);
   auto deviceState = sm["deviceState"].getDeviceState();
+  auto car_state = sm["carState"].getCarState();
 
   const auto freeSpacePercent = deviceState.getFreeSpacePercent();
 
@@ -1844,7 +1991,11 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   int g = interp<float>(cpuTemp, { 50.f, 90.f }, { 255.f, 200.f }, false);
   QColor textColor = QColor(r, g, 200, 200);
   configFont(p, "Inter", 30, "Bold");
-  if(width()>1200) drawTextWithColor(p, width()-400, 35, str, textColor);
+  if (width() > 1200) {
+      drawTextWithColor(p, width() - 350, 35, str, textColor);
+      str.sprintf("RPM: %.0f CHARGE: %.0f%%", car_state.getEngineRpm(), car_state.getChargeMeter());
+      drawTextWithColor(p, width() - 350, 80, str, textColor);
+  }
 #else
   int w = 192;
   int x = width() - (30 + w);
