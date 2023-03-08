@@ -152,12 +152,21 @@ class CarState(CarStateBase):
     if self.CP.carFingerprint in (HYBRID_CAR | EV_CAR):
       if self.CP.carFingerprint in HYBRID_CAR:
         ret.gas = cp.vl["E_EMS11"]["CR_Vcu_AccPedDep_Pos"] / 254.
+        ret.engineRpm = cp.vl["E_EMS11"]["N"] # opkr
+        ret.motorRpm = cp.vl["ELECT_GEAR"]["Elect_Motor_Speed"] * 30
       else:
         ret.gas = cp.vl["E_EMS11"]["Accel_Pedal_Pos"] / 254.
-      ret.gasPressed = ret.gas > 0
+        ret.gasPressed = ret.gas > 0
+        ret.engineRpm = 0.0
+        ret.motorRpm = cp.vl["ELECT_GEAR"]["Elect_Motor_Speed"] * 30 # opkr, may multiply deceleration ratio in line with engine rpm
+        ret.chargeMeter = cp.vl["EV_Info"]["OPKR_EV_Charge_Level"] # opkr
+        ret.gasPressed = ret.gas > 0
     else:
       ret.gas = cp.vl["EMS12"]["PV_AV_CAN"] / 100.
       ret.gasPressed = bool(cp.vl["EMS16"]["CF_Ems_AclAct"])
+      ret.engineRpm = cp.vl["EMS_366"]["N"]
+      ret.motorRpm = 0
+      ret.chargeMeter = 0
 
     # Gear Selection via Cluster - For those Kia/Hyundai which are not fully discovered, we can use the Cluster Indicator for Gear Selection,
     # as this seems to be standard over all cars, but is not the preferred method.
@@ -477,6 +486,7 @@ class CarState(CarStateBase):
     if CP.carFingerprint in (HYBRID_CAR | EV_CAR):
       if CP.carFingerprint in HYBRID_CAR:
         signals.append(("CR_Vcu_AccPedDep_Pos", "E_EMS11"))
+        signals.append(("N", "E_EMS11"))
       else:
         signals.append(("Accel_Pedal_Pos", "E_EMS11"))
       checks.append(("E_EMS11", 50))
@@ -497,6 +507,7 @@ class CarState(CarStateBase):
       checks.append(("TCU12", 100))
     elif CP.carFingerprint in FEATURES["use_elect_gears"]:
       signals.append(("Elect_Gear_Shifter", "ELECT_GEAR"))
+      signals.append(("Elect_Motor_Speed", "ELECT_GEAR"))
       checks.append(("ELECT_GEAR", 20))
     else:
       signals.append(("CF_Lvr_Gear", "LVR12"))

@@ -1996,7 +1996,9 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   configFont(p, "Inter", 30, "Bold");
   if (width() > 1200) {
       drawTextWithColor(p, width() - 350, 35, str, textColor);
-      str.sprintf("RPM: %.0f CHARGE: %.0f%%", car_state.getEngineRpm(), car_state.getChargeMeter());
+      float engineRpm = car_state.getEngineRpm();
+      float motorRpm = car_state.getMotorRpm();
+      str.sprintf("%s: %.0f CHARGE: %.0f%%", (motorRpm>0.0)?"MOTOR":"RPM", (motorRpm>0.0)?motorRpm:engineRpm, car_state.getChargeMeter());
       drawTextWithColor(p, width() - 350, 80, str, textColor);
   }
 #else
