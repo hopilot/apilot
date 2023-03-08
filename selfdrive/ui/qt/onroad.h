@@ -86,6 +86,8 @@ protected:
   double prev_draw_t = 0;
   FirstOrderFilter fps_filter;
   FirstOrderFilter accel_filter;
+  FirstOrderFilter apilot_filter_x;
+  FirstOrderFilter apilot_filter_y;
 
   // neokii
   void drawIcon(QPainter &p, int x, int y, QPixmap &img, QBrush bg, float opacity, float rotate=0.0);

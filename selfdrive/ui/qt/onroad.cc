@@ -229,6 +229,7 @@ void OnroadAlerts::paintEvent(QPaintEvent *event) {
   p.setPen(Qt::NoPen);
   p.setCompositionMode(QPainter::CompositionMode_SourceOver);
 
+  bg.setAlpha(100);
   p.setBrush(QBrush(bg));
   p.drawRect(r);
 
@@ -305,7 +306,7 @@ void ExperimentalButton::paintEvent(QPaintEvent *event) {
   p.drawPixmap((btn_size - img_size) / 2, (btn_size - img_size) / 2, img);
 }
 
-AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* parent) : last_update_params(0), fps_filter(UI_FREQ, 3, 1. / UI_FREQ), accel_filter(UI_FREQ, .5, 1. / UI_FREQ), CameraWidget("camerad", type, true, parent) {
+AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* parent) : last_update_params(0), apilot_filter_x(UI_FREQ, 1.0, 1./UI_FREQ), apilot_filter_y(UI_FREQ, 1.0, 1. / UI_FREQ), fps_filter(UI_FREQ, 3, 1. / UI_FREQ), accel_filter(UI_FREQ, .5, 1. / UI_FREQ), CameraWidget("camerad", type, true, parent) {
   //engage_img = loadPixmap("../assets/img_chffr_wheel.png", { img_size, img_size });
   engage_img = loadPixmap("../assets/images/handle1.png", { img_size, img_size });
   experimental_img = loadPixmap("../assets/img_experimental.svg", {img_size - 5, img_size - 5});
@@ -345,7 +346,6 @@ void AnnotatedCameraWidget::initializeGL() {
 
   prev_draw_t = millis_since_boot();
   setBackgroundColor(bg_colors[STATUS_DISENGAGED]);
-
 }
 
 void AnnotatedCameraWidget::updateState(const UIState &s) {
@@ -604,6 +604,9 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   }
   if (y > height() - 400) y = height() - 400;
 
+  x = apilot_filter_x.update(x);
+  y = apilot_filter_y.update(y);
+
   //float g_xo = sz / 5;
   //float g_yo = sz / 10;
 
@@ -750,6 +753,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   configFont(painter, "Inter", 40, "Bold");
   textColor = whiteColor(200);
   drawTextWithColor(painter, x - 0, y + 160, str, textColor);
+
   float accel = car_state.getAEgo();
   QRect rectAccel(x + 128 + 5, y - 128, 40, 256);
   painter.setPen(Qt::NoPen);
@@ -796,7 +800,6 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
       configFont(painter, "Inter", 130, "Bold");
       drawTextWithColor(painter, x + 260, y - 50, speed, color);
   }
-
 
   drawApilotTarget(painter, x, y);
 
