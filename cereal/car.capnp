@@ -230,7 +230,8 @@ struct CarState {
   naviSafetyInfo @50 : NaviSafetyInfo;
   engineRpm @51 : Float32;
   chargeMeter @52 : Float32;
-  
+  motorRpm @53 : Float32;
+
   struct NaviSafetyInfo {
     sign @0 : Int32; # OPKR_S_Sign
     dist1 @1 : Int32; # OPKR_S_Dist  < 1023
