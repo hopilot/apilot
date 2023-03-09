@@ -759,8 +759,8 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   painter.setPen(Qt::NoPen);
   painter.setBrush(blackColor(80));
   painter.drawRect(rectAccel);
-  QRect rectAccelPos(x + 128 + 5, y, 40, -accel / 4. * 128);
-  painter.setBrush((accel>=0.0)?yellowColor(200):redColor(200));
+  QRect rectAccelPos(x + 128 + 5, y, 60, -accel / 4. * 128);
+  painter.setBrush((accel>=0.0)?blueColor(200):redColor(200));
   painter.drawRect(rectAccelPos);
 
   if(0) {
@@ -801,7 +801,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
       drawTextWithColor(painter, x + 260, y - 50, speed, color);
   }
 
-  drawApilotTarget(painter, x, y);
+  // drawApilotTarget(painter, x, y);
 
   painter.restore();
 }
@@ -1529,9 +1529,9 @@ void AnnotatedCameraWidget::drawApilotTarget(QPainter& p, float bx, float by) {
 }
 void AnnotatedCameraWidget::drawSpeed(QPainter &p) {
   p.save();
-  // drawApilot(p);
+  drawApilot(p);
   UIState* s = uiState();
-#if 0
+#if 1
   const SubMaster &sm = *(s->sm);
   float v_ego;
   if (sm["carState"].getCarState().getVEgoCluster() == 0.0 && !v_ego_cluster_seen) {
@@ -1584,11 +1584,11 @@ void AnnotatedCameraWidget::drawSpeed(QPainter &p) {
   if (s->show_datetime) { // && width() > 1200) {
       // ajouatom: 현재시간표시
 #if 1
-      QColor color = QColor(255, 255, 255, 230);
+      color = QColor(255, 255, 255, 230);
       configFont(p, "Open Sans", 80, "Bold");
-      drawTextWithColor(p, 150, height() - 400, QDateTime::currentDateTime().toString("hh:mm"), color);
+      drawTextWithColor(p, 100, height() - 400, QDateTime::currentDateTime().toString("hh:mm"), color);
       configFont(p, "Open Sans", 45, "Bold");
-      drawTextWithColor(p, 150, height() - 400 + 80, QDateTime::currentDateTime().toString("MM-dd-ddd"), color);
+      drawTextWithColor(p, 100, height() - 400 + 80, QDateTime::currentDateTime().toString("MM/dd/ddd"), color);
 #else
       QTextOption  textOpt = QTextOption(Qt::AlignLeft);
       configFont(p, "Open Sans", 110, "Bold");
