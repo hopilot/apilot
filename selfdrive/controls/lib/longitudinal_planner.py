@@ -227,6 +227,6 @@ class LongitudinalPlanner:
     if self.CP.openpilotLongitudinalControl:
       longitudinalPlan.xCruiseTarget = float(self.mpc.v_cruise / self.vCluRatio)
     else:
-      longitudinalPlan.xCruiseTarget = float(longitudinalPlan.speeds[0] / self.vCluRatio)
+      longitudinalPlan.xCruiseTarget = float(longitudinalPlan.speeds[-1] / self.vCluRatio)
 
     pm.send('longitudinalPlan', plan_send)
