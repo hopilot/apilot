@@ -799,7 +799,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   else {
       rectRpmPos = QRect(x + 128 + 5, y + 128, 30, -std::clamp((float)engineRpm, 0.0f, 4000.0f) / 4000. * 128.0);
   }
-  painter.setBrush((motorRpm >= 0.0) ? greenColor(255) : QColor(0, 0, 255, 200));
+  painter.setBrush((motorRpm > 0.0) ? greenColor(255) : QColor(0, 0, 255, 200));
   painter.drawRect(rectRpmPos);
 
   // drawApilotTarget(painter, x, y);
