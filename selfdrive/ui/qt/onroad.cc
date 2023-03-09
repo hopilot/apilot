@@ -605,6 +605,8 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   bool brake_valid = car_state.getBrakeLights();
 
   // DrawSteer
+  float w_x = 1920 / 2;
+  float w_y = 1080 - 50;  
   float steer_angle = car_state.getSteeringAngleDeg();
 #ifdef __TEST
   static float steer_ang = 0.0;
@@ -616,7 +618,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   QPixmap img2 = ic_steer_hyundai;
   img2 = img2.transformed(rm);
   painter.setOpacity(0.7);
-  painter.drawPixmap(x - img2.width() / 2., y - img2.height() / 2., img2);
+  painter.drawPixmap(w_x - img2.width() / 2., w_y - img2.height() / 2., img2);
 
   // 신호등 표시
   int circle_size = 160;
