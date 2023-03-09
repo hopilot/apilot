@@ -755,7 +755,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   drawTextWithColor(painter, x - 0, y + 160, str, textColor);
 
   float accel = car_state.getAEgo();
-  QRect rectAccel(x + 128 + 5, y - 128, 40, 256);
+  QRect rectAccel(x + 128 + 5, y - 128, 60, 256);
   painter.setPen(Qt::NoPen);
   painter.setBrush(blackColor(80));
   painter.drawRect(rectAccel);
@@ -1529,7 +1529,7 @@ void AnnotatedCameraWidget::drawApilotTarget(QPainter& p, float bx, float by) {
 }
 void AnnotatedCameraWidget::drawSpeed(QPainter &p) {
   p.save();
-  drawApilot(p);
+  // drawApilot(p);
   UIState* s = uiState();
 #if 1
   const SubMaster &sm = *(s->sm);
@@ -1586,9 +1586,9 @@ void AnnotatedCameraWidget::drawSpeed(QPainter &p) {
 #if 1
       color = QColor(255, 255, 255, 230);
       configFont(p, "Open Sans", 80, "Bold");
-      drawTextWithColor(p, 100, height() - 400, QDateTime::currentDateTime().toString("hh:mm"), color);
+      drawTextWithColor(p, 120, height() - 400, QDateTime::currentDateTime().toString("hh:mm"), color);
       configFont(p, "Open Sans", 45, "Bold");
-      drawTextWithColor(p, 100, height() - 400 + 80, QDateTime::currentDateTime().toString("MM/dd/ddd"), color);
+      drawTextWithColor(p, 120, height() - 400 + 80, QDateTime::currentDateTime().toString("MM/dd/ddd"), color);
 #else
       QTextOption  textOpt = QTextOption(Qt::AlignLeft);
       configFont(p, "Open Sans", 110, "Bold");
