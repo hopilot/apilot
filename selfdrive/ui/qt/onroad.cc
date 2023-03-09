@@ -332,9 +332,10 @@ AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* par
   ic_navi = QPixmap("../assets/images/img_navi.png");
   ic_scc2 = QPixmap("../assets/images/img_scc2.png");
   ic_radartracks = QPixmap("../assets/images/img_radartracks.png");
-  ic_radar = QPixmap("../assets/images/radar.png");
+  ic_radar = QPixmap("../assets/images/radar_red.png");
   ic_radar_vision = QPixmap("../assets/images/radar_vision.png");
   ic_radar_no = QPixmap("../assets/images/no_radar.png");
+  ic_steer_hyundai = QPixmap("../assets/images/steer_hyundai.png");
 }
 
 void AnnotatedCameraWidget::initializeGL() {
@@ -528,12 +529,15 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
   painter.restore();
 }
 
+//#define __TEST
 void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV2::LeadDataV3::Reader &lead_data, const QPointF &vd, bool is_radar, bool no_radar/*=false*/) {
 
     UIState* s = uiState();
     SubMaster& sm = *(s->sm);
 
+#ifndef __TEST
     if (!sm.updated("controlsState") || !sm.updated("carControl") || !sm.updated("carState")) return;
+#endif
 
     auto lead_radar = sm["radarState"].getRadarState().getLeadOne();
     auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
@@ -573,26 +577,10 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
     }
 
 
-    //const float speedBuff = 10.;
-  //const float leadBuff = 40.;
   const float d_rel = lead_data.getX()[0];
   //const float v_rel = lead_data.getV()[0];
 
-  /*
-  float fillAlpha = 0;
-  if (d_rel < leadBuff) {
-    fillAlpha = 255 * (1.0 - (d_rel / leadBuff));
-    if (v_rel < 0) {
-      fillAlpha += 255 * (-1 * (v_rel / speedBuff));
-    }
-    fillAlpha = (int)(fmin(fillAlpha, 255));
-  }
-  */
-
-  //float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35;
-  //float x = std::clamp((float)vd.x(), 0.f, width() - sz / 2);
   float x = std::clamp((float)vd.x(), 220.f, width() - 300.f);
-  //float y = std::fmin(height() - sz * .6, (float)vd.y());
   float y = std::clamp((float)vd.y(), 300.f, height() - 180.f);
 
   y -= ((256/2)-d_rel);  // 과녁 위로~
@@ -607,18 +595,6 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   x = apilot_filter_x.update(x);
   y = apilot_filter_y.update(y);
 
-  //float g_xo = sz / 5;
-  //float g_yo = sz / 10;
-
-  //QPointF glow[] = {{x + (sz * 1.35) + g_xo, y + sz + g_yo}, {x, y - g_yo}, {x - (sz * 1.35) - g_xo, y + sz + g_yo}};
-  //painter.setBrush(is_radar ? QColor(86, 121, 216, 255) : QColor(218, 202, 37, 255));
-  //painter.drawPolygon(glow, std::size(glow));
-
-  // chevron
-  //QPointF chevron[] = {{x + (sz * 1.25), y + sz}, {x, y}, {x - (sz * 1.25), y + sz}};
-  //painter.setBrush(redColor(fillAlpha));
-  //painter.drawPolygon(chevron, std::size(chevron));
-
   auto hud_control = car_control.getHudControl();
   bool radar_detected = lead_radar.getStatus() && lead_radar.getRadar();
   float radar_dist = radar_detected ? lead_radar.getDRel() : 0;
@@ -628,7 +604,21 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   int soft_hold = (hud_control.getSoftHold()) ? 1 : 0;
   bool brake_valid = car_state.getBrakeLights();
 
+  // DrawSteer
+  float steer_angle = car_state.getSteeringAngleDeg();
+#ifdef __TEST
+  static float steer_ang = 0.0;
+  steer_ang += 1.0;
+  steer_angle = steer_ang;
+#endif
+  QMatrix rm;
+  rm.rotate(-steer_angle);
+  QPixmap img2 = ic_steer_hyundai;
+  img2 = img2.transformed(rm);
+  painter.setOpacity(0.7);
+  painter.drawPixmap(x - img2.width() / 2., y - img2.height() / 2., img2);
 
+  // 신호등 표시
   int circle_size = 160;
   painter.setOpacity(1.0);
   painter.setPen(Qt::NoPen);
@@ -649,11 +639,19 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
       case 3: bgColor = yellowColor(160); break;
       }
   }
+#ifdef __TEST
+  bgColor = redColor(160);
+#endif
   painter.setBrush(bgColor);
 
   painter.drawEllipse(x - circle_size / 2, y - circle_size / 2, circle_size, circle_size);
 
-  //radar_detected = true;
+#ifdef __TEST
+  radar_detected = true;
+  disp_dist = 127.0;
+  stop_dist = 12.0;
+#endif
+
 
   QString str;
   //str.sprintf("%.1fm", radar_detected ? radar_dist : vision_dist);
@@ -662,7 +660,10 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   //drawTextWithColor(painter, x, y + sz / 1.5f + 80.0, str, textColor);
   if (radar_detected) {
       float radar_rel_speed = lead_radar.getVRel();
-      str.sprintf("%.0fkm/h", m_cur_speed + radar_rel_speed * 3.6);
+#ifdef __TEST
+      radar_rel_speed = -20.0;
+#endif
+      str.sprintf("%.0f km/h", m_cur_speed + radar_rel_speed * 3.6);
       if (radar_rel_speed < -0.1) textColor = QColor(255, 0, 0, 255);
       else if (radar_rel_speed > 0.1) textColor = QColor(0, 255, 0, 255);
       else textColor = QColor(255, 255, 255, 255);
@@ -679,7 +680,9 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
           if (stop_dist < 10.0) str.sprintf("%.1f", stop_dist);
           else str.sprintf("%.0f", stop_dist);
           drawTextWithColor(painter, x, y + 22.0, str, textColor);
-      }      
+          configFont(painter, "Inter", 40, "Bold");
+          drawTextWithColor(painter, x, y + 65, "M", textColor);
+      }
       else if (longActiveUser > 0 && stopping) {
           textColor = QColor(255, 255, 255, 255);
           configFont(painter, "Inter", 40, "Bold");
@@ -699,6 +702,8 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
       if (disp_dist < 10.0) str.sprintf("%.1f", disp_dist);
       else str.sprintf("%.0f", disp_dist);
       drawTextWithColor(painter, x, y + 22.0, str, textColor);
+      configFont(painter, "Inter", 40, "Bold");
+      drawTextWithColor(painter, x, y + 65, "M", textColor);
   }
 
   int myDrivingMode = controls_state.getMyDrivingMode();
@@ -754,52 +759,48 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::ModelDataV
   textColor = whiteColor(200);
   drawTextWithColor(painter, x - 0, y + 160, str, textColor);
 
+
+  // Accel표시
   float accel = car_state.getAEgo();
-  QRect rectAccel(x + 128 + 5, y - 128, 60, 256);
+#ifdef __TEST
+  static float accel1 = 0.0;
+  accel1 += 0.2;
+  if (accel1 > 2.5) accel1 = -2.5;
+  accel = accel1;
+#endif
+  QRect rectAccel(x + 128 + 5, y - 130, 30, 128);
   painter.setPen(Qt::NoPen);
-  painter.setBrush(blackColor(80));
+  painter.setBrush(blackColor(150));
   painter.drawRect(rectAccel);
-  QRect rectAccelPos(x + 128 + 5, y, 60, -accel / 4. * 128);
-  painter.setBrush((accel>=0.0)?blueColor(200):redColor(200));
+  QRect rectAccelPos(x + 128 + 5, y-64, 30, -std::clamp((float)accel, -2.0f, 2.0f) / 2. * 64);
+  painter.setBrush((accel>=0.0)?yellowColor(255):redColor(255));
   painter.drawRect(rectAccelPos);
 
-  if(0) {
-      float v_ego;
-      if (sm["carState"].getCarState().getVEgoCluster() == 0.0 && !v_ego_cluster_seen) {
-          v_ego = sm["carState"].getCarState().getVEgo();
-      }
-      else {
-          v_ego = sm["carState"].getCarState().getVEgoCluster();
-          v_ego_cluster_seen = true;
-      }
-
-      const bool cs_alive = sm.alive("controlsState");
-      float cur_speed = cs_alive ? std::max<float>(0.0, v_ego) : 0.0;
-      cur_speed *= s->scene.is_metric ? MS_TO_KPH : MS_TO_MPH;
-      m_cur_speed = cur_speed;
-      //auto car_state = sm["carState"].getCarState();
-      //float accel = car_state.getAEgo();
-
-      QColor color = QColor(255, 255, 255, 230);
-
-      if (accel > 0) {
-          int a = (int)(255.f - (180.f * (accel / 2.f)));
-          a = std::min(a, 255);
-          a = std::max(a, 80);
-          color = QColor(a, a, 255, 230);
-      }
-      else {
-          int a = (int)(255.f - (255.f * (-accel / 3.f)));
-          a = std::min(a, 255);
-          a = std::max(a, 60);
-          color = QColor(255, a, a, 230);
-      }
-
-      QString speed;
-      speed.sprintf("%.0f", cur_speed);
-      configFont(painter, "Inter", 130, "Bold");
-      drawTextWithColor(painter, x + 260, y - 50, speed, color);
+  // RPM표시
+  float engineRpm = car_state.getEngineRpm();
+  float motorRpm = car_state.getMotorRpm();
+#ifdef __TEST
+  engineRpm = 2500.0;
+  static float engineRpm1 = 0.0;
+  engineRpm1 += 100.0;
+  if (engineRpm1 > 4000.0) engineRpm1 = 0.0;
+  motorRpm = engineRpm1;
+#endif
+  //str.sprintf("%s: %.0f CHARGE: %.0f%%", (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
+  //drawTextWithColor(p, width() - 350, 80, str, textColor);
+  QRect rectRpm(x + 128 + 5, y+2, 30, 128);
+  painter.setPen(Qt::NoPen);
+  painter.setBrush(blackColor(150));
+  painter.drawRect(rectRpm);
+  QRect rectRpmPos; 
+  if (motorRpm > 0.0) {
+      rectRpmPos = QRect(x + 128 + 5, y + 130, 30, -std::clamp((float)motorRpm, 0.0f, 4000.0f) / 4000. * 128.0);
   }
+  else {
+      rectRpmPos = QRect(x + 128 + 5, y + 128, 30, -std::clamp((float)engineRpm, 0.0f, 4000.0f) / 4000. * 128.0);
+  }
+  painter.setBrush((motorRpm >= 0.0) ? greenColor(255) : QColor(0, 0, 255, 200));
+  painter.drawRect(rectRpmPos);
 
   // drawApilotTarget(painter, x, y);
 
