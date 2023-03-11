@@ -47,6 +47,7 @@ def manager_init() -> None:
     ("ShowDebugUI", "1"),
     ("OPKRServer", "0"),
     ("ShowDateTime", "1"),
+    ("ShowHudMode", "1"),
     ("AutoResumeFromGas", "1"),
     ("AutoResumeFromGasSpeed", "30"),
     ("AutoResumeFromGasSpeedMode", "0"),    

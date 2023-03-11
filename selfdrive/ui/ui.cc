@@ -247,7 +247,29 @@ void ui_update_params(UIState *s) {
   s->scene.is_metric = params.getBool("IsMetric");
   s->scene.map_on_left = params.getBool("NavSettingLeftSide");
   s->show_debug = params.getBool("ShowDebugUI");
-  s->show_datetime = params.getBool("ShowDateTime");
+  s->show_datetime = std::atoi(params.get("ShowDateTime").c_str());
+  s->show_mode = std::atoi(params.get("ShowHudMode").c_str());
+  switch (s->show_mode) {
+  case 0: break;
+  case 1:
+      s->show_steer_rotate = false;
+      s->show_path_end = false;
+      s->show_accel = false;
+      s->show_tpms = false;
+      break;
+  case 2:
+      s->show_steer_rotate = false;
+      s->show_path_end = false;
+      s->show_accel = true;
+      s->show_tpms = true;
+      break;
+  case 3:
+      s->show_steer_rotate = true;
+      s->show_path_end = true;
+      s->show_accel = true;
+      s->show_tpms = true;
+      break;
+  }
 }
 
 void UIState::updateStatus() {

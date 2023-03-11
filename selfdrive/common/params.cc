@@ -210,6 +210,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"OPKRServerAPI", PERSISTENT},
     { "ShowDebugUI", PERSISTENT },
     { "ShowDateTime", PERSISTENT },
+    { "ShowHudMode", PERSISTENT },
     { "AutoResumeFromGas", PERSISTENT },
     { "AutoResumeFromGasSpeed", PERSISTENT },
     { "AutoResumeFromGasSpeedMode", PERSISTENT },
