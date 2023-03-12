@@ -682,7 +682,8 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "크루즈 소리 0:OFF,1:Half, 2:ON", "크루즈 소리를 켭니다.", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(new ParamControl("CustomMapbox", "CustomMapBox입력", "http://IP주소:8082 에 접속하여 mapbox token을 입력하면 자동으로 켜집니다. 끄면, 초기화됩니다.", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new ParamControl("ShowDebugUI", "Show Debug UI", "", "../assets/offroad/icon_shell.png", this));
-  toggleLayout->addWidget(new ParamControl("ShowDateTime", "시간정보표시", "", "../assets/offroad/icon_shell.png", this));
+  toggleLayout->addWidget(new CValueControl("ShowDateTime", "시간정보표시", "0:표시안함,1:시간/날짜표시,2:시간표시,3:날짜표시", "../assets/offroad/icon_shell.png", 0, 3, 1));
+  toggleLayout->addWidget(new CValueControl("ShowHudMode", "화면표시모드", "0:일반,1:APILOT", "../assets/offroad/icon_shell.png", 0, 3, 1));
   toggleLayout->addWidget(new TimeZoneSelectCombo());
   toggleLayout->addWidget(new ParamControl("KeepEngage", "인게이지 유지모드", "", "../assets/offroad/icon_shell.png", this));
   toggleLayout->addWidget(new ParamControl("UseLanelines", "레인모드사용", "", "../assets/offroad/icon_road.png", this));
