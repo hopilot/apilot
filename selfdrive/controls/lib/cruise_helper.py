@@ -106,7 +106,7 @@ class CruiseHelper:
     self.myDrivingMode = int(Params().get("InitMyDrivingMode"))
     self.mySafeModeFactor = float(int(Params().get("MySafeModeFactor", encoding="utf8"))) / 100. if self.myDrivingMode == 2 else 1.0
     self.liveSteerRatioApply  = float(int(Params().get("LiveSteerRatioApply", encoding="utf8"))) / 100.
-    self.autoCancelFromGas = int(Params().get("AutoCancelFromGas"))
+    self.autoCancelFromGasMode = int(Params().get("AutoCancelFromGasMode"))
     self.steerActuatorDelay = float(int(Params().get("SteerActuatorDelay", encoding="utf8"))) / 100.
     self.steerActuatorDelayLow = float(int(Params().get("SteerActuatorDelayLow", encoding="utf8"))) / 100.
     self.steerActuatorDelayMid = float(int(Params().get("SteerActuatorDelayMid", encoding="utf8"))) / 100.
@@ -154,7 +154,7 @@ class CruiseHelper:
         self.mySafeModeFactor = float(int(Params().get("MySafeModeFactor", encoding="utf8"))) / 100. if self.myDrivingMode == 2 else 1.0
         self.liveSteerRatioApply  = float(int(Params().get("LiveSteerRatioApply", encoding="utf8"))) / 100.
       elif self.update_params_count == 12:
-        self.autoCancelFromGas = int(Params().get("AutoCancelFromGas"))
+        self.autoCancelFromGasMode = int(Params().get("AutoCancelFromGasMode"))
         self.gapButtonMode = int(Params().get("GapButtonMode"))
       elif self.update_params_count == 13:
         self.steerActuatorDelay = float(int(Params().get("SteerActuatorDelay", encoding="utf8"))) / 100.
@@ -487,7 +487,7 @@ class CruiseHelper:
         if not self.preBrakePressed:
           self.v_cruise_kph_backup = v_cruise_kph
       elif CS.gasPressed:
-        if self.autoCancelFromGas > 0 and v_ego_kph < self.autoCancelFromGas and dRel == 0: # 일정속도 이하에서 가속페달을 밟으면 크루즈해제함. 이상한 주차장, 복잡한 도로에서 사용..
+        if (v_ego_kph < self.autoResumeFromGasSpeed) and ((self.autoCancelFromGasMode == 1) or (self.autoCancelFromGasMode == 2 and dRel==0)): # 일정속도 이하에서 가속페달을 밟으면 크루즈해제함. mode:2일때는 선행차가 없을때만
           self.cruise_control(controls, CS, -2)
         elif v_ego_kph < v_cruise_kph and abs(CS.steeringAngleDeg) > 7.0 and 0 < dRel < 30: #주행속도보다 느린데 가속페달을 밟고 핸들이 살짝 틀어져 있으면...앞에 차가 30M이내에 있을때... 현재속도로 세트..
             v_cruise_kph = v_ego_kph_set

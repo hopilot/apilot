@@ -74,6 +74,7 @@ class LongitudinalPlanner:
     self.cruiseMaxVals4 = float(int(Params().get("CruiseMaxVals4", encoding="utf8"))) / 100.
     self.cruiseMaxVals5 = float(int(Params().get("CruiseMaxVals5", encoding="utf8"))) / 100.
     self.cruiseMaxVals6 = float(int(Params().get("CruiseMaxVals6", encoding="utf8"))) / 100.
+    self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
 
   def update_params(self):
     self.params_count = (self.params_count + 1) % 200
@@ -89,12 +90,13 @@ class LongitudinalPlanner:
     elif self.params_count == 150:
       self.cruiseMaxVals5 = float(int(Params().get("CruiseMaxVals5", encoding="utf8"))) / 100.
       self.cruiseMaxVals6 = float(int(Params().get("CruiseMaxVals6", encoding="utf8"))) / 100.
+      self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
     
   def get_max_accel(self, v_ego):
     cruiseMaxVals = [self.cruiseMaxVals1, self.cruiseMaxVals2, self.cruiseMaxVals3, self.cruiseMaxVals4, self.cruiseMaxVals5, self.cruiseMaxVals6]
     return interp(v_ego, A_CRUISE_MAX_BP, cruiseMaxVals)
   @staticmethod
-  def parse_model(model_msg, model_error):
+  def parse_model(model_msg, model_error, v_ego, autoTurnControl):
     if (len(model_msg.position.x) == 33 and
        len(model_msg.velocity.x) == 33 and
        len(model_msg.acceleration.x) == 33):
@@ -109,6 +111,13 @@ class LongitudinalPlanner:
       a = np.zeros(len(T_IDXS_MPC))
       j = np.zeros(len(T_IDXS_MPC))
       y = np.zeros(len(T_IDXS_MPC))
+
+    if autoTurnControl == 2: # 속도를 줄이자~
+      max_lat_accel = interp(v_ego, [5, 10, 20], [1.5, 2.0, 3.0])
+      curvatures = np.interp(T_IDXS_MPC, T_IDXS, model_msg.orientationRate.z) / np.clip(v, 0.3, 100.0)
+      max_v = np.sqrt(max_lat_accel / (np.abs(curvatures) + 1e-3)) - 2.0
+      v = np.minimum(max_v, v)
+
     return x, v, a, j, y
 
   def update(self, sm):
@@ -174,7 +183,7 @@ class LongitudinalPlanner:
     #self.mpc.set_weights(prev_accel_constraint)
     self.mpc.set_accel_limits(accel_limits_turns[0], accel_limits_turns[1])
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
-    x, v, a, j, y = self.parse_model(sm['modelV2'], self.v_model_error)
+    x, v, a, j, y = self.parse_model(sm['modelV2'], self.v_model_error, v_ego, self.autoTurnControl)
 
     self.mpc.update(sm['carState'], sm['radarState'], sm['modelV2'], sm['controlsState'], v_cruise, x, v, a, j, y, prev_accel_constraint)
 

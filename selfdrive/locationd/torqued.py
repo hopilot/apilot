@@ -73,7 +73,10 @@ class PointBuckets:
     return sum(self.bucket_lengths())
 
   def is_valid(self):
+    #print ("buckets=", self.bucket_lengths(), self.__len__())
     return all(len(v) >= min_pts for v, min_pts in zip(self.buckets.values(), self.buckets_min_points.values())) and (self.__len__() >= self.min_points_total)
+  def bucket_lengths_str(self):
+    return ','.join([str(x) for x in self.bucket_lengths()])                   
 
   def add_point(self, x, y):
     for bound_min, bound_max in self.x_bounds:
@@ -244,6 +247,9 @@ class TorqueEstimator:
           self.reset()
     else:
       liveTorqueParameters.liveValid = False
+
+    #print(self.filtered_points.bucket_lengths_str())
+    liveTorqueParameters.debugText = self.filtered_points.bucket_lengths_str()
 
     if with_points:
       liveTorqueParameters.points = self.filtered_points.get_points()[:, [0, 2]].tolist()

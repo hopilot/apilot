@@ -38,6 +38,7 @@ class LateralPlanner:
     self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
 
     self.lateralTestMode = int(Params().get("LateralTestMode", encoding="utf8"))
+    self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
 
     # Vehicle model parameters used to calculate lateral movement of car
     self.factor1 = CP.wheelbase - CP.centerToFront
@@ -67,6 +68,7 @@ class LateralPlanner:
       self.use_lanelines = Params().get_bool('UseLanelines')
       self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
       self.lateralTestMode = int(Params().get("LateralTestMode", encoding="utf8"))
+      self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
 
     # clip speed , lateral planning is not possible at 0 speed
     measured_curvature = sm['controlsState'].curvature
@@ -83,13 +85,22 @@ class LateralPlanner:
       self.v_plan = np.clip(car_speed, MIN_SPEED, np.inf)
       self.v_ego = self.v_plan[0]
 
+    desire_state = md.meta.desireState
+    if len(desire_state):
+      self.l_lane_change_prob = desire_state[log.LateralPlan.Desire.laneChangeLeft]
+      self.r_lane_change_prob = desire_state[log.LateralPlan.Desire.laneChangeRight]
+      self.l_turn_prob = desire_state[log.LateralPlan.Desire.turnLeft]
+      self.r_turn_prob = desire_state[log.LateralPlan.Desire.turnRight]
+    lane_change_prob = self.l_lane_change_prob + self.r_lane_change_prob
+    turn_prob = self.l_turn_prob + self.r_turn_prob
+
     if self.use_lanelines:
       # Parse model predictions
       self.LP.parse_model(md)
   
       # Lane change logic
       lane_change_prob = self.LP.l_lane_change_prob + self.LP.r_lane_change_prob
-      self.DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob, md)
+      self.DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob, md, self.autoTurnControl, turn_prob)
   
       # Turn off lanes during lane change
       if self.DH.desire == log.LateralPlan.Desire.laneChangeRight or self.DH.desire == log.LateralPlan.Desire.laneChangeLeft:
@@ -111,12 +122,7 @@ class LateralPlanner:
 
     else:
       # Lane change logic
-      desire_state = md.meta.desireState
-      if len(desire_state):
-        self.l_lane_change_prob = desire_state[log.LateralPlan.Desire.laneChangeLeft]
-        self.r_lane_change_prob = desire_state[log.LateralPlan.Desire.laneChangeRight]
-      lane_change_prob = self.l_lane_change_prob + self.r_lane_change_prob
-      self.DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob, md)
+      self.DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob, md, self.autoTurnControl, turn_prob)
 
       self.lanelines_active = False
 

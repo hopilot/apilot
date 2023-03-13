@@ -315,6 +315,7 @@ UIState::UIState(QObject *parent) : QObject(parent) {
     "wideRoadCameraState", "lateralPlan", "longitudinalPlan",
     "gpsLocationExternal", "carControl", "liveParameters", "roadLimitSpeed",
     "uiPlan",
+    "liveTorqueParameters",
   });
 
   Params params;

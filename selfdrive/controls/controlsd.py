@@ -329,7 +329,8 @@ class Controls:
         self.events.add(EventName.laneChangeBlocked)
       elif ((left_road_edge < 3.5) and direction == LaneChangeDirection.left) or \
          ((right_road_edge < 3.5) and direction == LaneChangeDirection.right):
-        self.events.add(EventName.laneChangeBlocked)
+        if CS.vEgo > 30.0 * CV.KPH_TO_MS:
+          self.events.add(EventName.laneChangeBlocked)
       else:
         if direction == LaneChangeDirection.left:
           self.events.add(EventName.preLaneChangeLeft)
@@ -634,8 +635,8 @@ class Controls:
       torque_params = self.sm['liveTorqueParameters']
       if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams:
         self.LaC.update_live_torque_params(torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
-        self.debugText2 = "LiveT[{:.0f}{}]: {:.3f},{:.3f},{:.3f}".format(torque_params.totalBucketPoints, torque_params.liveValid, 
-                                                                         torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered,torque_params.frictionCoefficientFiltered)                                                                                              
+        self.debugText2 = "LT[{:.0f}:{}] {:.3f},{:.3f},{:.3f}".format(torque_params.totalBucketPoints, "ON" if torque_params.liveValid else "OFF", 
+                                                                      torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered,torque_params.frictionCoefficientFiltered)
         #print(self.debugText2)
 
     lat_plan = self.sm['lateralPlan']

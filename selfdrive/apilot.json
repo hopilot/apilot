@@ -262,7 +262,17 @@
       "unit": 1
     },
     {
-      "group": "��ư����",
+      "group": "조향",
+      "name": "AutoTurnControl",
+      "title": "자동모델턴제어",
+      "descr": "시험용",
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "버튼설정",
       "name": "CruiseButtonMode",
       "title": "ũ�����ư�۵����(0)",
       "descr": "0:�Ϲ�,1:�����1,2:�����2,3:�����3,4:�����4",
@@ -333,9 +343,9 @@
     },
     {
       "group": "자동크루즈",
-      "name": "AutoCancelFromGas",
-      "title": "엑셀크루즈OFF:속도(25)",
-      "descr": "설정속도이하에서 엑셀을 밟으면 크루즈 OFF",
+      "name": "AutoCancelFromGasMode",
+      "title": "엑셀 크루즈OFF:모드",
+      "descr": "엑셀크루즈ON속도 이하에서 엑셀을 밟으면 크루즈가 해제 1:항상, 2:레이더OFF시에만",
       "min": 0,
       "max": 140,
       "default": 0,
@@ -580,16 +590,6 @@
       "min": 0,
       "max": 2,
       "default": 1,
-      "unit": 1
-    },
-    {
-      "group": "����",
-      "name": "AutoCurveSpeedFactor",
-      "title": "Ŀ������ӵ�����(100%)",
-      "descr": "���2�϶� �����",
-      "min": 50,
-      "max": 150,
-      "default": 100,
       "unit": 1
     },
     {

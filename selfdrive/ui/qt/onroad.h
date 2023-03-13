@@ -110,7 +110,11 @@ protected:
   QPixmap ic_radar_vision;
   QPixmap ic_radar_no;
   QPixmap ic_steer_momo;
-  
+  QPixmap ic_lane_change_l;
+  QPixmap ic_lane_change_r;
+  QPixmap ic_turn_l;
+  QPixmap ic_turn_r;
+
   int m_fps = 0;
   FirstOrderFilter apilot_filter_x;
   FirstOrderFilter apilot_filter_y;

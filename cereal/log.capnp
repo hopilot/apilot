@@ -1833,6 +1833,7 @@ struct LiveTorqueParametersData {
   points @10 :List(List(Float32));
   version @11 :Int32;
   useParams @12 :Bool;
+  debugText @13 :Text;
 }
 
 struct LiveMapDataDEPRECATED {
