@@ -1898,6 +1898,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         //bool is_cruise_set = (cruiseMaxSpeed > 0 && cruiseMaxSpeed < 255);
         //bool is_cruise_set = (applyMaxSpeed > 0 && applyMaxSpeed < 255);
         //int longActiveUser = controls_state.getLongActiveUser();
+        int longOverride = car_control.getLongOverride();
 
         int sccBus = (int)car_params.getSccBus();
         int navCluster = (int)car_params.getNaviCluster();
@@ -1989,9 +1990,9 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         longActiveUser = 2;
 #endif
         configFont(painter, "Inter", 60, "Bold");
-        if (enabled && longActiveUser > 0) str.sprintf("%d", (int)(cruiseMaxSpeed + 0.5));
+        if (enabled && (longActiveUser > 0 || (longOverride && blinkerOn)) str.sprintf("%d", (int)(cruiseMaxSpeed + 0.5));
         else str = "--";
-        color = QColor(0, 150, 0, 255);
+        color = QColor(0, 255, 0, 255);
         drawTextWithColor(painter, bx+170, by+15, str, color);
 
 #ifdef __TEST
