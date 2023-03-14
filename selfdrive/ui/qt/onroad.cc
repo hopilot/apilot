@@ -1564,6 +1564,9 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     // steer handle 그리기..
     float steer_angle = car_state.getSteeringAngleDeg();
     static QPixmap img2 = ic_steer_momo;
+    // 스티어 하단 고정(hoya) 
+    float w_x = 1920 / 2; 
+    float w_y = 1080 - 50;      
     {
 #ifdef __TEST
         static float steer_ang = 0.0;
@@ -1574,11 +1577,11 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         if (uiDrawSteeringRotate) {      // 시간이 많이(3msec)걸려 3번에 한번씩만 그리자..
             if (uiDrawSeq == 0) {
                 img2 = ic_steer_momo.transformed(QTransform().rotate(-steer_angle));
-                painter.drawPixmap(x - img2.width() / 2., y - img2.height() / 2., img2);
+                painter.drawPixmap(w_x - img2.width() / 2., w_y - img2.height() / 2., img2);
             }
-            else painter.drawPixmap(x - img2.width() / 2., y - img2.height() / 2., img2);
+            else painter.drawPixmap(w_x - img2.width() / 2., w_y - img2.height() / 2., img2);
         }
-        else painter.drawPixmap(x - ic_steer_momo.width() / 2., y - ic_steer_momo.height() / 2., ic_steer_momo);
+        else painter.drawPixmap(w_x - ic_steer_momo.width() / 2., w_y - ic_steer_momo.height() / 2., ic_steer_momo);
     }
 
     // 신호등(traffic)그리기.
@@ -1962,6 +1965,10 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         }
         configFont(painter, "Inter", 35, "Bold");
         drawTextWithColor(painter, top_str.length() / 2 * 35 / 2 + 50, 40, top_str, color);
+
+        // 하단 속도 관련 정보 고정(hoya)
+        x = width() / 2;
+        y = 650;
 
         int bx = x;
         int by = y + 270;
