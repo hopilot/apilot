@@ -356,6 +356,7 @@ AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* par
   ic_radar_vision = QPixmap("../assets/images/radar_vision.png");
   ic_radar_no = QPixmap("../assets/images/no_radar.png");
   ic_steer_momo = QPixmap("../assets/images/steer_momo.png");
+  ic_steer_hyundai = QPixmap("../assets/images/steer_hyundai.png");
   ic_lane_change_l = QPixmap("../assets/images/lane_change_l.png");
   ic_lane_change_r = QPixmap("../assets/images/lane_change_r.png");
   ic_turn_l = QPixmap("../assets/images/turn_l.png");
@@ -1563,7 +1564,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 
     // steer handle 그리기..
     float steer_angle = car_state.getSteeringAngleDeg();
-    static QPixmap img2 = ic_steer_momo;
+    static QPixmap img2 = ic_steer_hyundai; //ic_steer_momo;
     // 스티어 하단 고정(hoya) 
     float w_x = 1920 / 2; 
     float w_y = 1080 - 50;      
@@ -1576,12 +1577,12 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         painter.setOpacity(0.7);
         if (uiDrawSteeringRotate) {      // 시간이 많이(3msec)걸려 3번에 한번씩만 그리자..
             if (uiDrawSeq == 0) {
-                img2 = ic_steer_momo.transformed(QTransform().rotate(-steer_angle));
+                img2 = ic_steer_hyundai.transformed(QTransform().rotate(-steer_angle));
                 painter.drawPixmap(w_x - img2.width() / 2., w_y - img2.height() / 2., img2);
             }
             else painter.drawPixmap(w_x - img2.width() / 2., w_y - img2.height() / 2., img2);
         }
-        else painter.drawPixmap(w_x - ic_steer_momo.width() / 2., w_y - ic_steer_momo.height() / 2., ic_steer_momo);
+        else painter.drawPixmap(w_x - ic_steer_hyundai.width() / 2., w_y - ic_steer_hyundai.height() / 2., ic_steer_hyundai);
     }
 
     // 신호등(traffic)그리기.

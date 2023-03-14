@@ -255,7 +255,7 @@ void ui_update_params(UIState *s) {
       s->show_steer_rotate = false;
       s->show_path_end = false;
       s->show_accel = false;
-      s->show_tpms = false;
+      s->show_tpms = true;
       break;
   case 2:
       s->show_steer_rotate = false;
