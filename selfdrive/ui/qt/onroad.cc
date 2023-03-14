@@ -1268,12 +1268,12 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     const float img_alpha = 0.8f;
     const int fb_w = width() / 2 - 200;
     const int center_x = width() / 2;
-    const int w = fb_w / 25;
-    const int h = 160;
+    const int w = 150;
+    const int h = 80;
     const int gap = fb_w / 25;
-    const int margin = (int)(fb_w / 3.8f);
+    const int margin = 0 ; // (int)(fb_w / 3.8f);
     const int base_y = (height() - h) / 2;
-    const int draw_count = 8;
+    const int draw_count = 16;
 
     int x = center_x;
     int y = base_y;
@@ -1283,11 +1283,11 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
         float alpha = img_alpha;
         int d = std::abs(blink_index - i);
         if(d > 0)
-          alpha /= d*2;
+          alpha /= d*1.1;
 
         p.setOpacity(alpha);
-        float factor = (float)draw_count / (i + draw_count);
-        p.drawPixmap(x - w - margin, y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_l);
+        float factor = 1.0; //(float)draw_count / (i + draw_count);
+        p.drawPixmap(x - w, y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_l);
         x -= gap + w;
       }
     }
@@ -1298,7 +1298,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
         float alpha = img_alpha;
         int d = std::abs(blink_index - i);
         if(d > 0)
-          alpha /= d*2;
+          alpha /= d*1.1;
 
         float factor = (float)draw_count / (i + draw_count);
         p.setOpacity(alpha);
@@ -1310,14 +1310,14 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     if(left_on || right_on) {
 
       double now = millis_since_boot();
-      if(now - prev_ts > 900/UI_FREQ) {
+      if(now - prev_ts > 20/UI_FREQ) {
         prev_ts = now;
         blink_index++;
       }
 
       if(blink_index >= draw_count) {
         blink_index = draw_count - 1;
-        blink_wait = UI_FREQ/4;
+        blink_wait = UI_FREQ/20;
       }
     }
     else {
@@ -1513,7 +1513,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     auto car_state = sm["carState"].getCarState();
     int longActiveUser = controls_state.getLongActiveUser();
 
-    int     uiDrawSeq = sm.frame % 3;   // 시간이 많이 걸리는것들은 해당순서에서 그리자,, 0,1,2
+    int     uiDrawSeq = 0; //sm.frame % 3;   // 시간이 많이 걸리는것들은 해당순서에서 그리자,, 0,1,2
 
     // Path의 끝위치를 계산 및 표시
     int     track_vertices_len = scene.track_vertices.length();
@@ -1882,7 +1882,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 
 
     // 속도표시
-    if(true) {
+    if(false) { //true) {
         const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
         const auto navi_info = car_state.getNaviSafetyInfo();
         const auto car_params = sm["carParams"].getCarParams();
@@ -2098,9 +2098,11 @@ void AnnotatedCameraWidget::drawHudApilot(QPainter& p, const cereal::ModelDataV2
 
     drawLeadApilot(p, model);
 
+    drawMaxSpeed(p);
+    drawSpeed(p);
     //drawSteer(p);
     drawDeviceState(p);
-    //drawTurnSignals(p);
+    drawTurnSignals(p);
     //drawGpsStatus(p);
 #ifdef __TEST
     drawDebugText(p);
