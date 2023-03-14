@@ -1310,7 +1310,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     if(left_on || right_on) {
 
       double now = millis_since_boot();
-      if(now - prev_ts > 20/UI_FREQ) {
+      if(now - prev_ts > 100/UI_FREQ) {
         prev_ts = now;
         blink_index++;
       }
@@ -1612,8 +1612,8 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     bool leftBlinker = car_state.getLeftBlinker();
     bool rightBlinker = car_state.getRightBlinker();
     static int blinkerTimer = 0;
-    blinkerTimer = (blinkerTimer + 1) % (800 / UI_FREQ);
-    bool blinkerOn = (blinkerTimer <= 800 / UI_FREQ / 2);
+    blinkerTimer = (blinkerTimer + 1) % (UI_FREQ);
+    bool blinkerOn = (blinkerTimer <= UI_FREQ / 2);
 
 #ifdef __TEST
     static int _desire = 0.;
