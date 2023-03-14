@@ -763,6 +763,9 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("AutoCurveSpeedCtrl", "모델커브속도조절(1)", "곡선도로를 만나면 속도를 줄여줍니다. 0:사용안함,1:방법1,2:방법2", "../assets/offroad/icon_road.png", 0, 2, 1));
     toggleLayout->addWidget(new CValueControl("AutoCurveSpeedFactor", "모델커브속도조절비율(100%)", "커브속도조절(커브속도 조절 2일때 적용)", "../assets/offroad/icon_road.png", 50, 150, 1));
     toggleLayout->addWidget(new CValueControl("AutoTurnControl", "자동모델턴제어", "저속 깜박이시 DESIRE제어", "../assets/offroad/icon_road.png", 0, 2, 1));
+    toggleLayout->addWidget(new CValueControl("AutoTurnSpeed", "자동모델턴제어:속도", "해당속도이하에서 자동턴시작", "../assets/offroad/icon_road.png", 2, 60, 5));
+    toggleLayout->addWidget(new CValueControl("AutoTurnTimeMax", "자동모델턴제어:시간제한", "자동턴 시간제한 설정", "../assets/offroad/icon_road.png", 30, 240, 5));
+    toggleLayout->addWidget(new CValueControl("AutoLaneChangeSpeed", "자동차선변경:속도", "해당속도 이상에서만 자동차선변경", "../assets/offroad/icon_road.png", 5, 60, 5));
 
 }
 CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {

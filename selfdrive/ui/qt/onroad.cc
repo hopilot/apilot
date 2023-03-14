@@ -360,6 +360,9 @@ AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* par
   ic_lane_change_r = QPixmap("../assets/images/lane_change_r.png");
   ic_turn_l = QPixmap("../assets/images/turn_l.png");
   ic_turn_r = QPixmap("../assets/images/turn_r.png");
+  ic_blinker_l = QPixmap("../assets/images/blink_l.png");
+  ic_blinker_r = QPixmap("../assets/images/blink_r.png");
+  ic_speed_bg = QPixmap("../assets/images/speed_bg.png");
 }
 
 void AnnotatedCameraWidget::initializeGL() {
@@ -1361,7 +1364,7 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
   const SubMaster &sm = *(uiState()->sm);
   QString str, temp;
 
-  int y = 80;
+  int y = 150;
 
   const int text_x = width()/2 + 220;
   const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
@@ -1369,9 +1372,9 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
   configFont(p, "Inter", 40, "Regular");
   p.setPen(QColor(255, 255, 255, 200));
 
-  QRect rect = QRect(text_x, y, width()/2 - 120, height() - y);
-
-  p.drawText(rect, Qt::AlignLeft, QString::fromStdString(live_torque_params.getDebugText().cStr()));
+  str.sprintf("LT[%.0f]:%s (%.3f/%.3f)", live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF", live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered());
+  p.drawText(text_x, y, str);
+  p.drawText(text_x, y+80, QString::fromStdString(live_torque_params.getDebugText().cStr()));
 
   p.restore();
   /*p.save();
@@ -1602,6 +1605,12 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     float desireStateTurnRight = meta.getDesireState()[2];
     float desireStateLaneChangeLeft = meta.getDesireState()[3];
     float desireStateLaneChangeRight = meta.getDesireState()[4];
+    bool leftBlinker = car_state.getLeftBlinker();
+    bool rightBlinker = car_state.getRightBlinker();
+    static int blinkerTimer = 0;
+    blinkerTimer = (blinkerTimer + 1) % (800 / UI_FREQ);
+    bool blinkerOn = (blinkerTimer <= 800 / UI_FREQ / 2);
+
 #ifdef __TEST
     static int _desire = 0.;
     if (_desire++ > 200) _desire = 0;
@@ -1633,6 +1642,9 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         else if (traffic < 100) bgColor = blackColor(20);
         else if (traffic < 150) bgColor = greenColor(160);
         else bgColor = yellowColor(160);
+
+        if (traffic < 100) { leftBlinker = true; }
+        else { rightBlinker = true; }
 #endif
         painter.setOpacity(1.0);
         painter.setPen(Qt::NoPen);
@@ -1647,6 +1659,12 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             else if (desireStateTurnRight > 0.5) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_turn_r);
             else if (desireStateLaneChangeLeft > 0.5) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_lane_change_l);
             else if (desireStateLaneChangeRight > 0.5) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_lane_change_r);
+        }
+        // blinker 표시~~
+        if (true) {
+            painter.setOpacity(1.0);
+            if (rightBlinker && blinkerOn) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_blinker_r);
+            if (leftBlinker && blinkerOn) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_blinker_l);
         }
 
 
@@ -1866,12 +1884,12 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         const auto car_params = sm["carParams"].getCarParams();
 
         //bool is_metric = s->scene.is_metric;
-        bool long_control = 1;// scc_smoother.getLongControl();
+        //bool long_control = 1;// scc_smoother.getLongControl();
 
         // kph
-        float applyMaxSpeed = controls_state.getVCruiseOut();// scc_smoother.getApplyMaxSpeed();
+        //float applyMaxSpeed = controls_state.getVCruiseOut();// scc_smoother.getApplyMaxSpeed();
         float cruiseMaxSpeed = controls_state.getVCruiseCluster();// scc_smoother.getCruiseMaxSpeed();
-        float xCruiseTarget = lp.getXCruiseTarget() * 3.6;
+        //float xCruiseTarget = lp.getXCruiseTarget() * 3.6;
 
         //bool is_cruise_set = (cruiseMaxSpeed > 0 && cruiseMaxSpeed < 255);
         //bool is_cruise_set = (applyMaxSpeed > 0 && applyMaxSpeed < 255);
@@ -1928,79 +1946,53 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         cur_speed = 123;
 #endif
 
-        QColor color = QColor(255, 255, 255, 230);
+        QColor color = QColor(255, 255, 255, 255);
 
-        if (accel > 0) {
-            int a = (int)(255.f - (180.f * (accel / 2.f)));
-            a = std::min(a, 255);
-            a = std::max(a, 80);
-            color = QColor(a, a, 255, 230);
+        if (accel >= 0) {
+            //int a = (int)(255.f - (180.f * (accel / 2.f)));
+            //a = std::min(a, 255);
+            //a = std::max(a, 80);
+            //color = QColor(a, a, 255, 230);
         }
         else {
             int a = (int)(255.f - (255.f * (-accel / 3.f)));
             a = std::min(a, 255);
             a = std::max(a, 60);
-            color = QColor(255, a, a, 230);
+            color = QColor(255, a, a, 255);
         }
-
-        int bx = x;
-        int by = y + 350;
-        if (width() < 1200) bx += 300;
-        QRect rectSpeed(bx - 500, by + 215, 1000, 5);
-        //QRect rect1(bx - 500, by+90, 10, 100);
-        //QRect rect2(bx + 500 - 10, by+90, 10, 100);
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(whiteColor(255));
-        //p.drawRect(rectSpeed);
-        //p.drawRect(rect1);
-        //p.drawRect(rect2);
         configFont(painter, "Inter", 35, "Bold");
         drawTextWithColor(painter, top_str.length() / 2 * 35 / 2 + 50, 40, top_str, color);
 
+        int bx = x;
+        int by = y + 270;
+
         QString speed, str;
         speed.sprintf("%.0f", cur_speed);
-        configFont(painter, "Inter", 150, "Bold");
-        drawTextWithColor(painter, bx, by, speed, color);
+        configFont(painter, "Inter", 110, "Bold");
+        drawTextWithColor(painter, bx, by+30, speed, color);
 
-        color = whiteColor(255);
+        painter.setOpacity(1.0);
+        painter.drawPixmap(bx - 100, by-60, 350, 150, ic_speed_bg);
 
-        bx = x + speed.length() * 150 / 2 + 60;
-        QRect rect2(bx - 65, by - 130, 130, 140);
-        painter.setPen(QPen(Qt::white, 2));
-        painter.setBrush(QBrush(blackColor(200)));
-        painter.drawRoundedRect(rect2, 16, 16);
+        //color = QColor(255, 255, 255, 255);
+#ifdef __TEST
+        cruiseMaxSpeed = 110;
+        enabled = true;
+        longActiveUser = 2;
+#endif
         configFont(painter, "Inter", 60, "Bold");
         if (enabled && longActiveUser > 0) str.sprintf("%d", (int)(cruiseMaxSpeed + 0.5));
-        else str = "N/A";
-        drawTextWithColor(painter, bx, by - 150 + 85, str, color);
-        configFont(painter, "Inter", 40, "Bold");
-        if (s->show_debug) {
-            if (enabled && longActiveUser > 0) str.sprintf("%d", (int)(xCruiseTarget + 0.5));
-            else str = long_control ? "OP" : "MAX";
-        }
-        else {
-            if (enabled && longActiveUser > 0) str.sprintf("%d", (int)(applyMaxSpeed + 0.5));
-            else str = long_control ? "OP" : "MAX";
-        }
-        drawTextWithColor(painter, bx, by - 150 + 135, str, color);
-
-        if (s->show_debug) { //s->show_mode >= 2) {
-            bx = x - speed.length() * 150 / 2 - 100;
-            configFont(painter, "Inter", 40, "Bold");
-            const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
-            str.sprintf("LT[%.0f]:%s", live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF");
-            drawTextWithColor(painter, bx-50, by-50, str, color);
-            str.sprintf("%.3f/%.3f", live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered());
-            drawTextWithColor(painter, bx - 50, by, str, color);
-        }
-
+        else str = "--";
+        color = QColor(0, 150, 0, 255);
+        drawTextWithColor(painter, bx+170, by+15, str, color);
 
 #ifdef __TEST
         check_millis[5] = millis_since_boot();
 #endif
+        color = QColor(255, 255, 255, 255);
         QColor blackColor = QColor(0, 0, 0, 230);
-        bx = x + 280;
-        by = y - 40;
+        bx = x - 200;
+        by = y + 250;
         if (limit_speed > 0) {
             QRect rectLimit(bx - 70, by - 70, 140, 140);
             painter.setBrush(QBrush(Qt::white));
@@ -2099,9 +2091,13 @@ void AnnotatedCameraWidget::drawHudApilot(QPainter& p, const cereal::ModelDataV2
 
     //drawSteer(p);
     drawDeviceState(p);
-    drawTurnSignals(p);
+    //drawTurnSignals(p);
     //drawGpsStatus(p);
+#ifdef __TEST
+    drawDebugText(p);
+#else
     if (s->show_debug) drawDebugText(p);
+#endif
 
 #if 0
     const auto controls_state = sm["controlsState"].getControlsState();

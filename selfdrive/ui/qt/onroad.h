@@ -114,6 +114,9 @@ protected:
   QPixmap ic_lane_change_r;
   QPixmap ic_turn_l;
   QPixmap ic_turn_r;
+  QPixmap ic_blinker_l;
+  QPixmap ic_blinker_r;
+  QPixmap ic_speed_bg;
 
   int m_fps = 0;
   FirstOrderFilter apilot_filter_x;

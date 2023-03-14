@@ -272,6 +272,36 @@
       "unit": 1
     },
     {
+      "group": "조향",
+      "name": "AutoTurnSpeed",
+      "title": "자동모델턴제어:속도",
+      "descr": "해당속도이하에서 자동턴시작",
+      "min": 2,
+      "max": 60,
+      "default": 40,
+      "unit": 5
+    },
+    {
+      "group": "조향",
+      "name": "AutoTurnTimeMax",
+      "title": "자동모델턴제어:시간제한",
+      "descr": "자동턴 시간제한 설정",
+      "min": 30,
+      "max": 240,
+      "default": 60,
+      "unit": 5
+    },
+    {
+      "group": "조향",
+      "name": "AutoLaneChangeSpeed",
+      "title": "자동차선변경속도",
+      "descr": "해당속도 이상에서만 자동차선변경",
+      "min": 5,
+      "max": 60,
+      "default": 30,
+      "unit": 5
+    },
+    {
       "group": "버튼설정",
       "name": "CruiseButtonMode",
       "title": "ũ�����ư�۵����(0)",
