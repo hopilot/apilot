@@ -18,7 +18,7 @@ const SteeringLimits HYUNDAI_STEERING_LIMITS = {
   .has_steer_req_tolerance = true,
 };
 
-const int HYUNDAI_MAX_ACCEL = 200;  // 1/100 m/s2
+const int HYUNDAI_MAX_ACCEL = 250;  // 1/100 m/s2
 const int HYUNDAI_MIN_ACCEL = -400; // -350; // 1/100 m/s2
 
 const CanMsg HYUNDAI_TX_MSGS[] = {
