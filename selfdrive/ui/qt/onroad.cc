@@ -1981,7 +1981,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         drawTextWithColor(painter, bx, by+30, speed, color);
 
         painter.setOpacity(1.0);
-        painter.drawPixmap(bx - 100, by-60, 350, 150, ic_speed_bg);
+        //painter.drawPixmap(bx - 100, by-60, 350, 150, ic_speed_bg);
 
         //color = QColor(255, 255, 255, 255);
 #ifdef __TEST
