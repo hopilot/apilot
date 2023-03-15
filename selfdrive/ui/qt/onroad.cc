@@ -1270,10 +1270,10 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     const int center_x = width() / 2;
     const int w = 80;
     const int h = 80;
-    const int gap = fb_w / 25;
+    const int gap = fb_w / 50;
     const int margin = 0 ; // (int)(fb_w / 3.8f);
-    const int base_y = (height() - h) / 2;
-    const int draw_count = 16;
+    const int base_y = (height() - h) / 2 + 100;
+    const int draw_count = 18;
 
     int x = center_x;
     int y = base_y;
@@ -1310,7 +1310,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     if(left_on || right_on) {
 
       double now = millis_since_boot();
-      if(now - prev_ts > 100/UI_FREQ) {
+      if(now - prev_ts > 300/UI_FREQ) {
         prev_ts = now;
         blink_index++;
       }
