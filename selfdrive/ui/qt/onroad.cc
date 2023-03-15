@@ -1731,6 +1731,37 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             drawTextWithColor(painter, x, y + 65, "M", textColor);
         }
     }
+
+    // hoya 위치 조정(고정값 코드를 아래로 모으기)
+    // 타겟하단: 롱컨상태표시
+    {
+        QString str;
+        if (brake_hold) str.sprintf("AUTOHOLD");
+        else if (longActiveUser > 0) {
+            auto xState = lp.getXState();
+            if (xState == cereal::LongitudinalPlan::XState::E2E_STOP) str.sprintf("e2eSTOP");
+            else if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) str.sprintf("SOFTHOLD");
+            else if (xState == cereal::LongitudinalPlan::XState::LEAD) str.sprintf("LEAD");
+            else if (xState == cereal::LongitudinalPlan::XState::E2E_CRUISE) str.sprintf("e2eCRUISE");
+            else if (xState == cereal::LongitudinalPlan::XState::CRUISE) str.sprintf("CRUISE");
+            else str.sprintf("UNKNOWN");
+        }
+        else str.sprintf("MANUAL");
+        int len = 30 * str.length();
+        QRect rectBrake(x - len / 2 - 12, y + 135, len + 20, 45);
+        painter.setPen(Qt::NoPen);
+        painter.setBrush((brake_valid) ? redColor(200) : greenColor(200));
+        //painter.drawRect(rectBrake);
+        painter.drawRoundedRect(rectBrake, 15, 15);
+        configFont(painter, "Inter", 40, "Bold");
+        QColor textColor = whiteColor(200);
+        drawTextWithColor(painter, x - 0, y + 170, str, textColor);
+    }
+
+    // GAP, ACC, RPM 좌상단에 고정 용도 (hoya 추가수정)
+    x = 450;
+    y = 200;
+
     // 타겟좌측 : 갭표시
     int myDrivingMode = controls_state.getMyDrivingMode();
     //const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
@@ -1797,34 +1828,9 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         drawTextWithColor(painter, x + dxGap + 20, y + 0, str, textColor);
     }
 
-    // 타겟하단: 롱컨상태표시
-    {
-        QString str;
-        if (brake_hold) str.sprintf("AUTOHOLD");
-        else if (longActiveUser > 0) {
-            auto xState = lp.getXState();
-            if (xState == cereal::LongitudinalPlan::XState::E2E_STOP) str.sprintf("e2eSTOP");
-            else if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) str.sprintf("SOFTHOLD");
-            else if (xState == cereal::LongitudinalPlan::XState::LEAD) str.sprintf("LEAD");
-            else if (xState == cereal::LongitudinalPlan::XState::E2E_CRUISE) str.sprintf("e2eCRUISE");
-            else if (xState == cereal::LongitudinalPlan::XState::CRUISE) str.sprintf("CRUISE");
-            else str.sprintf("UNKNOWN");
-        }
-        else str.sprintf("MANUAL");
-        int len = 30 * str.length();
-        QRect rectBrake(x - len / 2 - 12, y + 135, len + 20, 45);
-        painter.setPen(Qt::NoPen);
-        painter.setBrush((brake_valid) ? redColor(200) : greenColor(200));
-        //painter.drawRect(rectBrake);
-        painter.drawRoundedRect(rectBrake, 15, 15);
-        configFont(painter, "Inter", 40, "Bold");
-        QColor textColor = whiteColor(200);
-        drawTextWithColor(painter, x - 0, y + 170, str, textColor);
-    }
-
     // Accel표시
     float accel = car_state.getAEgo();
-    float dx = 128 + 10;
+    float dx = -128; // 128 + 10;  hoya 수정
 #ifdef __TEST
     static float accel1 = 0.0;
     accel1 += 0.2;
