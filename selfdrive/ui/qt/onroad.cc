@@ -1276,7 +1276,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     const int draw_count = 18;
 
     int x = center_x;
-    int y = base_y + 30;
+    int y = base_y + 30 + 50;
 
     if(left_on) {
       for(int i = 0; i < draw_count; i++) {
@@ -1554,7 +1554,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         if (no_radar) {
             //x = path_x;
             x = std::clamp(path_x, 300.f, width() - 300.f);
-            y = path_y; // height() - 250;
+            y = path_y + 50; // height() - 250;
         }
         if (y > height() - 400) y = height() - 400;
 
@@ -1748,14 +1748,14 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         }
         else str.sprintf("MANUAL");
         int len = 30 * str.length();
-        QRect rectBrake(x - len / 2 - 12, y + 135, len + 20, 45);
+        QRect rectBrake(x - len / 2 - 12, y + 135 - 50, len + 20, 45);
         painter.setPen(Qt::NoPen);
         painter.setBrush((brake_valid) ? redColor(200) : greenColor(200));
         //painter.drawRect(rectBrake);
         painter.drawRoundedRect(rectBrake, 15, 15);
         configFont(painter, "Inter", 40, "Bold");
         QColor textColor = whiteColor(200);
-        drawTextWithColor(painter, x - 0, y + 170, str, textColor);
+        drawTextWithColor(painter, x - 0, y + 170 - 50, str, textColor);
     }
 
     // GAP, ACC, RPM 좌상단에 고정 용도 (hoya 추가수정)
@@ -1785,7 +1785,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         QColor textColor = whiteColor(255);
 
         float dxGap = -128 - 10 - 40;
-        drawTextWithColor(painter, x + dxGap + 15, y + 120, strDrivingMode, textColor);
+        drawTextWithColor(painter, x + dxGap + 15 + 40, y + 120, strDrivingMode, textColor);
 #ifdef __TEST
         static int _gap = 0;
         _gap += 10;
@@ -1809,7 +1809,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         painter.drawRect(rectGapPos);
         textColor = whiteColor(200);
         configFont(painter, "Inter", 25, "Bold");
-        drawTextWithColor(painter, x + dxGap + 40, y - 135, "GAP", textColor);
+        drawTextWithColor(painter, x + dxGap + 40, y - 130, "GAP", textColor);
 
 #if 0
         QRect rectGap1(x1, y1, 60, 20);
@@ -1848,7 +1848,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         painter.drawRect(rectAccelPos);
         QColor textColor = whiteColor(200);
         configFont(painter, "Inter", 25, "Bold");
-        drawTextWithColor(painter, x + dx + 40, y - 135, "ACC", textColor);
+        drawTextWithColor(painter, x + dx + 40, y - 130, "ACC", textColor);
 
     }
 
