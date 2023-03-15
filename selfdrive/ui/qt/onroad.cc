@@ -1276,7 +1276,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     const int draw_count = 18;
 
     int x = center_x;
-    int y = base_y;
+    int y = base_y + 30;
 
     if(left_on) {
       for(int i = 0; i < draw_count; i++) {
