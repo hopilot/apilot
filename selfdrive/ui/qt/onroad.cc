@@ -1794,22 +1794,22 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         else if (_gap < 200) gap = 2;
         else gap = 3;
 #endif
-        QRect rectGap(x + dxGap, y - 135, 40, 128);
+        QRect rectGap(x + dxGap, y - 135, 80, 128);
         //painter.setPen(Qt::NoPen);
         painter.setPen(QPen(Qt::white, 2));
         painter.setBrush(blackColor(150));
-        rectGap = QRect(x + dxGap, y - 130, 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y - 130, 80, 64 / 3.);
         painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y - 130 + 64 * 1 / 3., 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y - 130 + 64 * 1 / 3., 80, 64 / 3.);
         painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y - 130 + 64 * 2 / 3., 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y - 130 + 64 * 2 / 3., 80, 64 / 3.);
         painter.drawRect(rectGap);
-        QRect rectGapPos(x + dxGap, y - 130 + 64, 40, -std::clamp((float)gap, 0.0f, 3.0f) / 3. * 64);
+        QRect rectGapPos(x + dxGap, y - 130 + 64, 80, -std::clamp((float)gap, 0.0f, 3.0f) / 3. * 64);
         painter.setBrush(greenColor(255));
         painter.drawRect(rectGapPos);
         textColor = whiteColor(200);
         configFont(painter, "Inter", 25, "Bold");
-        drawTextWithColor(painter, x + dxGap + 20, y - 135, "GAP", textColor);
+        drawTextWithColor(painter, x + dxGap + 40, y - 135, "GAP", textColor);
 
 #if 0
         QRect rectGap1(x1, y1, 60, 20);
@@ -1825,30 +1825,30 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         QString str;
         //str.sprintf("%.1f", tFollow);
         str.sprintf("%d", gap1);
-        drawTextWithColor(painter, x + dxGap + 20, y + 0, str, textColor);
+        drawTextWithColor(painter, x + dxGap + 40, y + 0, str, textColor);
     }
 
     // Accel표시
     float accel = car_state.getAEgo();
-    float dx = -128; // 128 + 10;  hoya 수정
+    float dx = -128 + 50; // 128 + 10;  hoya 수정
 #ifdef __TEST
     static float accel1 = 0.0;
     accel1 += 0.2;
-    if (accel1 > 2.5) accel1 = -2.5;
+    if (accel1 > 2.5) accel1 = -2.5;  g g g g
     accel = accel1;
 #endif
     if(s->show_accel) {
-        QRect rectAccel(x + dx, y - 128 - 5, 40, 128);
+        QRect rectAccel(x + dx, y - 128 - 5, 80, 128);
         //painter.setPen(Qt::NoPen);
         painter.setPen(QPen(Qt::white, 2));
         painter.setBrush(blackColor(150));
         painter.drawRect(rectAccel);
-        QRect rectAccelPos(x + dx, y - 64 - 5, 40, -std::clamp((float)accel, -2.0f, 2.0f) / 2. * 64);
+        QRect rectAccelPos(x + dx, y - 64 - 5, 80, -std::clamp((float)accel, -2.0f, 2.0f) / 2. * 64);
         painter.setBrush((accel >= 0.0) ? yellowColor(255) : redColor(255));
         painter.drawRect(rectAccelPos);
         QColor textColor = whiteColor(200);
         configFont(painter, "Inter", 25, "Bold");
-        drawTextWithColor(painter, x + dx + 20, y - 135, "ACC", textColor);
+        drawTextWithColor(painter, x + dx + 40, y - 135, "ACC", textColor);
 
     }
 
@@ -1865,7 +1865,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         //str.sprintf("%s: %.0f CHARGE: %.0f%%", (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
         //drawTextWithColor(p, width() - 350, 80, str, textColor);
         //painter.setPen(Qt::NoPen);
-        QRect rectRpm(x + dx, y + 5, 40, 128);
+        QRect rectRpm(x + dx, y + 5, 80, 128);
         painter.setPen(QPen(Qt::white, 2));
         painter.setBrush(blackColor(150));
         painter.drawRect(rectRpm);
@@ -1873,15 +1873,15 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         //painter.setPen(Qt::NoPen);
         if (engineRpm > 0.0) {
             painter.setBrush(QColor(0, 0, 255, 255));
-            rectRpmPos = QRect(x + dx, y + 128 + 5, 40, -std::clamp((float)engineRpm, 0.0f, 4000.0f) / 4000. * 128.0);
+            rectRpmPos = QRect(x + dx, y + 128 + 5, 80, -std::clamp((float)engineRpm, 0.0f, 4000.0f) / 4000. * 128.0);
         }
         else {
             painter.setBrush(greenColor(255));
-            rectRpmPos = QRect(x + dx, y + 128 + 5, 40, -std::clamp((float)motorRpm, 0.0f, 4000.0f) / 4000. * 128.0);
+            rectRpmPos = QRect(x + dx, y + 128 + 5, 80, -std::clamp((float)motorRpm, 0.0f, 4000.0f) / 4000. * 128.0);
         }
         QColor textColor = whiteColor(200);
         configFont(painter, "Inter", 25, "Bold");
-        drawTextWithColor(painter, x + dx + 20, y + 160, "RPM", textColor);
+        drawTextWithColor(painter, x + dx + 40, y + 160, "RPM", textColor);
         painter.drawRect(rectRpmPos);
 
     }
