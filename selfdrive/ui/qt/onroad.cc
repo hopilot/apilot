@@ -1807,7 +1807,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         QRect rectGapPos(x + dxGap, y - 130 + 64, 80, -std::clamp((float)gap, 0.0f, 3.0f) / 3. * 64);
         painter.setBrush(greenColor(255));
         painter.drawRect(rectGapPos);
-        textColor = whiteColor(200);
+        textColor = whiteColor(255);
         configFont(painter, "Inter", 25, "Bold");
         drawTextWithColor(painter, x + dxGap + 40, y - 130, "GAP", textColor);
 
@@ -1846,7 +1846,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         QRect rectAccelPos(x + dx, y - 64 - 5, 80, -std::clamp((float)accel, -2.0f, 2.0f) / 2. * 64);
         painter.setBrush((accel >= 0.0) ? yellowColor(255) : redColor(255));
         painter.drawRect(rectAccelPos);
-        QColor textColor = whiteColor(200);
+        QColor textColor = whiteColor(255);
         configFont(painter, "Inter", 25, "Bold");
         drawTextWithColor(painter, x + dx + 40, y - 130, "ACC", textColor);
 
@@ -1879,7 +1879,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             painter.setBrush(greenColor(255));
             rectRpmPos = QRect(x + dx, y + 128 + 5, 80, -std::clamp((float)motorRpm, 0.0f, 4000.0f) / 4000. * 128.0);
         }
-        QColor textColor = whiteColor(200);
+        QColor textColor = whiteColor(255);
         configFont(painter, "Inter", 25, "Bold");
         drawTextWithColor(painter, x + dx + 40, y + 160, "RPM", textColor);
         painter.drawRect(rectRpmPos);
@@ -1984,9 +1984,9 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         QString speed, str;
         speed.sprintf("%.0f", cur_speed);
         configFont(painter, "Inter", 110, "Bold");
+        painter.setOpacity(1.0);
         drawTextWithColor(painter, bx, by+30, speed, color);
 
-        painter.setOpacity(1.0);
         //painter.drawPixmap(bx - 100, by-60, 350, 150, ic_speed_bg);
 
         //color = QColor(255, 255, 255, 255);
