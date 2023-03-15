@@ -1268,7 +1268,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     const float img_alpha = 0.8f;
     const int fb_w = width() / 2 - 200;
     const int center_x = width() / 2;
-    const int w = 150;
+    const int w = 80;
     const int h = 80;
     const int gap = fb_w / 25;
     const int margin = 0 ; // (int)(fb_w / 3.8f);
