@@ -1276,7 +1276,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     const int draw_count = 18;
 
     int x = center_x;
-    int y = base_y + 30 + 50;
+    int y = base_y + 40;
 
     if(left_on) {
       for(int i = 0; i < draw_count; i++) {
@@ -1785,7 +1785,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         QColor textColor = whiteColor(255);
 
         float dxGap = -128 - 10 - 40;
-        drawTextWithColor(painter, x + dxGap + 15 + 20, y + 120, strDrivingMode, textColor);
+        drawTextWithColor(painter, x + dxGap + 20 + 20, y + 120, strDrivingMode, textColor);
 #ifdef __TEST
         static int _gap = 0;
         _gap += 10;
