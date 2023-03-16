@@ -74,7 +74,7 @@ class DesireHelper:
     self.desireEvent = 0
 
 
-  def update(self, carstate, lateral_active, lane_change_prob, md, turn_prob):
+  def update_test(self, carstate, lateral_active, lane_change_prob, md, turn_prob):
     self.paramsCount += 1
     if self.paramsCount > 100:
       self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
@@ -248,7 +248,7 @@ class DesireHelper:
 
 
 
-  def update_old(self, carstate, lateral_active, lane_change_prob, md, turn_prob):
+  def update(self, carstate, lateral_active, lane_change_prob, md, turn_prob):
     self.paramsCount += 1
     if self.paramsCount > 100:
       self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
