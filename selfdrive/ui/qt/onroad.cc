@@ -1265,7 +1265,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     bool left_on = car_state.getLeftBlinker();
     bool right_on = car_state.getRightBlinker();
 
-    const float img_alpha = 0.8f;
+    const float img_alpha = 0.9f;
     const int fb_w = width() / 2 - 200;
     const int center_x = width() / 2;
     const int w = 80;
