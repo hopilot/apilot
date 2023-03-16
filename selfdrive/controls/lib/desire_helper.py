@@ -99,6 +99,180 @@ class DesireHelper:
     #BSD읽기.
     blindspot_detected = ((carstate.leftBlindspot and carstate.leftBlinker) or(carstate.rightBlindspot and carstate.rightBlinker))
 
+    #핸들토크읽기
+    torque_applied = carstate.steeringPressed and \
+                        ((carstate.steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.left) or
+                        (carstate.steeringTorque < 0 and self.lane_change_direction == LaneChangeDirection.right))
+
+    # Timeout검사
+    if not lateral_active or self.lane_change_timer > laneChangeTimeMax: #LANE_CHANGE_TIME_MAX:
+      self.lane_change_state = LaneChangeState.off
+      self.lane_change_direction = LaneChangeDirection.none
+      self.desireEvent = 0
+    else:
+      self.lane_change_direction = LaneChangeDirection.none
+      # 1. 감지 및 결정 단계: LaneChangeState.off: 깜박이와 속도검사. 
+      if self.lane_change_state == LaneChangeState.off:
+        self.desireEvent = 0
+        self.turnControlState = False
+        if one_blinker: # and not self.prev_one_blinker:  ##깜박이가 켜진시점에 검사
+          # 정지상태
+          if v_ego_kph < 1.0:
+            if self.autoTurnControl > 0: 
+              self.turnControlState = True
+              self.lane_change_state = LaneChangeState.preLaneChange
+          # 저속
+          elif v_ego_kph < self.autoLaneChangeSpeed:
+            if road_edge_detected:
+              self.turnControlState = True
+              self.lane_change_state = LaneChangeState.preLaneChange
+            elif carstate.rightBlinker:
+              self.lane_change_state = LaneChangeState.preLaneChange
+            else: # 좌측저속: 차선검출:차선변경, 차선없음: 진행 (HW:차선검출루틴필요)
+              #self.lane_change_state = LaneChangeState.preLaneChange
+              pass
+          # 중속
+          elif v_ego_kph < 80.0:
+            if carstate.brakePressed:  # 감속하면서 깜박이.... 경우에따라 턴을 할까??(HW)
+              if not road_edge_detected:
+                self.lane_change_state = LaneChangeState.preLaneChange
+              elif carstate.rightBlinker:
+                if v_ego_kph < self.autoTurnSpeed:
+                  self.turnControlState = True
+                self.lane_change_state = LaneChangeState.preLaneChange
+              else:
+                if v_ego_kph < self.autoTurnSpeed:
+                  self.turnControlState = True
+                self.lane_change_state = LaneChangeState.preLaneChange
+            else:
+              self.lane_change_state = LaneChangeState.preLaneChange
+          # 고속: 무조건 차선변경
+          else:
+            self.lane_change_state = LaneChangeState.preLaneChange
+
+          if self.lane_change_state == LaneChangeState.preLaneChange:
+              self.lane_change_ll_prob = 1.0
+              self.waitTorqueApplied = False
+
+      # 2. 대기단계: LaneChangeState.preLaneChange: 
+      elif self.lane_change_state == LaneChangeState.preLaneChange:        
+        self.lane_change_pulse_timer += DT_MDL
+        # Set lane change direction
+        self.lane_change_direction = LaneChangeDirection.left if \
+          carstate.leftBlinker else LaneChangeDirection.right
+
+        if self.turnControlState:
+          if not one_blinker:
+            self.lane_change_state = LaneChangeState.off
+          elif self.lane_change_pulse_timer > 0.1: # and not blindspot_detected:
+            self.lane_change_state = LaneChangeState.laneChangeStarting
+        else:
+          # 깜박이가 꺼지거나, 속도가 줄어들면... 차선변경 중지.
+          if not one_blinker or v_ego_kph < self.autoLaneChangeSpeed:
+            self.lane_change_state = LaneChangeState.off
+          elif self.lane_change_pulse_timer > 0.1:
+            if blindspot_detected:
+              self.desireEvent = EventName.preLaneChangeLeft if LaneChangeDirection.left else EventName.preLaneChangeRight
+              self.waitTorqueApplied = True
+            elif road_edge_detected: # BSD 또는 road_edge검출이 안되면 차선변경 시작.
+              self.desireEvent = EventName.laneChangeBlocked
+            else:
+              self.lane_change_state = LaneChangeState.laneChangeStarting
+
+          # BSD검출시 torque힘을 기다려야 함.
+          if self.waitTorqueApplied:
+            self.lane_change_state = LaneChangeState.preLaneChange
+            if torque_applied:
+              self.lane_change_state = LaneChangeState.laneChangeStarting
+
+      # LaneChangeState.laneChangeStarting
+      elif self.lane_change_state == LaneChangeState.laneChangeStarting:
+        self.desireEvent = EventName.laneChange
+        # fade out over .5s
+        self.lane_change_ll_prob = max(self.lane_change_ll_prob - 2 * DT_MDL, 0.0)
+
+        ## 차선변경시 핸들을 건들면... 차선변경 취소..  
+        if not self.turnControlState and carstate.steeringPressed:
+          self.lane_change_sate = LaneChangeState.off
+
+        # 98% certainty
+        if self.turnControlState:
+            if turn_prob < 0.02 and self.lane_change_ll_prob < 0.01:
+              self.lane_change_state = LaneChangeState.laneChangeFinishing
+        else:
+            if lane_change_prob < 0.02 and self.lane_change_ll_prob < 0.01:
+              self.lane_change_state = LaneChangeState.laneChangeFinishing
+
+      # LaneChangeState.laneChangeFinishing
+      elif self.lane_change_state == LaneChangeState.laneChangeFinishing:
+        self.desireEvent = EventName.laneChange
+        # fade in laneline over 1s
+        self.lane_change_ll_prob = min(self.lane_change_ll_prob + DT_MDL, 1.0)
+
+        if self.turnControlState:
+            if self.lane_change_ll_prob > 0.99:
+              self.lane_change_direction = LaneChangeDirection.none
+            if one_blinker: #깜박이 켜고 있으면.... 아직 턴하고 있는중... 이때 preLaneChange로 넘어가면 계속 턴하려고 함...
+              pass
+            else:
+              self.lane_change_state = LaneChangeState.off
+        else:
+            if self.lane_change_ll_prob > 0.99:
+              self.lane_change_direction = LaneChangeDirection.none
+            if one_blinker:
+              self.lane_change_state = LaneChangeState.preLaneChange
+            else:
+              self.lane_change_state = LaneChangeState.off
+
+    if self.lane_change_state in (LaneChangeState.laneChangeFinishing, LaneChangeState.off):
+      self.lane_change_pulse_timer = 0.0
+    if self.lane_change_state in (LaneChangeState.off, LaneChangeState.preLaneChange):
+      self.lane_change_timer = 0.0
+      self.lane_change_direction = LaneChangeDirection.none
+    else:
+      self.lane_change_timer += DT_MDL
+
+    self.prev_one_blinker = one_blinker
+
+    self.desire = DESIRES_TURN[self.lane_change_direction][self.lane_change_state] if self.turnControlState else DESIRES[self.lane_change_direction][self.lane_change_state]
+
+    # Send keep pulse once per second during LaneChangeStart.preLaneChange
+    if self.lane_change_state in (LaneChangeState.off, LaneChangeState.laneChangeStarting):
+      self.keep_pulse_timer = 0.0
+    elif self.lane_change_state == LaneChangeState.preLaneChange:
+      self.keep_pulse_timer += DT_MDL
+      if self.keep_pulse_timer > 1.0:
+        self.keep_pulse_timer = 0.0
+      elif self.desire in (log.LateralPlan.Desire.keepLeft, log.LateralPlan.Desire.keepRight):
+        self.desire = log.LateralPlan.Desire.none
+
+
+
+  def update_old(self, carstate, lateral_active, lane_change_prob, md, turn_prob):
+    self.paramsCount += 1
+    if self.paramsCount > 100:
+      self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
+      self.autoTurnSpeed = int(Params().get("AutoTurnSpeed", encoding="'utf8"))
+      self.autoTurnTimeMax = int(Params().get("AutoTurnTimeMax", encoding="'utf8"))
+      self.autoLaneChangeSpeed = int(Params().get("AutoLaneChangeSpeed", encoding="'utf8"))
+      self.paramsCount = 0
+
+    v_ego = carstate.vEgo
+    v_ego_kph = v_ego * CV.MS_TO_KPH
+    one_blinker = carstate.leftBlinker != carstate.rightBlinker
+    below_lane_change_speed = v_ego < LANE_CHANGE_SPEED_MIN
+
+    #로드엣지 읽기..
+    left_road_edge = -md.roadEdges[0].y[0]
+    right_road_edge = md.roadEdges[1].y[0]
+    road_edge_detected = (((left_road_edge < 3.5) and carstate.leftBlinker) or ((right_road_edge < 3.5) and carstate.rightBlinker))
+
+    #레인체인지 또는 자동턴 타임아웃
+    laneChangeTimeMax = LANE_CHANGE_TIME_MAX if not self.turnControlState else self.autoTurnTimeMax
+
+    #BSD읽기.
+    blindspot_detected = ((carstate.leftBlindspot and carstate.leftBlinker) or(carstate.rightBlindspot and carstate.rightBlinker))
+
     if not lateral_active or self.lane_change_timer > laneChangeTimeMax: #LANE_CHANGE_TIME_MAX:
       self.lane_change_state = LaneChangeState.off
       self.lane_change_direction = LaneChangeDirection.none

@@ -71,6 +71,7 @@ class LongControl:
     self.stopAccelApply = 0.0
 
     self._k_i = (self.CP.longitudinalTuning.kiBP, self.CP.longitudinalTuning.kiV)
+    self._k_i_stopping = (self.CP.longitudinalTuning.kiBP, self.CP.longitudinalTuning.kiV)
 
   def reset(self, v_pid):
     """Reset PID controller and change setpoint"""
@@ -88,6 +89,7 @@ class LongControl:
       self.CP.longitudinalTuning.kpV = [self.longitudinalTuningKpV]
       #self.CP.longitudinalTuning.kiV = [self.longitudinalTuningKiV]
       self.pid._k_p = (self.CP.longitudinalTuning.kpBP, self.CP.longitudinalTuning.kpV)
+      self._k_i_stopping = (self.CP.longitudinalTuning.kiBP, self.longitudinalTuningKiV)
     elif self.readParamCount == 30:
       pass
     elif self.readParamCount == 40:
@@ -154,7 +156,7 @@ class LongControl:
       self.v_pid = v_target_now
 
       # apilot: 정지중에는 I게인을 적용. 서서히 흘러가는것방지, 급격한 정지 방지.
-      self.pid._k_i = self._k_i if v_target_now > 0.01 else (self.CP.longitudinalTuning.kiBP, [self.longitudinalTuningkiV])
+      self.pid._k_i = self._k_i if v_target_now > 0.01 else self._k_i_stopping
 
       # Toyota starts braking more when it thinks you want to stop
       # Freeze the integrator so we don't accelerate to compensate, and don't allow positive acceleration
