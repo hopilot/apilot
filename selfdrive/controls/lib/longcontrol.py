@@ -14,7 +14,7 @@ def long_control_state_trans(CP, active, long_control_state, v_ego, v_target,
   # Ignore cruise standstill if car has a gas interceptor
   cruise_standstill = cruise_standstill and not CP.enableGasInterceptor
   accelerating = v_target_1sec > v_target
-  planned_stop = (v_target < CP.vEgoStopping and
+  planned_stop = (v_ego < CP.vEgoStopping and  #(v_target < CP.vEgoStopping and ## apilot: 내리막, 신호정지시 질질 가는 현상... v_target으로 보면.. 급정지, v_ego를 보면 질질감..
                   v_target_1sec < CP.vEgoStopping and
                   not accelerating)
   stay_stopped = (v_ego < CP.vEgoStopping and
@@ -66,8 +66,11 @@ class LongControl:
     self.readParamCount = 0
     self.longitudinalTuningKf = 1.0
     self.longitudinalTuningKpV = 1.0
+    self.longitudinalTuningKiV = 0.0
     self.startAccelApply = 0.0
     self.stopAccelApply = 0.0
+
+    self._k_i = (self.CP.longitudinalTuning.kiPB, self.CP.longitudinalTuning.kiV)
 
   def reset(self, v_pid):
     """Reset PID controller and change setpoint"""
@@ -83,7 +86,7 @@ class LongControl:
       self.longitudinalTuningKpV = float(int(Params().get("LongitudinalTuningKpV", encoding="utf8"))) * 0.01
       self.longitudinalTuningKiV = float(int(Params().get("LongitudinalTuningKiV", encoding="utf8"))) * 0.001
       self.CP.longitudinalTuning.kpV = [self.longitudinalTuningKpV]
-      self.CP.longitudinalTuning.kiV = [self.longitudinalTuningKiV]
+      #self.CP.longitudinalTuning.kiV = [self.longitudinalTuningKiV]
       self.pid._k_p = (self.CP.longitudinalTuning.kpBP, self.CP.longitudinalTuning.kpV)
     elif self.readParamCount == 30:
       pass
@@ -149,6 +152,9 @@ class LongControl:
 
     elif self.long_control_state == LongCtrlState.pid:
       self.v_pid = v_target_now
+
+      # apilot: 정지중에는 I게인을 적용. 서서히 흘러가는것방지, 급격한 정지 방지.
+      self.pid._k_i = self._k_i if v_target_now > 0.01 else (self.CP.longitudinalTuning.kiBP, [self.longitudinalTuningkiV])
 
       # Toyota starts braking more when it thinks you want to stop
       # Freeze the integrator so we don't accelerate to compensate, and don't allow positive acceleration
