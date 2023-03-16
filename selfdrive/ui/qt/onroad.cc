@@ -1699,7 +1699,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, (no_radar) ? ic_radar_no : (radar_detected) ? ic_radar : ic_radar_vision);
 
         if (showDistInfo && no_radar) {
-            if (stop_dist > 0.5) {
+            if (stop_dist > 0.5 && !stopping) {
                 textColor = QColor(255, 255, 255, 255);
                 configFont(painter, "Inter", 70, "Bold");
                 if (stop_dist < 10.0) str.sprintf("%.1f", stop_dist);

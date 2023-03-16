@@ -1016,6 +1016,9 @@ struct LateralPlan @0xe1e9318e2ae8b51e {
   dPathWLinesX @32 :List(Float32);
   dPathWLinesY @33 :List(Float32);
 
+  #apilot
+  desireEvent @34 : Int32;
+
   mpcSolutionValid @9 :Bool;
   desire @17 :Desire;
   laneChangeState @18 :LaneChangeState;

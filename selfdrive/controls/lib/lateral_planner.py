@@ -191,6 +191,7 @@ class LateralPlanner:
     lateralPlan.useLaneLines = self.lanelines_active
     lateralPlan.laneChangeState = self.DH.lane_change_state
     lateralPlan.laneChangeDirection = self.DH.lane_change_direction
+    lateralPlan.desireEvent = self.DH.desireEvent
 
     plan_send.lateralPlan.dPathWLinesX = [float(x) for x in self.d_path_w_lines_xyz[:, 0]]
     plan_send.lateralPlan.dPathWLinesY = [float(y) for y in self.d_path_w_lines_xyz[:, 1]]

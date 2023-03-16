@@ -1,4 +1,4 @@
-from cereal import log
+from cereal import log, car
 from common.conversions import Conversions as CV
 from common.realtime import DT_MDL
 from common.numpy_fast import interp
@@ -6,6 +6,7 @@ from common.params import Params
 
 LaneChangeState = log.LateralPlan.LaneChangeState
 LaneChangeDirection = log.LateralPlan.LaneChangeDirection
+EventName = car.CarEvent.EventName
 
 LANE_CHANGE_SPEED_MIN = 30 * CV.KPH_TO_MS # 30 * CV.MPH_TO_MS
 TURN_CHANGE_SPEED_MAX = 30 * CV.KPH_TO_MS # 30 * CV.MPH_TO_MS
@@ -70,6 +71,8 @@ class DesireHelper:
     self.autoTurnTimeMax = int(Params().get("AutoTurnTimeMax", encoding="'utf8"))
     self.autoLaneChangeSpeed = int(Params().get("AutoLaneChangeSpeed", encoding="'utf8"))
 
+    self.desireEvent = 0
+
 
   def update(self, carstate, lateral_active, lane_change_prob, md, turn_prob):
     self.paramsCount += 1
@@ -99,8 +102,10 @@ class DesireHelper:
     if not lateral_active or self.lane_change_timer > laneChangeTimeMax: #LANE_CHANGE_TIME_MAX:
       self.lane_change_state = LaneChangeState.off
       self.lane_change_direction = LaneChangeDirection.none
+      self.desireEvent = 0
     else:
-      # LaneChangeState.off: 깜박이와 속도검사.      
+      self.lane_change_direction = LaneChangeDirection.none
+      # LaneChangeState.off: 깜박이와 속도검사.    
       if self.lane_change_state == LaneChangeState.off:
         #자동턴 조건, 깜박이ON, 저속이거나, 자동턴속도&브레이크 밟힘 #and not BSD.
         if self.autoTurnControl>0 and one_blinker and (below_lane_change_speed or ((v_ego_kph < self.autoTurnSpeed) and carstate.brakePressed)):# and not blindspot_detected: 
@@ -108,10 +113,13 @@ class DesireHelper:
            self.lane_change_ll_prob = 1.0
            self.turnControlState = True
         #차선변경조건: 깜박이OFF->ON 그리고 차선변경속도 => 차선변경준비 and not BSD, (로드엣지는 preLaneChange에서 대기중 시작하도록 함)
-        elif one_blinker and not self.prev_one_blinker and not below_lane_change_speed and not blindspot_detected: 
-          self.lane_change_state = LaneChangeState.preLaneChange
-          self.lane_change_ll_prob = 1.0
-          self.turnControlState = False
+        elif one_blinker and not self.prev_one_blinker and not below_lane_change_speed:
+          if blindspot_detected: 
+            self.desireEvent = EventName.laneChangeBlocked
+          else:
+            self.lane_change_state = LaneChangeState.preLaneChange
+            self.lane_change_ll_prob = 1.0
+            self.turnControlState = False
 
       #if self.lane_change_state == LaneChangeState.off and one_blinker and (not self.prev_one_blinker or autoTurnControl>0) and not below_lane_change_speed:
       #  self.lane_change_state = LaneChangeState.preLaneChange
@@ -119,6 +127,7 @@ class DesireHelper:
 
       # LaneChangeState.preLaneChange: 
       elif self.lane_change_state == LaneChangeState.preLaneChange:
+        self.desireEvent = EventName.preLaneChangeLeft if LaneChangeDirection.left else EventName.preLaneChangeRight
         self.lane_change_pulse_timer += DT_MDL
         # Set lane change direction
         self.lane_change_direction = LaneChangeDirection.left if \
@@ -143,11 +152,17 @@ class DesireHelper:
           # 깜박이가 꺼지거나, 속도가 줄어들면... 차선변경 중지.
           if not one_blinker or below_lane_change_speed:
             self.lane_change_state = LaneChangeState.off
-          elif self.lane_change_pulse_timer > 0.1 and not blindspot_detected and not road_edge_detected: # BSD 또는 road_edge검출이 안되면 차선변경 시작.
-            self.lane_change_state = LaneChangeState.laneChangeStarting
+          elif self.lane_change_pulse_timer > 0.1:
+            if blindspot_detected or road_edge_detected: # BSD 또는 road_edge검출이 안되면 차선변경 시작.
+              self.desireEvent = EventName.laneChangeBlocked
+              self.lane_change_state = LaneChangeState.off
+              self.desireEvent = 0
+            else:
+              self.lane_change_state = LaneChangeState.laneChangeStarting
 
       # LaneChangeState.laneChangeStarting
       elif self.lane_change_state == LaneChangeState.laneChangeStarting:
+        self.desireEvent = EventName.laneChange
         # fade out over .5s
         self.lane_change_ll_prob = max(self.lane_change_ll_prob - 2 * DT_MDL, 0.0)
 
@@ -161,6 +176,7 @@ class DesireHelper:
 
       # LaneChangeState.laneChangeFinishing
       elif self.lane_change_state == LaneChangeState.laneChangeFinishing:
+        self.desireEvent = EventName.laneChange
         # fade in laneline over 1s
         self.lane_change_ll_prob = min(self.lane_change_ll_prob + DT_MDL, 1.0)
 

@@ -205,6 +205,7 @@ class Controls:
     self.autoEngageCounter = 200
     self.right_lane_visible = False
     self.left_lane_visible = False
+    self.desireEvent_prev = 0
 
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
@@ -318,27 +319,31 @@ class Controls:
         self.events.add(EventName.calibrationInvalid)
 
     # Handle lane change
-    if self.sm['lateralPlan'].laneChangeState == LaneChangeState.preLaneChange:
-      direction = self.sm['lateralPlan'].laneChangeDirection
-      md = self.sm['modelV2']
-      left_road_edge = -md.roadEdges[0].y[0]
-      right_road_edge = md.roadEdges[1].y[0]
+    desireEvent = self.sm['lateralPlan'].desireEvent
+    if desireEvent != 0:
+      self.events.add(desireEvent)
+    #if self.sm['lateralPlan'].laneChangeState == LaneChangeState.preLaneChange:
+    #  direction = self.sm['lateralPlan'].laneChangeDirection
+    #  md = self.sm['modelV2']
+    #  left_road_edge = -md.roadEdges[0].y[0]
+    #  right_road_edge = md.roadEdges[1].y[0]
 
-      if (CS.leftBlindspot and direction == LaneChangeDirection.left) or \
-         (CS.rightBlindspot and direction == LaneChangeDirection.right):
-        self.events.add(EventName.laneChangeBlocked)
-      elif ((left_road_edge < 3.5) and direction == LaneChangeDirection.left) or \
-         ((right_road_edge < 3.5) and direction == LaneChangeDirection.right):
-        if CS.vEgo > 30.0 * CV.KPH_TO_MS:
-          self.events.add(EventName.laneChangeBlocked)
-      else:
-        if direction == LaneChangeDirection.left:
-          self.events.add(EventName.preLaneChangeLeft)
-        else:
-          self.events.add(EventName.preLaneChangeRight)
-    elif self.sm['lateralPlan'].laneChangeState in (LaneChangeState.laneChangeStarting,
-                                                    LaneChangeState.laneChangeFinishing):
-      self.events.add(EventName.laneChange)
+    #  if (CS.leftBlindspot and direction == LaneChangeDirection.left) or \
+    #     (CS.rightBlindspot and direction == LaneChangeDirection.right):
+    #    self.events.add(EventName.laneChangeBlocked)
+    #  elif ((left_road_edge < 3.5) and direction == LaneChangeDirection.left) or \
+    #     ((right_road_edge < 3.5) and direction == LaneChangeDirection.right):
+    #    if CS.vEgo > 30.0 * CV.KPH_TO_MS:
+    #      self.events.add(EventName.laneChangeBlocked)
+    #  else:
+    #    if direction == LaneChangeDirection.left:
+    #      self.events.add(EventName.preLaneChangeLeft)
+    #    else:
+    #      self.events.add(EventName.preLaneChangeRight)
+    #elif self.sm['lateralPlan'].laneChangeState in (LaneChangeState.laneChangeStarting,
+    #                                                LaneChangeState.laneChangeFinishing):
+    #  self.events.add(EventName.laneChange)
+
 
     for i, pandaState in enumerate(self.sm['pandaStates']):
       # All pandas must match the list of safetyConfigs, and if outside this list, must be silent or noOutput

@@ -70,7 +70,7 @@ class LongControl:
     self.startAccelApply = 0.0
     self.stopAccelApply = 0.0
 
-    self._k_i = (self.CP.longitudinalTuning.kiPB, self.CP.longitudinalTuning.kiV)
+    self._k_i = (self.CP.longitudinalTuning.kiBP, self.CP.longitudinalTuning.kiV)
 
   def reset(self, v_pid):
     """Reset PID controller and change setpoint"""

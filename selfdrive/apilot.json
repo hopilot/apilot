@@ -222,6 +222,26 @@
       "unit": 1
     },
     {
+      "group": "주행튜닝",
+      "name": "LongitudinalTuningKpV",
+      "title": "KpV게인(100)",
+      "descr": "롱컨제어용",
+      "min": 50,
+      "max": 150,
+      "default": 100,
+      "unit": 1
+    },
+    {
+      "group": "주행튜닝",
+      "name": "LongitudinalTuningKiV",
+      "title": "KiV게인(0)",
+      "descr": "정지중에만 반영(시험용)",
+      "min": 0,
+      "max": 200,
+      "default": 0,
+      "unit": 1
+    },
+    {
       "group": "����Ʃ��",
       "name": "AChangeCost",
       "title": "A_CHANGE_COST(150)",
