@@ -115,8 +115,8 @@ class DesireHelper:
       if self.lane_change_state == LaneChangeState.off:
         self.desireEvent = 0
         self.turnControlState = False
-        if one_blinker: # and not self.prev_one_blinker:  ##깜박이가 켜진시점에 검사
-          # 정지상태
+        if one_blinker and not self.prev_one_blinker:  ##깜박이가 켜진시점에 검사
+          # 정지상태, 출발할때
           if v_ego_kph < 1.0:
             if self.autoTurnControl > 0: 
               self.turnControlState = True
