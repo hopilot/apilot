@@ -41,13 +41,17 @@ class CarControllerParams:
 
     # these cars have significantly more torque than most HKG; limit to 70% of max
     elif CP.flags & HyundaiFlags.ALT_LIMITS:
-      self.STEER_MAX = 270
-      self.STEER_DELTA_UP = 2
-      self.STEER_DELTA_DOWN = 3
+      self.STEER_MAX = 384
+      self.STEER_DELTA_UP = 3
+      self.STEER_DELTA_DOWN = 7
 
     elif CP.carFingerprint in (CAR.KIA_STINGER, CAR.KONA_HEV):
       self.STEER_MAX = 384
     # Default for most HKG
+    elif CP.carFingerprint in (CAR.SANTA_FE_HEV_2022):
+      self.STEER_MAX = 409
+      self.STEER_DELTA_UP = 3
+      self.STEER_DELTA_DOWN = 7
     else:
       self.STEER_MAX = 409
       self.STEER_DELTA_UP = 3
