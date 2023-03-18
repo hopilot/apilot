@@ -110,6 +110,9 @@ protected:
   QPixmap ic_radar_vision;
   QPixmap ic_radar_no;
   QPixmap ic_steer_momo;
+  QPixmap ic_steer_red;
+  QPixmap ic_steer_green;
+  QPixmap ic_steer_yellow;
   QPixmap ic_steer_hyundai;
   QPixmap ic_lane_change_l;
   QPixmap ic_lane_change_r;

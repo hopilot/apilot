@@ -356,6 +356,9 @@ AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* par
   ic_radar_vision = QPixmap("../assets/images/radar_vision.png");
   ic_radar_no = QPixmap("../assets/images/no_radar.png");
   ic_steer_momo = QPixmap("../assets/images/steer_momo.png");
+  ic_steer_red = QPixmap("../assets/images/steer_red.png");
+  ic_steer_green = QPixmap("../assets/images/steer_green.png");
+  ic_steer_yellow = QPixmap("../assets/images/steer_yellow.png");
   ic_steer_hyundai = QPixmap("../assets/images/steer_hyundai.png");
   ic_lane_change_l = QPixmap("../assets/images/lane_change_l.png");
   ic_lane_change_r = QPixmap("../assets/images/lane_change_r.png");
@@ -1562,29 +1565,6 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         y = apilot_filter_y.update(y);
     }
 
-    // steer handle 그리기..
-    float steer_angle = car_state.getSteeringAngleDeg();
-    static QPixmap img2 = ic_steer_hyundai; //ic_steer_momo;
-    // 스티어 하단 고정(hoya) 
-    float w_x = 1920 / 2; 
-    float w_y = 1080 - 50;      
-    {
-#ifdef __TEST
-        static float steer_ang = 0.0;
-        steer_ang += 1.0;
-        steer_angle = steer_ang;
-#endif
-        painter.setOpacity(0.7);
-        if (uiDrawSteeringRotate) {      // 시간이 많이(3msec)걸려 3번에 한번씩만 그리자..
-            if (uiDrawSeq == 0) {
-                img2 = ic_steer_hyundai.transformed(QTransform().rotate(-steer_angle));
-                painter.drawPixmap(w_x - img2.width() / 2., w_y - img2.height() / 2., img2);
-            }
-            else painter.drawPixmap(w_x - img2.width() / 2., w_y - img2.height() / 2., img2);
-        }
-        else painter.drawPixmap(w_x - ic_steer_hyundai.width() / 2., w_y - ic_steer_hyundai.height() / 2., ic_steer_hyundai);
-    }
-
     // 신호등(traffic)그리기.
     // 신호등내부에는 레이더거리, 비젼거리, 정지거리, 신호대기 표시함.
     int circle_size = 160;
@@ -1625,31 +1605,61 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 #endif
     if(desireStateTurnLeft+ desireStateTurnRight+ desireStateLaneChangeLeft+ desireStateLaneChangeRight > 0.5) showDistInfo = false;
     if(true) {
-        if (longActiveUser <= 0) bgColor = blackColor(90);  // 크루즈가 꺼져있으면... 신호등을 모두 꺼버려?
-        else if (lp.getTrafficState() >= 100) bgColor = yellowColor(120);
+        int trafficMode = 0;
+        if (longActiveUser <= 0) trafficMode = 0;  // 크루즈가 꺼져있으면... 신호등을 모두 꺼버려?
+        else if (lp.getTrafficState() >= 100) trafficMode = 3; // yellow
         else {
             switch (lp.getTrafficState() % 100) {
-            case 0: bgColor = blackColor(90); break;
-            case 1: bgColor = redColor(160);
+            case 0: trafficMode = 0; break;
+            case 1: trafficMode = 1;    // red
                 stop_dist = lp.getXStop();
                 stopping = true;
                 //painter.drawPixmap(400, 400, 350, 350, ic_stopman);
                 break;
-            case 2: bgColor = greenColor(160); break;
-            case 3: bgColor = yellowColor(160); break;
+            case 2: trafficMode = 2; break; // green
+            case 3: trafficMode = 3; break; // yellow
             }
         }
 #ifdef __TEST
         static int traffic = 0;
         if (traffic++ > 200) traffic = 0;
-        if (traffic < 50) bgColor = redColor(160);
-        else if (traffic < 100) bgColor = blackColor(20);
-        else if (traffic < 150) bgColor = greenColor(160);
-        else bgColor = yellowColor(160);
+        if (traffic < 50) trafficMode = 0;
+        else if (traffic < 100) trafficMode = 1;
+        else if (traffic < 150) trafficMode = 2;
+        else trafficMode = 3;
 
         if (traffic < 100) { leftBlinker = true; }
         else { rightBlinker = true; }
 #endif
+
+        // steer handle 그리기..
+        float steer_angle = car_state.getSteeringAngleDeg();
+        static QPixmap img2 = ic_steer_momo; //ic_steer_hyundai; //ic_steer_momo;
+        // 스티어 하단 고정(hoya) 
+        float w_x = 1920 / 2; 
+        float w_y = 1080 - 50;      
+        {
+#ifdef __TEST
+            static float steer_ang = 0.0;
+            steer_ang += 1.0;
+            steer_angle = steer_ang;
+#endif
+            painter.setOpacity(0.7);
+            if (uiDrawSteeringRotate) {      // 시간이 많이(3msec)걸려 3번에 한번씩만 그리자..
+                if (uiDrawSeq == 0) {
+                    switch (trafficMode) {
+                    case 0: img2 = ic_steer_momo.transformed(QTransform().rotate(-steer_angle)); break;
+                    case 1: img2 = ic_steer_red.transformed(QTransform().rotate(-steer_angle)); break;
+                    case 2: img2 = ic_steer_green.transformed(QTransform().rotate(-steer_angle)); break;
+                    case 3: img2 = ic_steer_yellow.transformed(QTransform().rotate(-steer_angle)); break;
+                    }
+                    painter.drawPixmap(w_x - img2.width() / 2., w_y - img2.height() / 2., img2);
+                }
+                else painter.drawPixmap(w_x - img2.width() / 2., w_y - img2.height() / 2., img2);
+            }
+            else painter.drawPixmap(w_x - ic_steer_momo.width() / 2., w_y - ic_steer_momo.height() / 2., ic_steer_momo);
+        }
+        bgColor = blackColor(160);
         painter.setOpacity(1.0);
         painter.setPen(Qt::NoPen);
         painter.setBrush(bgColor);

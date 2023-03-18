@@ -74,7 +74,7 @@ class DesireHelper:
     self.desireEvent = 0
 
 
-  def update_test(self, carstate, lateral_active, lane_change_prob, md, turn_prob):
+  def update(self, carstate, lateral_active, lane_change_prob, md, turn_prob):
     self.paramsCount += 1
     if self.paramsCount > 100:
       self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
@@ -104,6 +104,10 @@ class DesireHelper:
                         ((carstate.steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.left) or
                         (carstate.steeringTorque < 0 and self.lane_change_direction == LaneChangeDirection.right))
 
+    steering_pressed = carstate.steeringPressed and \
+                        ((carstate.steeringTorque > 0 and carstate.leftBlinker == LaneChangeDirection.left) or
+                        (carstate.steeringTorque < 0 and carstate.rightBlinker == LaneChangeDirection.right))
+
     # Timeout검사
     if not lateral_active or self.lane_change_timer > laneChangeTimeMax: #LANE_CHANGE_TIME_MAX:
       self.lane_change_state = LaneChangeState.off
@@ -112,12 +116,16 @@ class DesireHelper:
     else:
       self.lane_change_direction = LaneChangeDirection.none
       # 1. 감지 및 결정 단계: LaneChangeState.off: 깜박이와 속도검사. 
+      #   - 정지상태: 깜박이를 켜고 있음: 출발할때 검사해야함.
+      #   - 저속: 차선변경속도이하: 턴할지, 차로변경할지 결정해야함.
+      #   - 중속: 80키로이하: 
+      #   - 고속
       if self.lane_change_state == LaneChangeState.off:
         self.desireEvent = 0
         self.turnControlState = False
-        if one_blinker and not self.prev_one_blinker:  ##깜박이가 켜진시점에 검사
+        if one_blinker and (not self.prev_one_blinker or v_ego_kph < 4 or steering_pressed):  ##깜박이가 켜진시점에 검사, 정지상태에서는 lat_active가 아님. 깜박이켠방향으로 핸들을 돌림.
           # 정지상태, 출발할때
-          if v_ego_kph < 1.0:
+          if v_ego_kph < 4.0:
             if self.autoTurnControl > 0: 
               self.turnControlState = True
               self.lane_change_state = LaneChangeState.preLaneChange
@@ -127,21 +135,29 @@ class DesireHelper:
               self.turnControlState = True
               self.lane_change_state = LaneChangeState.preLaneChange
             elif carstate.rightBlinker:
+              if steering_pressed:
+                self.turnControlState = True
               self.lane_change_state = LaneChangeState.preLaneChange
             else: # 좌측저속: 차선검출:차선변경, 차선없음: 진행 (HW:차선검출루틴필요)
               #self.lane_change_state = LaneChangeState.preLaneChange
               pass
+              if steering_pressed:
+                self.turnControlState = True
+                self.lane_change_state = LaneChangeState.preLaneChange
+
           # 중속
           elif v_ego_kph < 80.0:
             if carstate.brakePressed:  # 감속하면서 깜박이.... 경우에따라 턴을 할까??(HW)
               if not road_edge_detected:
+                if steering_pressed:
+                  self.turnControlState = True
                 self.lane_change_state = LaneChangeState.preLaneChange
               elif carstate.rightBlinker:
-                if v_ego_kph < self.autoTurnSpeed:
+                if v_ego_kph < self.autoTurnSpeed or steering_pressed:
                   self.turnControlState = True
                 self.lane_change_state = LaneChangeState.preLaneChange
               else:
-                if v_ego_kph < self.autoTurnSpeed:
+                if v_ego_kph < self.autoTurnSpeed or steering_pressed:
                   self.turnControlState = True
                 self.lane_change_state = LaneChangeState.preLaneChange
             else:
@@ -164,6 +180,8 @@ class DesireHelper:
         if self.turnControlState:
           if not one_blinker:
             self.lane_change_state = LaneChangeState.off
+          elif v_ego_kph < 2.0:
+            self.lane_change_pulse_timer = 0.0
           elif self.lane_change_pulse_timer > 0.1: # and not blindspot_detected:
             self.lane_change_state = LaneChangeState.laneChangeStarting
         else:
@@ -248,7 +266,7 @@ class DesireHelper:
 
 
 
-  def update(self, carstate, lateral_active, lane_change_prob, md, turn_prob):
+  def update_old(self, carstate, lateral_active, lane_change_prob, md, turn_prob):
     self.paramsCount += 1
     if self.paramsCount > 100:
       self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
