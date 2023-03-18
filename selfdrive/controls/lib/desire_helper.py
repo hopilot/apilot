@@ -105,8 +105,8 @@ class DesireHelper:
                         (carstate.steeringTorque < 0 and self.lane_change_direction == LaneChangeDirection.right))
 
     steering_pressed = carstate.steeringPressed and \
-                        ((carstate.steeringTorque > 0 and carstate.leftBlinker == LaneChangeDirection.left) or
-                        (carstate.steeringTorque < 0 and carstate.rightBlinker == LaneChangeDirection.right))
+                        ((carstate.steeringTorque > 0 and carstate.leftBlinker) or
+                        (carstate.steeringTorque < 0 and carstate.rightBlinker))
 
     # Timeout검사
     if not lateral_active or self.lane_change_timer > laneChangeTimeMax: #LANE_CHANGE_TIME_MAX:
@@ -230,7 +230,7 @@ class DesireHelper:
         if self.turnControlState:
             if self.lane_change_ll_prob > 0.99:
               self.lane_change_direction = LaneChangeDirection.none
-            if one_blinker: #깜박이 켜고 있으면.... 아직 턴하고 있는중... 이때 preLaneChange로 넘어가면 계속 턴하려고 함...
+            if one_blinker and not carstate.steeringPressed: #깜박이 켜고 있으면.... 아직 턴하고 있는중... 이때 preLaneChange로 넘어가면 계속 턴하려고 함...
               pass
             else:
               self.lane_change_state = LaneChangeState.off
