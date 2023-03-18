@@ -2,11 +2,11 @@
 
 const SteeringLimits HYUNDAI_STEERING_LIMITS = {
   .max_steer = 800,
-  .max_rt_delta = 120,
+  .max_rt_delta = 300,
   .max_rt_interval = 250000,
   .max_rate_up = 3,
   .max_rate_down = 7,
-  .driver_torque_allowance = 50,
+  .driver_torque_allowance = 350,
   .driver_torque_factor = 2,
   .type = TorqueDriverLimited,
 
