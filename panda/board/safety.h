@@ -344,7 +344,10 @@ bool max_limit_check(int val, const int MAX_VAL, const int MIN_VAL) {
 // check that commanded value isn't too far from measured
 bool dist_to_meas_check(int val, int val_last, struct sample_t *val_meas,
   const int MAX_RATE_UP, const int MAX_RATE_DOWN, const int MAX_ERROR) {
-
+ 
+  // ajouatom: 초기화가 안된경우에는 검사하지 말자.
+  if (val == 0 || val_last == 0) return false;
+  
   // *** val rate limit check ***
   int highest_allowed_rl = MAX(val_last, 0) + MAX_RATE_UP;
   int lowest_allowed_rl = MIN(val_last, 0) - MAX_RATE_UP;
@@ -362,6 +365,9 @@ bool driver_limit_check(int val, int val_last, struct sample_t *val_driver,
   const int MAX_VAL, const int MAX_RATE_UP, const int MAX_RATE_DOWN,
   const int MAX_ALLOWANCE, const int DRIVER_FACTOR) {
 
+  // ajouatom: 초기화가 안된경우에는 검사하지 말자.
+  if (val == 0 || val_last == 0) return false;
+  
   int highest_allowed_rl = MAX(val_last, 0) + MAX_RATE_UP;
   int lowest_allowed_rl = MIN(val_last, 0) - MAX_RATE_UP;
 
@@ -382,6 +388,9 @@ bool driver_limit_check(int val, int val_last, struct sample_t *val_driver,
 // real time check, mainly used for steer torque rate limiter
 bool rt_rate_limit_check(int val, int val_last, const int MAX_RT_DELTA) {
 
+   // ajouatom: 초기화가 안된경우에는 검사하지 말자.
+  if (val == 0 || val_last == 0) return false;
+  
   // *** torque real time rate limit check ***
   int highest_val = MAX(val_last, 0) + MAX_RT_DELTA;
   int lowest_val = MIN(val_last, 0) - MAX_RT_DELTA;
