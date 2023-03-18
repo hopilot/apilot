@@ -1557,7 +1557,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         if (no_radar) {
             //x = path_x;
             x = std::clamp(path_x, 300.f, width() - 300.f);
-            y = path_y + 50; // height() - 250;
+            y = path_y + 100; // height() - 250;
         }
         if (y > height() - 400) y = height() - 400;
 
@@ -1653,11 +1653,11 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
                     case 2: img2 = ic_steer_green.transformed(QTransform().rotate(-steer_angle)); break;
                     case 3: img2 = ic_steer_yellow.transformed(QTransform().rotate(-steer_angle)); break;
                     }
-                    painter.drawPixmap(w_x - img2.width() / 2., w_y - img2.height() / 2., img2);
+                    painter.drawPixmap(x - img2.width() / 2., y - img2.height() / 2., img2);
                 }
-                else painter.drawPixmap(w_x - img2.width() / 2., w_y - img2.height() / 2., img2);
+                else painter.drawPixmap(x - img2.width() / 2., y - img2.height() / 2., img2);
             }
-            else painter.drawPixmap(w_x - ic_steer_momo.width() / 2., w_y - ic_steer_momo.height() / 2., ic_steer_momo);
+            else painter.drawPixmap(x - ic_steer_momo.width() / 2., y - ic_steer_momo.height() / 2., ic_steer_momo);
         }
         bgColor = blackColor(160);
         painter.setOpacity(1.0);
