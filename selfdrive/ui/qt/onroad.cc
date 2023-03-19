@@ -1636,8 +1636,8 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         float steer_angle = car_state.getSteeringAngleDeg();
         static QPixmap img2 = ic_steer_momo; //ic_steer_hyundai; //ic_steer_momo;
         // 스티어 하단 고정(hoya) 
-        float w_x = 1920 / 2; 
-        float w_y = 1080 - 50;      
+        //float w_x = 1920 / 2; 
+        //float w_y = 1080 - 50;      
         {
 #ifdef __TEST
             static float steer_ang = 0.0;
