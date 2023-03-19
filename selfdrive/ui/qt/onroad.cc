@@ -1802,7 +1802,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         //painter.drawRect(rectBrake);
         painter.drawRoundedRect(rectBrake, 15, 15);
         configFont(painter, "Inter", 40, "Bold");
-        textColor = whiteColor(255);
+        QColor textColor = whiteColor(200);
         drawTextWithColor(painter, x - 0, y + 175, str, textColor);
     }
 
@@ -1899,7 +1899,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         QRect rectAccelPos(x + dx, y - 64 - 5, 80, -std::clamp((float)accel, -2.0f, 2.0f) / 2. * 64);
         painter.setBrush((accel >= 0.0) ? yellowColor(255) : redColor(255));
         painter.drawRect(rectAccelPos);
-        QColor textColor = whiteColor(255);
+        textColor = whiteColor(255);
         configFont(painter, "Inter", 25, "Bold");
         drawTextWithColor(painter, x + dx + 40, y - 140, "ACC", textColor);
     }
@@ -1931,7 +1931,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             painter.setBrush(greenColor(255));
             rectRpmPos = QRect(x + dx, y + 128 + 5, 80, -std::clamp((float)motorRpm, 0.0f, 4000.0f) / 4000. * 128.0);
         }
-        QColor textColor = whiteColor(255);
+        textColor = whiteColor(255);
         configFont(painter, "Inter", 25, "Bold");
         drawTextWithColor(painter, x + dx + 40, y + 160, "RPM", textColor);
         painter.drawRect(rectRpmPos);
