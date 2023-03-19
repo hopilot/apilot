@@ -428,14 +428,24 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
 
   // show_lane_info: -1 : all off, 0: path only, 1: path+lane, 2: path+lane+edge
   // lanelines
+  float red_lvl_line = 0;
+  float green_lvl_line = 0;
   if (s->show_lane_info > 0) {
-      for (int i = 0; i < std::size(scene.lane_line_vertices); ++i) {
-          painter.setBrush(QColor::fromRgbF(1.0, 1.0, 1.0, std::clamp<float>(scene.lane_line_probs[i] * 2.0, 0.5, 1.0)));
-          painter.drawPolygon(scene.lane_line_vertices[i]);
+      for (int i = 0; i < std::size(scene.lane_line_vertices); i++) {
+        float prob = std::clamp<float>(scene.lane_line_probs[i]*2.0, 0.5, 1.0);    
+        if (scene.lane_line_probs[i] > 0.4){
+          red_lvl_line = 1.0 - ((scene.lane_line_probs[i] - 0.4) * 1.0);
+          green_lvl_line = 1.0;
+        } else {
+          red_lvl_line = 1.0;
+          green_lvl_line = 1.0 - ((0.4 - scene.lane_line_probs[i]) * 2.0);
+        }
+        painter.setBrush(QColor::fromRgbF(red_lvl_line, green_lvl_line, 0, std::clamp<float>(scene.lane_line_probs[i], 0.2, prob)));
+        painter.drawPolygon(scene.lane_line_vertices[i]);
       }
   }
   if (s->show_blind_spot) {
-      painter.setBrush(QColor(255, 215, 000, 150));
+      painter.setBrush(QColor::fromRgbF(1.0, 0.8, 0.1, 0.8));
       if (left_blindspot) painter.drawPolygon(scene.lane_barrier_vertices[0]);
       if (right_blindspot) painter.drawPolygon(scene.lane_barrier_vertices[1]);
   }
@@ -1766,72 +1776,8 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             drawTextWithColor(painter, x, y + 120.0, str, textColor);
         }
     }
-    // 타겟좌측 : 갭표시
-    int myDrivingMode = controls_state.getMyDrivingMode();
-    //const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
-    int gap = lp.getCruiseGap();
-    //float tFollow = lp.getTFollow();
-    int gap1 = controls_state.getLongCruiseGap(); // car_state.getCruiseGap();
-#ifdef __TEST
-    myDrivingMode = 3;
-#endif
-    QString strDrivingMode;
-    switch (myDrivingMode)
-    {
-    case 0: strDrivingMode = "GAP"; break;
-    case 1: strDrivingMode = "연비"; break;
-    case 2: strDrivingMode = "안전"; break;
-    case 3: strDrivingMode = "일반"; break;
-    case 4: strDrivingMode = "고속"; break;
-    }
-    configFont(painter, "Inter", 30, "Bold");
-    QColor textColor = whiteColor(255);
 
-    float dxGap = -128 - 10 - 40;
-    drawTextWithColor(painter, x + dxGap + 15, y + 120, strDrivingMode, textColor);
-    if (s->show_gap_info) {
-#ifdef __TEST
-        static int _gap = 0;
-        _gap += 10;
-        if (_gap > 300) _gap = 0;
-        else if (_gap < 100) gap = 1;
-        else if (_gap < 200) gap = 2;
-        else gap = 3;
-#endif
-        QRect rectGap(x + dxGap, y - 135, 40, 128);
-        //painter.setPen(Qt::NoPen);
-        painter.setPen(QPen(Qt::white, 2));
-        painter.setBrush(blackColor(150));
-        rectGap = QRect(x + dxGap, y - 130, 40, 64 / 3.);
-        painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y - 130 + 64 * 1 / 3., 40, 64 / 3.);
-        painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y - 130 + 64 * 2 / 3., 40, 64 / 3.);
-        painter.drawRect(rectGap);
-        QRect rectGapPos(x + dxGap, y - 130 + 64, 40, -std::clamp((float)gap, 0.0f, 3.0f) / 3. * 64);
-        painter.setBrush(greenColor(255));
-        painter.drawRect(rectGapPos);
-        textColor = whiteColor(255);
-        configFont(painter, "Inter", 25, "Bold");
-        drawTextWithColor(painter, x + dxGap + 20, y - 135, "GAP", textColor);
-
-#if 0
-        QRect rectGap1(x1, y1, 60, 20);
-        QRect rectGap2(x1, y1 + 35, 60, 20);
-        QRect rectGap3(x1, y1 + 70, 60, 20);
-        painter.setBrush(whiteColor(255));
-        painter.drawRect(rectGap1);
-        if (gap >= 2) painter.drawRect(rectGap2);
-        if (gap >= 3) painter.drawRect(rectGap3);
-#endif
-        configFont(painter, "Inter", 60, "Bold");
-        textColor = whiteColor(255);
-        QString str;
-        //str.sprintf("%.1f", tFollow);
-        str.sprintf("%d", gap1);
-        drawTextWithColor(painter, x + dxGap + 20, y + 0, str, textColor);
-    }
-
+    // hoya 위치 조정(고정값 코드를 아래로 모으기)
     // 타겟하단: 롱컨상태표시
     {
         QString str;
@@ -1860,28 +1806,102 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         drawTextWithColor(painter, x - 0, y + 175, str, textColor);
     }
 
+    // GAP, ACC, RPM 좌상단에 고정 용도 (hoya 추가수정)
+    x = 450;
+    y = 200;
+
+    // 타겟좌측 : 갭표시
+    int myDrivingMode = controls_state.getMyDrivingMode();
+    //const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
+    int gap = lp.getCruiseGap();
+    //float tFollow = lp.getTFollow();
+    int gap1 = controls_state.getLongCruiseGap(); // car_state.getCruiseGap();
+#ifdef __TEST
+    myDrivingMode = 3;
+#endif
+    QString strDrivingMode;
+    switch (myDrivingMode)
+    {
+    case 0: strDrivingMode = "GAP"; break;
+    case 1: strDrivingMode = "연비"; break;
+    case 2: strDrivingMode = "안전"; break;
+    case 3: strDrivingMode = "일반"; break;
+    case 4: strDrivingMode = "고속"; break;
+    }
+    configFont(painter, "Inter", 30, "Bold");
+    QColor textColor = whiteColor(255);
+
+    float dxGap = -128 - 10 - 40;
+    drawTextWithColor(painter, x + dxGap + 20 + 20, y + 120, strDrivingMode, textColor);
+    if (s->show_gap_info) {
+#ifdef __TEST
+        static int _gap = 0;
+        _gap += 10;
+        if (_gap > 300) _gap = 0;
+        else if (_gap < 100) gap = 1;
+        else if (_gap < 200) gap = 2;
+        else if (_gap < 300) gap = 3;
+        else gap = 4;
+#endif
+        QRect rectGap(x + dxGap, y - 135, 80, 128);
+        //painter.setPen(Qt::NoPen);
+        painter.setPen(QPen(Qt::white, 2));
+        painter.setBrush(blackColor(150));
+        rectGap = QRect(x + dxGap, y - 130, 80, 64 / 3.);
+        painter.drawRect(rectGap);
+        rectGap = QRect(x + dxGap, y - 130 + 64 * 1 / 4., 80, 64 / 3.);
+        painter.drawRect(rectGap);
+        rectGap = QRect(x + dxGap, y - 130 + 64 * 2 / 4., 80, 64 / 3.);
+        painter.drawRect(rectGap);
+        rectGap = QRect(x + dxGap, y - 130 + 64 * 3 / 4., 80, 64 / 3.);
+        painter.drawRect(rectGap);        
+        QRect rectGapPos(x + dxGap, y - 130 + 64, 80, -std::clamp((float)gap, 0.0f, 3.0f) / 4. * 64);
+        painter.setBrush(greenColor(255));
+        painter.drawRect(rectGapPos);
+        textColor = whiteColor(255);
+        configFont(painter, "Inter", 25, "Bold");
+        drawTextWithColor(painter, x + dxGap + 40, y - 140, "GAP", textColor);
+
+#if 0
+        QRect rectGap1(x1, y1, 60, 20);
+        QRect rectGap2(x1, y1 + 35, 60, 20);
+        QRect rectGap3(x1, y1 + 70, 60, 20);
+        QRect rectGap4(x1, y1 + 105, 60, 20);
+        painter.setBrush(whiteColor(255));
+        painter.drawRect(rectGap1);
+        if (gap >= 2) painter.drawRect(rectGap2);
+        if (gap >= 3) painter.drawRect(rectGap3);
+        if (gap >= 4) painter.drawRect(rectGap4);
+#endif
+        configFont(painter, "Inter", 60, "Bold");
+        textColor = whiteColor(255);
+        QString str;
+        //str.sprintf("%.1f", tFollow);
+        str.sprintf("%d", gap1);
+        drawTextWithColor(painter, x + dxGap + 40, y + 50, str, textColor);
+    }
+
     // Accel표시
     float accel = car_state.getAEgo();
-    float dx = 128 + 10;
+    float dx = -128 + 50; // 128 + 10;  hoya 수정
 #ifdef __TEST
     static float accel1 = 0.0;
     accel1 += 0.2;
-    if (accel1 > 2.5) accel1 = -2.5;
+    if (accel1 > 2.5) accel1 = -2.5;  g g g g
     accel = accel1;
 #endif
     if(s->show_accel) {
-        QRect rectAccel(x + dx, y - 128 - 5, 40, 128);
+        QRect rectAccel(x + dx, y - 128 - 5, 80, 128);
         //painter.setPen(Qt::NoPen);
         painter.setPen(QPen(Qt::white, 2));
         painter.setBrush(blackColor(150));
         painter.drawRect(rectAccel);
-        QRect rectAccelPos(x + dx, y - 64 - 5, 40, -std::clamp((float)accel, -2.0f, 2.0f) / 2. * 64);
+        QRect rectAccelPos(x + dx, y - 64 - 5, 80, -std::clamp((float)accel, -2.0f, 2.0f) / 2. * 64);
         painter.setBrush((accel >= 0.0) ? yellowColor(255) : redColor(255));
         painter.drawRect(rectAccelPos);
-        textColor = whiteColor(255);
+        QColor textColor = whiteColor(255);
         configFont(painter, "Inter", 25, "Bold");
-        drawTextWithColor(painter, x + dx + 20, y - 135, "ACC", textColor);
-
+        drawTextWithColor(painter, x + dx + 40, y - 140, "ACC", textColor);
     }
 
     // RPM표시
@@ -1897,7 +1917,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         //str.sprintf("%s: %.0f CHARGE: %.0f%%", (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
         //drawTextWithColor(p, width() - 350, 80, str, textColor);
         //painter.setPen(Qt::NoPen);
-        QRect rectRpm(x + dx, y + 5, 40, 128);
+        QRect rectRpm(x + dx, y + 5, 80, 128);
         painter.setPen(QPen(Qt::white, 2));
         painter.setBrush(blackColor(150));
         painter.drawRect(rectRpm);
@@ -1905,22 +1925,22 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         //painter.setPen(Qt::NoPen);
         if (engineRpm > 0.0) {
             painter.setBrush(QColor(0, 0, 255, 255));
-            rectRpmPos = QRect(x + dx, y + 128 + 5, 40, -std::clamp((float)engineRpm, 0.0f, 4000.0f) / 4000. * 128.0);
+            rectRpmPos = QRect(x + dx, y + 128 + 5, 80, -std::clamp((float)engineRpm, 0.0f, 4000.0f) / 4000. * 128.0);
         }
         else {
             painter.setBrush(greenColor(255));
-            rectRpmPos = QRect(x + dx, y + 128 + 5, 40, -std::clamp((float)motorRpm, 0.0f, 4000.0f) / 4000. * 128.0);
+            rectRpmPos = QRect(x + dx, y + 128 + 5, 80, -std::clamp((float)motorRpm, 0.0f, 4000.0f) / 4000. * 128.0);
         }
-        textColor = whiteColor(255);
+        QColor textColor = whiteColor(255);
         configFont(painter, "Inter", 25, "Bold");
-        drawTextWithColor(painter, x + dx + 20, y + 160, "RPM", textColor);
+        drawTextWithColor(painter, x + dx + 40, y + 160, "RPM", textColor);
         painter.drawRect(rectRpmPos);
 
     }
 
 
     // 속도표시
-    if(true) {
+    if(false) { //true) {
         const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
         const auto navi_info = car_state.getNaviSafetyInfo();
         const auto car_params = sm["carParams"].getCarParams();
@@ -2007,6 +2027,10 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             configFont(painter, "Inter", 35, "Bold");
             drawTextWithColor(painter, top_str.length() / 2 * 35 / 2 + 50, 40, top_str, color);
         }
+
+        // 하단 속도 관련 정보 고정(hoya)
+        x = width() / 2;
+        y = 650;
 
         int bx = x;
         int by = y + 270;
