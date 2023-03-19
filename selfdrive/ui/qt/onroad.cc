@@ -1146,6 +1146,8 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   const SubMaster &sm = *(uiState()->sm);
   auto deviceState = sm["deviceState"].getDeviceState();
 
+  const auto freeSpacePercent = deviceState.getFreeSpacePercent();
+
   const auto cpuTempC = deviceState.getCpuTempC();
   //const auto gpuTempC = deviceState.getGpuTempC();
   float ambientTemp = deviceState.getAmbientTempC();
@@ -1220,6 +1222,21 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   p.setPen(QColor(255, 255, 255, 200));
   p.drawText(rect, Qt::AlignCenter, "AMBIENT");
 
+  y += 80;
+  configFont(p, "Inter", 50, "Bold");
+  str.sprintf("%.0f%%", freeSpacePercent);
+  rect = QRect(x, y, w, w);
+  r = interp<float>(freeSpacePercent, {50.f, 90.f}, {200.f, 255.f}, false);
+  g = interp<float>(freeSpacePercent, {50.f, 90.f}, {255.f, 200.f}, false);
+  p.setPen(QColor(r, g, 200, 200));
+  p.drawText(rect, Qt::AlignCenter, str);
+
+  y += 55;
+  configFont(p, "Inter", 25, "Bold");
+  rect = QRect(x, y, w, w);
+  p.setPen(QColor(255, 255, 255, 200));
+  p.drawText(rect, Qt::AlignCenter, "STORAGE");
+
   p.restore();
 }
 
@@ -1240,29 +1257,29 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     bool left_on = car_state.getLeftBlinker();
     bool right_on = car_state.getRightBlinker();
 
-    const float img_alpha = 0.8f;
+    const float img_alpha = 1.0f;
     const int fb_w = width() / 2 - 200;
     const int center_x = width() / 2;
-    const int w = fb_w / 25;
-    const int h = 160;
+    const int w = 80;
+    const int h = 80;
     const int gap = fb_w / 25;
-    const int margin = (int)(fb_w / 3.8f);
-    const int base_y = (height() - h) / 2;
-    const int draw_count = 8;
+    const int margin = 0 ; // (int)(fb_w / 3.8f);
+    const int base_y = (height() - h) / 2 + 100;
+    const int draw_count = 18;
 
     int x = center_x;
-    int y = base_y;
+    int y = base_y + 20;
 
     if(left_on) {
       for(int i = 0; i < draw_count; i++) {
         float alpha = img_alpha;
         int d = std::abs(blink_index - i);
         if(d > 0)
-          alpha /= d*2;
+          alpha /= d*1.1;
 
         p.setOpacity(alpha);
-        float factor = (float)draw_count / (i + draw_count);
-        p.drawPixmap(x - w - margin, y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_l);
+        float factor = 1.0; //(float)draw_count / (i + draw_count);
+        p.drawPixmap(x - w, y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_l);
         x -= gap + w;
       }
     }
@@ -1273,7 +1290,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
         float alpha = img_alpha;
         int d = std::abs(blink_index - i);
         if(d > 0)
-          alpha /= d*2;
+          alpha /= d*1.1;
 
         float factor = (float)draw_count / (i + draw_count);
         p.setOpacity(alpha);
@@ -1285,14 +1302,14 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     if(left_on || right_on) {
 
       double now = millis_since_boot();
-      if(now - prev_ts > 900/UI_FREQ) {
+      if(now - prev_ts > 300/UI_FREQ) {
         prev_ts = now;
         blink_index++;
       }
 
       if(blink_index >= draw_count) {
         blink_index = draw_count - 1;
-        blink_wait = UI_FREQ/4;
+        blink_wait = UI_FREQ/20;
       }
     }
     else {
@@ -1557,7 +1574,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         if (y > height() - 400) y = height() - 400;
 
         x = apilot_filter_x.update(x);
-        y = apilot_filter_y.update(y);
+        y = apilot_filter_y.update(y) + 100; //Lead 지붕이 아니라 트렁크 하단 정도로 과녁을 조금 더 아래쪽에 그려보자(hoya)
     }
 
     // 신호등(traffic)그리기.
@@ -2041,7 +2058,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         painter.setOpacity(1.0);
         drawTextWithColor(painter, bx, by+30, speed, color);
 
-        painter.drawPixmap(bx - 100, by-60, 350, 150, ic_speed_bg);
+        // painter.drawPixmap(bx - 100, by-60, 350, 150, ic_speed_bg);
 
         //color = QColor(255, 255, 255, 255);
 #ifdef __TEST
@@ -2158,9 +2175,11 @@ void AnnotatedCameraWidget::drawHudApilot(QPainter& p, const cereal::ModelDataV2
 
     drawLeadApilot(p, model);
 
+    drawMaxSpeed(p);
+    drawSpeed(p);
     //drawSteer(p);
-    if(s->show_device_stat) drawDeviceState(p);
-    //drawTurnSignals(p);
+    drawDeviceState(p);
+    drawTurnSignals(p);
     //drawGpsStatus(p);
 #ifdef __TEST
     drawDebugText(p);
