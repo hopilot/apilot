@@ -306,21 +306,21 @@ class CruiseHelper:
 
           LongPressed = False
           ButtonCnt = 0
-      if ButtonCnt > 30:
+      if ButtonCnt > 40:
         LongPressed = True
-        V_CRUISE_DELTA = V_CRUISE_DELTA_KM if metric else V_CRUISE_DELTA_MI
+        V_CRUISE_DELTA = 10
         if ButtonPrev == ButtonType.accelCruise:
           v_cruise_kph += V_CRUISE_DELTA - v_cruise_kph % V_CRUISE_DELTA
           button_type = ButtonType.accelCruise
-          ButtonCnt %= 30
+          ButtonCnt %= 40
         elif ButtonPrev == ButtonType.decelCruise:
           v_cruise_kph -= V_CRUISE_DELTA - -v_cruise_kph % V_CRUISE_DELTA
           button_type = ButtonType.decelCruise
-          ButtonCnt %= 30
+          ButtonCnt %= 40
         elif ButtonPrev == ButtonType.gapAdjustCruise:
           button_type = ButtonType.gapAdjustCruise
           ButtonCnt = 0
-    v_cruise_kph = clip(v_cruise_kph, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
+    v_cruise_kph = clip(v_cruise_kph, self.cruiseSpeedMin, MAX_SET_SPEED_KPH)
     return button_type, LongPressed, v_cruise_kph
 
   def update_speed_navi(self, CS, controls, v_cruise_kph):
@@ -341,7 +341,7 @@ class CruiseHelper:
     road_speed_limiter = get_road_speed_limiter()
     self.ndaActive = 1 if road_speed_limiter_get_active() > 0 else 0
     apply_limit_speed, road_limit_speed, left_dist, first_started, max_speed_log = \
-      road_speed_limiter.get_max_speed(clu11_speed, True) #self.is_metric)
+      road_speed_limiter.get_max_speed(clu11_speed, True, self.autoNaviSpeedCtrlStart, self.autoNaviSpeedCtrlEnd) #self.is_metric)
 
     self.active_cam = road_limit_speed > 0 and left_dist > 0
 
@@ -361,7 +361,7 @@ class CruiseHelper:
   def update_speed_curve(self, CS, controls):
     curve_speed = self.cal_curve_speed(controls, CS.vEgo, controls.sm.frame, self.curve_speed_last)
     self.curve_speed_last = curve_speed
-    return clip(curve_speed * CV.MS_TO_KPH, MIN_SET_SPEED_KPH, MAX_SET_SPEED_KPH)
+    return clip(curve_speed * CV.MS_TO_KPH, MIN_CURVE_SPEED, MAX_SET_SPEED_KPH)
 
   def v_cruise_speed_up(self, v_cruise_kph, roadSpeed):
     if v_cruise_kph < roadSpeed:
@@ -634,4 +634,3 @@ def enable_radar_tracks(CP, logcan, sendcan):
         print("Failed to enable tracks" + str(e))
   print("END Try to enable radar tracks")
   # END try to enable radar tracks
-
