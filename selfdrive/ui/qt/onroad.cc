@@ -1561,21 +1561,18 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     // 과녁을 표시할 위치를 계산
     const int icon_size = 256;
     const float d_rel = lead_data.getX()[0];
-    float x = std::clamp((float)vd.x(), 220.f, width() - 300.f);
+    float x = std::clamp((float)vd.x(), 500.f, width() - 500.f);
     float y = std::clamp((float)vd.y(), 300.f, height() - 180.f);
-    {
-
-        y -= ((icon_size / 2) - d_rel);
-        if (no_radar) {
-            //x = path_x;
-            x = std::clamp(path_x, 300.f, width() - 300.f);
-            y = path_y; // height() - 250;
-        }
-        if (y > height() - 400) y = height() - 400;
-
-        x = apilot_filter_x.update(x);
-        y = apilot_filter_y.update(y) + 100; //Lead 지붕이 아니라 트렁크 하단 정도로 과녁을 조금 더 아래쪽에 그려보자(hoya)
+    y -= ((icon_size / 2) - d_rel);
+    if (no_radar) {
+        //x = path_x;
+        x = std::clamp(path_x, 300.f, width() - 300.f);
+        y = path_y; // height() - 250;
     }
+    if (y > height() - 400) y = height() - 400;
+
+    x = apilot_filter_x.update(x);
+    y = apilot_filter_y.update(y) + 100; //Lead 지붕이 아니라 트렁크 하단 정도로 과녁을 조금 더 아래쪽에 그려보자(hoya)
 
     // 신호등(traffic)그리기.
     // 신호등내부에는 레이더거리, 비젼거리, 정지거리, 신호대기 표시함.
