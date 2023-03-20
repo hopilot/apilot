@@ -201,7 +201,7 @@ class DesireHelper:
             if torque_applied:
               self.lane_change_state = LaneChangeState.laneChangeStarting
             elif self.desireEvent != 0:
-              self.desireEvent = EventName.preLaneChangeLeft if LaneChangeDirection.left else EventName.preLaneChangeRight
+              self.desireEvent = EventName.preLaneChangeLeft if self.lane_change_direction == LaneChangeDirection.left else EventName.preLaneChangeRight
 
       # LaneChangeState.laneChangeStarting
       elif self.lane_change_state == LaneChangeState.laneChangeStarting:
@@ -254,7 +254,7 @@ class DesireHelper:
       self.lane_change_pulse_timer = 0.0
     if self.lane_change_state in (LaneChangeState.off, LaneChangeState.preLaneChange):
       self.lane_change_timer = 0.0
-      self.lane_change_direction = LaneChangeDirection.none
+      #self.lane_change_direction = LaneChangeDirection.none
     else:
       self.lane_change_timer += DT_MDL
 
