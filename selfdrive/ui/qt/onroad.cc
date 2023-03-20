@@ -1813,7 +1813,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 #else
         else str.sprintf("수동운전");
 #endif
-        QRect rectBrake(x - 250 / 2, y + 140, 250, 45);
+        QRect rectBrake(x - 250 / 2, y + 140 - 50, 250, 45); // 타켓쪽으로 약간 위로 이동 hoya
         painter.setPen(Qt::NoPen);
         painter.setBrush((brake_valid) ? redColor(200) : greenColor(200));
         //painter.drawRect(rectBrake);
@@ -2078,7 +2078,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         color = QColor(255, 255, 255, 255);
         QColor blackColor = QColor(0, 0, 0, 230);
         bx = x - 200;
-        by = y + 250;
+        by = y + 250 + 200 ; // 가운데 원이 전방 상황을 가려서 타켓 아래로 이동 hoya
         if (limit_speed > 0) {
             QRect rectLimit(bx - 70, by - 70, 140, 140);
             painter.setBrush(QBrush(Qt::white));
