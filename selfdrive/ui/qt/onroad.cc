@@ -1707,29 +1707,6 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             }
             */
         }
-        if (showBg) {
-            painter.setOpacity(1.0);
-            painter.setPen(Qt::NoPen);
-            painter.setBrush(bgColor);
-            painter.drawEllipse(x - circle_size / 2, y - circle_size / 2, circle_size, circle_size);
-        }
-
-
-        // 차로변경, 턴 표시~
-        if (true) {
-            painter.setOpacity(1.0);
-            if (desireStateTurnLeft > 0.5) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_turn_l);
-            else if (desireStateTurnRight > 0.5) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_turn_r);
-            else if (desireStateLaneChangeLeft > 0.5) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_lane_change_l);
-            else if (desireStateLaneChangeRight > 0.5) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_lane_change_r);
-        }
-        // blinker 표시~~
-        if (true) {
-            painter.setOpacity(1.0);
-            if (rightBlinker && blinkerOn) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_blinker_r);
-            if (leftBlinker && blinkerOn) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_blinker_l);
-        }
-
 
 #ifdef __TEST
         radar_detected = true;
@@ -1763,22 +1740,46 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         painter.setOpacity(0.7);
         painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, (no_radar) ? ic_radar_no : (radar_detected) ? ic_radar : ic_radar_vision);
 
+        float c_y = y + 250 ; // 가운데 원이 전방 상황을 가려서 타켓 아래로 이동 hoya
+
+        if (showBg) {
+            painter.setOpacity(1.0);
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(bgColor);
+            painter.drawEllipse(x - circle_size / 2, c_y - circle_size / 2, circle_size, circle_size);
+        }
+
+        // 차로변경, 턴 표시~
+        if (true) {
+            painter.setOpacity(1.0);
+            if (desireStateTurnLeft > 0.5) painter.drawPixmap(x - icon_size / 2, c_y - icon_size / 2, icon_size, icon_size, ic_turn_l);
+            else if (desireStateTurnRight > 0.5) painter.drawPixmap(x - icon_size / 2, c_y - icon_size / 2, icon_size, icon_size, ic_turn_r);
+            else if (desireStateLaneChangeLeft > 0.5) painter.drawPixmap(x - icon_size / 2, c_y - icon_size / 2, icon_size, icon_size, ic_lane_change_l);
+            else if (desireStateLaneChangeRight > 0.5) painter.drawPixmap(x - icon_size / 2, c_y - icon_size / 2, icon_size, icon_size, ic_lane_change_r);
+        }
+        // blinker 표시~~
+        if (true) {
+            painter.setOpacity(1.0);
+            if (rightBlinker && blinkerOn) painter.drawPixmap(x - icon_size / 2, c_y - icon_size / 2, icon_size, icon_size, ic_blinker_r);
+            if (leftBlinker && blinkerOn) painter.drawPixmap(x - icon_size / 2, c_y - icon_size / 2, icon_size, icon_size, ic_blinker_l);
+        }
+
         if (no_radar) {
             if (stop_dist > 0.5 && stopping) {
                 textColor = QColor(255, 0, 0, 255);
                 configFont(painter, "Inter", 45, "Bold");
                 if (stop_dist < 10.0) str.sprintf("%.1f", stop_dist);
                 else str.sprintf("%.0f", stop_dist);
-                drawTextWithColor(painter, x, y + 120.0, str, textColor);
+                drawTextWithColor(painter, x, c_y + 120.0, str, textColor);
             }
             else if (longActiveUser > 0 && stopping) {
                 textColor = QColor(255, 255, 255, 255);
                 configFont(painter, "Inter", 40, "Bold");
                 if (brake_hold || soft_hold) {
-                    //drawTextWithColor(painter, x, y +120, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
+                    //drawTextWithColor(painter, x, c_y +120, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
                 }
                 else {
-                    drawTextWithColor(painter, x, y +120, "신호대기", textColor);
+                    drawTextWithColor(painter, x, c_y +120, "신호대기", textColor);
                 }
             }
         }
@@ -1787,7 +1788,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             configFont(painter, "Inter", 45, "Bold");
             if (disp_dist < 10.0) str.sprintf("%.1f", disp_dist);
             else str.sprintf("%.0f", disp_dist);
-            drawTextWithColor(painter, x, y + 120.0, str, textColor);
+            drawTextWithColor(painter, x, c_y + 120.0, str, textColor);
         }
     }
 
@@ -1810,7 +1811,8 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 #else
         else str.sprintf("수동운전");
 #endif
-        QRect rectBrake(x - 250 / 2, y + 140 - 50, 250, 45); // 타켓쪽으로 약간 위로 이동 hoya
+        y = y - 25 ; // 타켓쪽으로 약간 위로 이동 hoya
+        QRect rectBrake(x - 250 / 2, y + 140, 250, 45); 
         painter.setPen(Qt::NoPen);
         painter.setBrush((brake_valid) ? redColor(200) : greenColor(200));
         //painter.drawRect(rectBrake);
@@ -2075,7 +2077,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         color = QColor(255, 255, 255, 255);
         QColor blackColor = QColor(0, 0, 0, 230);
         bx = x - 200;
-        by = y + 250 + 200 ; // 가운데 원이 전방 상황을 가려서 타켓 아래로 이동 hoya
+        by = y + 300 ; // 가운데 원이 전방 상황을 가려서 타켓 아래로 이동 hoya
         if (limit_speed > 0) {
             QRect rectLimit(bx - 70, by - 70, 140, 140);
             painter.setBrush(QBrush(Qt::white));
