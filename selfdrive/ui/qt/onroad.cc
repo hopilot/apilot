@@ -576,7 +576,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
   printf("elapsed = %.2f\n", cur_draw_t - start_draw_t);
 #endif
   auto now = millis_since_boot();
-  if (now - last_update_params > 20 * 1) {
+  if (now - last_update_params > 2 * 1) {
       last_update_params = now;
       ui_update_params(uiState());
   }
@@ -656,11 +656,11 @@ void AnnotatedCameraWidget::drawHud(QPainter &p, const cereal::ModelDataV2::Read
 
   drawMaxSpeed(p);
   drawSpeed(p);
-  drawSteer(p);
-  drawDeviceState(p);
+  if (s->show_steer_mode) drawSteer(p);
+  if (s->show_device_stat) drawDeviceState(p);
   drawTurnSignals(p);
   drawGpsStatus(p);
-  drawDebugText(p);
+  if (s->show_debug) drawDebugText(p);
 
 #if 0
   const auto controls_state = sm["controlsState"].getControlsState();
