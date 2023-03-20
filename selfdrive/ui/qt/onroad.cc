@@ -1740,13 +1740,13 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         painter.setOpacity(0.7);
         painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, (no_radar) ? ic_radar_no : (radar_detected) ? ic_radar : ic_radar_vision);
 
-        float c_y = y + 400 ; // 가운데 원이 전방 상황을 가려서 타켓 아래로 이동 hoya
+        float c_y = y + 250 ; // 가운데 원이 전방 상황을 가려서 타켓 아래로 이동 hoya
 
         if (showBg) {
             painter.setOpacity(1.0);
             painter.setPen(Qt::NoPen);
             painter.setBrush(bgColor);
-            painter.drawEllipse(x - circle_size / 2, y - circle_size / 2, circle_size, circle_size);
+            painter.drawEllipse(x - circle_size / 2, c_y - circle_size / 2, circle_size, circle_size);
         }
 
         // 차로변경, 턴 표시~
@@ -1811,7 +1811,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 #else
         else str.sprintf("수동운전");
 #endif
-        y =- 25 ; // 타켓쪽으로 약간 위로 이동 hoya
+        y = y - 25 ; // 타켓쪽으로 약간 위로 이동 hoya
         QRect rectBrake(x - 250 / 2, y + 140, 250, 45); 
         painter.setPen(Qt::NoPen);
         painter.setBrush((brake_valid) ? redColor(200) : greenColor(200));
@@ -2077,7 +2077,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         color = QColor(255, 255, 255, 255);
         QColor blackColor = QColor(0, 0, 0, 230);
         bx = x - 200;
-        by = y + 250 + 400 ; // 가운데 원이 전방 상황을 가려서 타켓 아래로 이동 hoya
+        by = y + 300 ; // 가운데 원이 전방 상황을 가려서 타켓 아래로 이동 hoya
         if (limit_speed > 0) {
             QRect rectLimit(bx - 70, by - 70, 140, 140);
             painter.setBrush(QBrush(Qt::white));

@@ -131,15 +131,16 @@ class DesireHelper:
               self.lane_change_state = LaneChangeState.preLaneChange
           # 저속
           elif v_ego_kph < self.autoLaneChangeSpeed:
-            if road_edge_detected:
+            if road_edge_detected and self.autoTurnControl > 0:
               self.turnControlState = True
               self.lane_change_state = LaneChangeState.preLaneChange
             elif carstate.rightBlinker:
-              if steering_pressed:
-                self.turnControlState = True
-              self.lane_change_state = LaneChangeState.preLaneChange
+              if self.autoTurnControl > 0:
+                if steering_pressed:
+                  self.turnControlState = True
+                self.lane_change_state = LaneChangeState.preLaneChange
             else: # 좌측저속: 차선검출:차선변경, 차선없음: 진행 (HW:차선검출루틴필요)
-              if steering_pressed:
+              if steering_pressed and self.autoTurnControl > 0:
                 self.turnControlState = True
                 self.lane_change_state = LaneChangeState.preLaneChange
 
@@ -147,15 +148,15 @@ class DesireHelper:
           elif v_ego_kph < 80.0:
             if carstate.brakePressed:  # 감속하면서 깜박이.... 경우에따라 턴을 할까??(HW)
               if not road_edge_detected:
-                if steering_pressed:
+                if steering_pressed and self.autoTurnControl > 0:
                   self.turnControlState = True
                 self.lane_change_state = LaneChangeState.preLaneChange
               elif carstate.rightBlinker:
-                if v_ego_kph < self.autoTurnSpeed or steering_pressed:
+                if self.autoTurnControl > 0 and (v_ego_kph < self.autoTurnSpeed or steering_pressed):
                   self.turnControlState = True
                 self.lane_change_state = LaneChangeState.preLaneChange
               else:
-                if v_ego_kph < self.autoTurnSpeed or steering_pressed:
+                if self.autoTurnControl > 0 and (v_ego_kph < self.autoTurnSpeed or steering_pressed):
                   self.turnControlState = True
                 self.lane_change_state = LaneChangeState.preLaneChange
             else:
@@ -200,7 +201,7 @@ class DesireHelper:
           if self.waitTorqueApplied:
             if torque_applied:
               self.lane_change_state = LaneChangeState.laneChangeStarting
-            elif self.desireEvent != 0:
+            elif self.desireEvent == 0:
               self.desireEvent = EventName.preLaneChangeLeft if self.lane_change_direction == LaneChangeDirection.left else EventName.preLaneChangeRight
 
       # LaneChangeState.laneChangeStarting
