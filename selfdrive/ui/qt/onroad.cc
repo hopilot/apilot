@@ -1146,14 +1146,13 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   const SubMaster &sm = *(uiState()->sm);
   auto deviceState = sm["deviceState"].getDeviceState();
 
-  const auto freeSpacePercent = deviceState.getFreeSpacePercent();
-
+  const auto BatPer = deviceState.getBatteryPercent();
   const auto cpuTempC = deviceState.getCpuTempC();
   //const auto gpuTempC = deviceState.getGpuTempC();
   float ambientTemp = deviceState.getAmbientTempC();
-
   float cpuTemp = 0.f;
   //float gpuTemp = 0.f;
+  const auto freeSpacePercent = deviceState.getFreeSpacePercent();
 
   if(std::size(cpuTempC) > 0) {
     for(int i = 0; i < std::size(cpuTempC); i++) {
@@ -1161,7 +1160,6 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
     }
     cpuTemp = cpuTemp / (float)std::size(cpuTempC);
   }
-
   /*if(std::size(gpuTempC) > 0) {
     for(int i = 0; i < std::size(gpuTempC); i++) {
       gpuTemp += gpuTempC[i];
@@ -1172,17 +1170,16 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
 
   int w = 192;
   int x = width() - (30 + w);
-  int y = 340;
+  int y = 340 - 100 ; // 우측 상태값 위로 좀 더 이동(hoya)
 
   QString str;
   QRect rect;
-
+-----------------------------------------------------------------------------
   configFont(p, "Open Sans", 50, "Bold");
-  str.sprintf("%d%%", deviceState.getBatteryPercent());
+  str.sprintf("%d%%", BatPer);
   rect = QRect(x, y, w, w);
-
-  int r = interp<float>(cpuTemp, {50.f, 90.f}, {200.f, 255.f}, false);
-  int g = interp<float>(cpuTemp, {50.f, 90.f}, {255.f, 200.f}, false);
+  int r = interp<float>(BatPer, {90.f, 20.f}, {50.f, 255.f, false);
+  int g = interp<float>(BatPer, {90.f, 20.f}, {255.f, 50.f}, false);
   p.setPen(QColor(r, g, 200, 200));
   p.drawText(rect, Qt::AlignCenter, str);
 
@@ -1191,13 +1188,13 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   rect = QRect(x, y, w, w);
   p.setPen(QColor(255, 255, 255, 200));
   p.drawText(rect, Qt::AlignCenter, "BATTERY");
-
+-----------------------------------------------------------------------------
   y += 80;
   configFont(p, "Inter", 50, "Bold");
   str.sprintf("%.0f°C", cpuTemp);
   rect = QRect(x, y, w, w);
-  r = interp<float>(cpuTemp, {50.f, 90.f}, {200.f, 255.f}, false);
-  g = interp<float>(cpuTemp, {50.f, 90.f}, {255.f, 200.f}, false);
+  r = interp<float>(cpuTemp, {50.f, 80.f}, {50.f, 255.f}, false);
+  g = interp<float>(cpuTemp, {50.f, 80.f}, {255.f, 50.f}, false);
   p.setPen(QColor(r, g, 200, 200));
   p.drawText(rect, Qt::AlignCenter, str);
 
@@ -1206,13 +1203,13 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   rect = QRect(x, y, w, w);
   p.setPen(QColor(255, 255, 255, 200));
   p.drawText(rect, Qt::AlignCenter, "CPU");
-
+-----------------------------------------------------------------------------
   y += 80;
   configFont(p, "Inter", 50, "Bold");
   str.sprintf("%.0f°C", ambientTemp);
   rect = QRect(x, y, w, w);
-  r = interp<float>(ambientTemp, {35.f, 60.f}, {200.f, 255.f}, false);
-  g = interp<float>(ambientTemp, {35.f, 60.f}, {255.f, 200.f}, false);
+  r = interp<float>(ambientTemp, {35.f, 60.f}, {50.f, 255.f}, false);
+  g = interp<float>(ambientTemp, {35.f, 60.f}, {255.f, 50.f}, false);
   p.setPen(QColor(r, g, 200, 200));
   p.drawText(rect, Qt::AlignCenter, str);
 
@@ -1221,13 +1218,13 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   rect = QRect(x, y, w, w);
   p.setPen(QColor(255, 255, 255, 200));
   p.drawText(rect, Qt::AlignCenter, "AMBIENT");
-
+-----------------------------------------------------------------------------
   y += 80;
   configFont(p, "Inter", 50, "Bold");
   str.sprintf("%.0f%%", freeSpacePercent);
   rect = QRect(x, y, w, w);
-  r = interp<float>(freeSpacePercent, {50.f, 90.f}, {200.f, 255.f}, false);
-  g = interp<float>(freeSpacePercent, {50.f, 90.f}, {255.f, 200.f}, false);
+  r = interp<float>(freeSpacePercent, {90.f, 20.f}, {50.f, 255.f}, false);
+  g = interp<float>(freeSpacePercent, {90.f, 20.f}, {255.f, 50.f}, false);
   p.setPen(QColor(r, g, 200, 200));
   p.drawText(rect, Qt::AlignCenter, str);
 
