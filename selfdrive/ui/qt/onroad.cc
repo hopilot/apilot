@@ -1740,7 +1740,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         float c_y = y + 250 ; // 가운데 원이 전방 상황을 가려서 타켓 아래로 이동 hoya
 
         str.sprintf("%.1fm", radar_detected ? radar_dist : vision_dist);
-        drawTextWithColor(painter, x, c_y + sz / 1.5f + 80.0, str, textColor);
+        drawTextWithColor(painter, x, c_y - 80, str, textColor);
 
         if (showBg) {
             painter.setOpacity(0.8);
