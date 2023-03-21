@@ -765,7 +765,7 @@
       "group": "조향",
       "name": "AutoCurveSpeedCtrl",
       "title": "커브제어방법",
-      "descr": "0:사용안함,1:방법1,2:방법2",
+      "descr": "0:사용안함,1:방법1,2:방법2,3:APILOT",
       "min": 0,
       "max": 2,
       "default": 1,
