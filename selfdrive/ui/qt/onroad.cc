@@ -2177,8 +2177,8 @@ void AnnotatedCameraWidget::drawHudApilot(QPainter& p, const cereal::ModelDataV2
 
     drawLeadApilot(p, model);
 
-    // drawMaxSpeed(p);
-    // drawSpeed(p);
+    drawMaxSpeed(p);
+    drawSpeed(p);
     //drawSteer(p);
     if(s->show_device_stat) drawDeviceState(p);
     drawTurnSignals(p);
