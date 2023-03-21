@@ -78,7 +78,7 @@ class CruiseHelper:
     self.trafficSignedFrame = 0
 
     self.update_params_count = 0
-    self.curvatureFilter = StreamingMovingAverage(5)    
+    self.curvatureFilter = StreamingMovingAverage(10)    
 
     self.longCruiseGap = int(Params().get("PrevCruiseGap"))
     self.cruiseSpeedMin = int(Params().get("CruiseSpeedMin"))
@@ -370,7 +370,7 @@ class CruiseHelper:
     curvatures = controls.sm['lateralPlan'].curvatures
     turnSpeed = 300
     if len(curvatures) == CONTROL_N:
-      curvature = self.curvatureFilter.process(curvatures[self.autoCurveSpeedIndex])  * self.autoCurveSpeedFactor
+      curvature = abs(self.curvatureFilter.process(curvatures[self.autoCurveSpeedIndex]))  * self.autoCurveSpeedFactor
       if abs(curvature) > 0.001:
         turnSpeed = interp(curvature, V_CURVE_LOOKUP_BP, V_CRUVE_LOOKUP_VALS)
         turnSpeed = clip(turnSpeed, MIN_CURVE_SPEED, MAX_SET_SPEED_KPH)
@@ -613,7 +613,7 @@ class CruiseHelper:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
         elif self.autoRoadLimitCtrl == 2:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
-      if self.autoCurveSpeedCtrl==2:
+      if self.autoCurveSpeedCtrl in [2,3]:
         self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curveSpeed)
     else: #not enabled
       self.v_cruise_kph_backup = v_cruise_kph #not enabled
