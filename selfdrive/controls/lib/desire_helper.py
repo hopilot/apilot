@@ -108,6 +108,9 @@ class DesireHelper:
                         ((carstate.steeringTorque > 0 and carstate.leftBlinker) or
                         (carstate.steeringTorque < 0 and carstate.rightBlinker))
 
+    checkAutoTurnEnabled = self.autoTurnControl > 0
+    checkAutoTurnSpeed = (v_ego_kph < self.autoTurnSpeed) and checkAutoTurnEnabled
+
     # Timeout검사
     if not lateral_active or self.lane_change_timer > laneChangeTimeMax: #LANE_CHANGE_TIME_MAX:
       self.lane_change_state = LaneChangeState.off
@@ -131,16 +134,16 @@ class DesireHelper:
               self.lane_change_state = LaneChangeState.preLaneChange
           # 저속
           elif v_ego_kph < self.autoLaneChangeSpeed:
-            if road_edge_detected and self.autoTurnControl > 0:
+            if road_edge_detected and checkAutoTurnEnabled:
               self.turnControlState = True
               self.lane_change_state = LaneChangeState.preLaneChange
             elif carstate.rightBlinker:
-              if self.autoTurnControl > 0:
+              if checkAutoTurnEnabled:
                 if steering_pressed:
                   self.turnControlState = True
                 self.lane_change_state = LaneChangeState.preLaneChange
             else: # 좌측저속: 차선검출:차선변경, 차선없음: 진행 (HW:차선검출루틴필요)
-              if steering_pressed and self.autoTurnControl > 0:
+              if steering_pressed and checkAutoTurnEnabled:
                 self.turnControlState = True
                 self.lane_change_state = LaneChangeState.preLaneChange
 
@@ -148,15 +151,15 @@ class DesireHelper:
           elif v_ego_kph < 80.0:
             if carstate.brakePressed:  # 감속하면서 깜박이.... 경우에따라 턴을 할까??(HW)
               if not road_edge_detected:
-                if steering_pressed and self.autoTurnControl > 0:
+                if steering_pressed and checkAutoTurnEnabled:
                   self.turnControlState = True
                 self.lane_change_state = LaneChangeState.preLaneChange
               elif carstate.rightBlinker:
-                if self.autoTurnControl > 0 and (v_ego_kph < self.autoTurnSpeed or steering_pressed):
+                if checkAutoTurnEnabled and (checkAutoTurnSpeed or steering_pressed):
                   self.turnControlState = True
                 self.lane_change_state = LaneChangeState.preLaneChange
               else:
-                if self.autoTurnControl > 0 and (v_ego_kph < self.autoTurnSpeed or steering_pressed):
+                if checkAutoTurnEnabled and (checkAutoTurnSpeed or steering_pressed):
                   self.turnControlState = True
                 self.lane_change_state = LaneChangeState.preLaneChange
             else:
@@ -186,7 +189,7 @@ class DesireHelper:
             self.lane_change_state = LaneChangeState.laneChangeStarting
         else:
           # 깜박이가 꺼지거나, 속도가 줄어들면... 차선변경 중지.
-          if not one_blinker or v_ego_kph < self.autoLaneChangeSpeed:
+          if not one_blinker: #속도가 줄어도 차선변경이 가능하게 함(시험), or v_ego_kph < self.autoLaneChangeSpeed:  
             self.lane_change_state = LaneChangeState.off
           elif self.lane_change_pulse_timer > 0.1:
             if blindspot_detected:
@@ -212,10 +215,12 @@ class DesireHelper:
 
         ## 차선변경시 핸들을 방향으로 건들면... 턴으로 변경, 반대로 하면 취소..
         if not self.turnControlState:
-          if steering_pressed and v_ego_kph < self.autoTurnSpeed:
+          if steering_pressed and checkAutoTurnSpeed:
             self.turnControlState = True
           elif carstate.steeringPressed:
             self.lane_change_state = LaneChangeState.off
+          elif self.lane_change_direction == LaneChangeDirection.Right and road_edge_detected and checkAutoTurnSpeed:
+            self.turnControlState = True
         elif steering_pressed:
           pass
         elif carstate.steeringPressed: # 반대로 조향한경우 off
@@ -353,7 +358,7 @@ class DesireHelper:
             self.lane_change_state = LaneChangeState.laneChangeStarting
         else:
           # 깜박이가 꺼지거나, 속도가 줄어들면... 차선변경 중지.
-          if not one_blinker: #속도가 줄어도 차선변경이 가능하게 함(시험),  or below_lane_change_speed:
+          if not one_blinker or below_lane_change_speed:
             self.lane_change_state = LaneChangeState.off
           elif self.lane_change_pulse_timer > 0.1:
             if blindspot_detected or road_edge_detected: # BSD 또는 road_edge검출이 안되면 차선변경 시작.
