@@ -1367,6 +1367,10 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
   p.drawText(text_x, y, str);
   p.drawText(text_x, y+80, QString::fromStdString(live_torque_params.getDebugText().cStr()));
 
+  auto controls_state = sm["controlsState"].getControlsState();
+  p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
+  p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));
+
   p.restore();
   /*p.save();
   const SubMaster &sm = *(uiState()->sm);
@@ -1586,7 +1590,9 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     int brake_hold = car_state.getBrakeHoldActive();
     int soft_hold = (hud_control.getSoftHold()) ? 1 : 0;
 
-    float cur_speed = std::max(0.0, sm["carState"].getCarState().getVEgoCluster() * (s->scene.is_metric ? MS_TO_KPH : MS_TO_MPH));
+    float v_ego = sm["carState"].getCarState().getVEgoCluster();
+    float v_ego_kph = v_ego * MS_TO_KPH;
+    float cur_speed = v_ego * (s->scene.is_metric ? MS_TO_KPH : MS_TO_MPH);
     bool brake_valid = car_state.getBrakeLights();
     // 차로변경/자동턴 표시
     bool showDistInfo = true;
@@ -1766,7 +1772,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 
         if (no_radar) {
             if (stop_dist > 0.5 && stopping) {
-                textColor = QColor(255, 0, 0, 255);
+                textColor = QColor(255, 255, 255, 255);
                 configFont(painter, "Inter", 45, "Bold");
                 if (stop_dist < 10.0) str.sprintf("%.1f", stop_dist);
                 else str.sprintf("%.0f", stop_dist);
@@ -1802,7 +1808,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             if (xState == cereal::LongitudinalPlan::XState::E2E_STOP) str.sprintf("신호감지");
             else if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) str.sprintf("SOFTHOLD");
             else if (xState == cereal::LongitudinalPlan::XState::LEAD) str.sprintf("LEAD");
-            else if (xState == cereal::LongitudinalPlan::XState::E2E_CRUISE) str.sprintf("E2E주행");
+            else if (xState == cereal::LongitudinalPlan::XState::E2E_CRUISE) str.sprintf((v_ego_kph<80)?"E2E주행":"정속주행");
             else if (xState == cereal::LongitudinalPlan::XState::CRUISE) str.sprintf("정속주행");
             else str.sprintf("UNKNOWN");
         }

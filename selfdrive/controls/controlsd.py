@@ -639,8 +639,8 @@ class Controls:
       torque_params = self.sm['liveTorqueParameters']
       if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams:
         self.LaC.update_live_torque_params(torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
-        self.debugText2 = "LiveT[{:.0f}{}]: {:.3f},{:.3f},{:.3f}".format(torque_params.totalBucketPoints, torque_params.liveValid, 
-                                                                         torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered,torque_params.frictionCoefficientFiltered)                                                                                              
+        #self.debugText2 = "LT[{:.0f}:{}] {:.3f},{:.3f},{:.3f}".format(torque_params.totalBucketPoints, "ON" if torque_params.liveValid else "OFF", 
+        #                                                                 torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered,torque_params.frictionCoefficientFiltered)                                                                                              
         #print(self.debugText2)
 
     lat_plan = self.sm['lateralPlan']
@@ -692,7 +692,7 @@ class Controls:
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
       actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan, CC)
       #self.debugText2 = 'Accel=[{:1.2f}]: {:1.2f},{:1.2f}'.format(actuators.accel, pid_accel_limits[0], pid_accel_limits[1])
-      #self.debugText2 = self.LoC.debugLoCText
+      self.debugText2 = self.LoC.debugLoCText
       #print(self.debugText2)
 
       # Steering PID loop and lateral MPC
@@ -742,6 +742,7 @@ class Controls:
             steering_value = actuators.steeringAngleDeg
           else:
             steering_value = actuators.steer
+
           left_deviation = steering_value > 0 and dpath_points[0] < -0.20
           right_deviation = steering_value < 0 and dpath_points[0] > 0.20
 
@@ -916,7 +917,7 @@ class Controls:
     controlsState.cumLagMs = -self.rk.remaining * 1000.
 
     #print("cumLagMsg={:5.2f}".format(-self.rk.remaining * 1000.))
-    self.debugText1 = 'cumLagMs={:5.1f}'.format(-self.rk.remaining * 1000.)
+    #self.debugText1 = 'cumLagMs={:5.1f}'.format(-self.rk.remaining * 1000.)
     controlsState.debugText1 = self.debugText1
 
     controlsState.startMonoTime = int(start_time * 1e9)
