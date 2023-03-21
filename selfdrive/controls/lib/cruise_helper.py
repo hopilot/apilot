@@ -370,9 +370,9 @@ class CruiseHelper:
     curvatures = controls.sm['lateralPlan'].curvatures
     turnSpeed = 300
     if len(curvatures) == CONTROL_N:
-      curvature = self.curvatureFilter.process(curvatures[self.autoCurveSpeedIndex])
+      curvature = self.curvatureFilter.process(curvatures[self.autoCurveSpeedIndex])  * self.autoCurveSpeedFactor
       if abs(curvature) > 0.001:
-        turnSpeed = interp(curvature, V_CURVE_LOOKUP_BP, V_CRUVE_LOOKUP_VALS) * self.autoCurveSpeedFactor
+        turnSpeed = interp(curvature, V_CURVE_LOOKUP_BP, V_CRUVE_LOOKUP_VALS)
         turnSpeed = clip(turnSpeed, MIN_CURVE_SPEED, MAX_SET_SPEED_KPH)
       else:
         turnSpeed = 300
