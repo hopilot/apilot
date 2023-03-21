@@ -1591,20 +1591,20 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     // 차로변경/자동턴 표시
     bool showDistInfo = true;
     bool showBg = (disp_dist>0.0) ? true: false;
-#if 1
     auto lateralPlan = sm["lateralPlan"].getLateralPlan();
     auto desire = lateralPlan.getDesire();
     float desireStateTurnLeft = (desire == cereal::LateralPlan::Desire::TURN_LEFT) ? 1 : 0;
     float desireStateTurnRight = (desire == cereal::LateralPlan::Desire::TURN_RIGHT) ? 1 : 0;
     float desireStateLaneChangeLeft = (desire == cereal::LateralPlan::Desire::LANE_CHANGE_LEFT) ? 1 : 0;
     float desireStateLaneChangeRight = (desire == cereal::LateralPlan::Desire::LANE_CHANGE_RIGHT) ? 1 : 0;
-#else
-    auto meta = sm["modelV2"].getModelV2().getMeta();
-    float desireStateTurnLeft = meta.getDesireState()[1];
-    float desireStateTurnRight = meta.getDesireState()[2];
-    float desireStateLaneChangeLeft = meta.getDesireState()[3];
-    float desireStateLaneChangeRight = meta.getDesireState()[4];
-#endif
+
+    if (desire == cereal::LateralPlan::Desire::NONE) {
+        auto meta = sm["modelV2"].getModelV2().getMeta();
+        desireStateTurnLeft = meta.getDesireState()[1];
+        desireStateTurnRight = meta.getDesireState()[2];
+        desireStateLaneChangeLeft = meta.getDesireState()[3];
+        desireStateLaneChangeRight = meta.getDesireState()[4];
+    }
     bool leftBlinker = car_state.getLeftBlinker();
     bool rightBlinker = car_state.getRightBlinker();
     static int blinkerTimer = 0;

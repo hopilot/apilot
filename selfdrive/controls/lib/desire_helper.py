@@ -353,7 +353,7 @@ class DesireHelper:
             self.lane_change_state = LaneChangeState.laneChangeStarting
         else:
           # 깜박이가 꺼지거나, 속도가 줄어들면... 차선변경 중지.
-          if not one_blinker or below_lane_change_speed:
+          if not one_blinker: #속도가 줄어도 차선변경이 가능하게 함(시험),  or below_lane_change_speed:
             self.lane_change_state = LaneChangeState.off
           elif self.lane_change_pulse_timer > 0.1:
             if blindspot_detected or road_edge_detected: # BSD 또는 road_edge검출이 안되면 차선변경 시작.
