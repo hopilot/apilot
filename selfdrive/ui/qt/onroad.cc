@@ -1686,7 +1686,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
                 }
                 else painter.drawPixmap(x - img2.width() / 2., y - img2.height() / 2., img2);
             }
-            else painter.drawPixmap(x - ic_steer_momo.width() / 2., y - ic_steer_momo.height() / 2., ic_steer_momo);
+            // else painter.drawPixmap(x - ic_steer_momo.width() / 2., y - ic_steer_momo.height() / 2., ic_steer_momo);
             switch (trafficMode) {
             case 0: bgColor = blackColor(90); break;
             case 1: bgColor = redColor(160); break;
@@ -1740,7 +1740,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         float c_y = y + 250 ; // 가운데 원이 전방 상황을 가려서 타켓 아래로 이동 hoya
 
         str.sprintf("%.1fm", radar_detected ? radar_dist : vision_dist);
-        drawTextWithColor(painter, x, c_y - 80, str, textColor);
+        drawTextWithColor(painter, x, c_y, str, textColor);
 
         if (showBg) {
             painter.setOpacity(0.8);
