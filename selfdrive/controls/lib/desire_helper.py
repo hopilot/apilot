@@ -219,7 +219,7 @@ class DesireHelper:
             self.turnControlState = True
           elif carstate.steeringPressed:
             self.lane_change_state = LaneChangeState.off
-          elif self.lane_change_direction == LaneChangeDirection.Right and road_edge_detected and checkAutoTurnSpeed:
+          elif self.lane_change_direction == LaneChangeDirection.right and road_edge_detected and checkAutoTurnSpeed:
             self.turnControlState = True
         elif steering_pressed:
           pass
