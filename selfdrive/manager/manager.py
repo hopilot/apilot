@@ -65,6 +65,7 @@ def manager_init() -> None:
     ("OpkrPrebuiltOn", "0"),
     ("OPKRTimeZone", "Asia/Seoul"),    
     ("AutoCurveSpeedCtrl", "1"),
+    ("AutoCurveSpeedIndex", "6"),
     ("AutoCurveSpeedFactor", "100"),
     ("AutoTurnControl", "0"),
     ("AutoTurnSpeed", "40"),

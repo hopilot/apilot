@@ -7,7 +7,7 @@ from common.realtime import DT_CTRL
 from common.conversions import Conversions as CV
 from selfdrive.car.hyundai.values import Buttons
 from common.params import Params
-from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, V_CRUISE_DELTA_KM, V_CRUISE_DELTA_MI
+from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, CONTROL_N
 from selfdrive.controls.lib.lateral_planner import TRAJECTORY_SIZE
 #from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import AUTO_TR_CRUISE_GAP
 from selfdrive.car.hyundai.values import CAR
@@ -42,6 +42,10 @@ LongPressed = False
 
 XState = log.LongitudinalPlan.XState
 
+## 국가법령정보센터: 도로설계기준
+V_CURVE_LOOKUP_BP = [0., 1./670., 1./560., 1./440., 1./360., 1./265., 1./190., 1./135., 1./85., 1./55., 1./30., 1./15.]
+V_CRUVE_LOOKUP_VALS = [300, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20]
+
 class CruiseHelper:
 
   def __init__(self):
@@ -74,11 +78,13 @@ class CruiseHelper:
     self.trafficSignedFrame = 0
 
     self.update_params_count = 0
+    self.curvatureFilter = StreamingMovingAverage(5)    
 
     self.longCruiseGap = int(Params().get("PrevCruiseGap"))
     self.cruiseSpeedMin = int(Params().get("CruiseSpeedMin"))
 
     self.autoCurveSpeedCtrl = int(Params().get("AutoCurveSpeedCtrl"))
+    self.autoCurveSpeedIndex = int(Params().get("AutoCurveSpeedIndex"))
     self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
     self.autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
     self.autoNaviSpeedCtrlStart = float(Params().get("AutoNaviSpeedCtrlStart"))
@@ -165,6 +171,8 @@ class CruiseHelper:
       elif self.update_params_count == 15:
         self.autoNaviSpeedCtrlStart = float(Params().get("AutoNaviSpeedCtrlStart"))
         self.autoNaviSpeedCtrlEnd = float(Params().get("AutoNaviSpeedCtrlEnd"))
+      elif self.update_params_count == 16:
+        self.autoCurveSpeedIndex = int(Params().get("AutoCurveSpeedIndex"))
 
   def getSteerActuatorDelay(self, v_ego):
     v_ego_kph = v_ego * 3.6
@@ -358,6 +366,23 @@ class CruiseHelper:
 
     return clip(apply_limit_speed, 0, MAX_SET_SPEED_KPH), clip(self.roadLimitSpeed, 30, MAX_SET_SPEED_KPH)
 
+  def apilot_curve(self, CS, controls):
+    curvatures = controls.sm['lateralPlan'].curvatures
+    turnSpeed = 300
+    if len(curvatures) == CONTROL_N:
+      curvature = self.curvatureFilter.process(curvatures[self.autoCurveSpeedIndex])
+      if abs(curvature) > 0.001:
+        turnSpeed = interp(curvature, V_CURVE_LOOKUP_BP, V_CRUVE_LOOKUP_VALS) * self.autoCurveSpeedFactor
+        turnSpeed = clip(turnSpeed, MIN_CURVE_SPEED, MAX_SET_SPEED_KPH)
+      else:
+        turnSpeed = 300
+    else:
+      self.curvatureFilter.set(0.0)
+
+    controls.debugText1 = 'CURVE={:5.1f},curvature={:5.4f}'.format(turnSpeed, curvature)
+    self.turnSpeed_prev = turnSpeed
+    return turnSpeed
+
   def update_speed_curve(self, CS, controls):
     curve_speed = self.cal_curve_speed(controls, CS.vEgo, controls.sm.frame, self.curve_speed_last)
     self.curve_speed_last = curve_speed
@@ -380,7 +405,10 @@ class CruiseHelper:
     naviSpeed, roadSpeed = self.update_speed_nda(CS, controls)
     carNaviSpeed = self.update_speed_navi(CS, controls, v_cruise_kph)
     
-    curveSpeed = self.update_speed_curve(CS, controls) ## longitudinal_control로 이동함.. 호출해봐야 안됨..
+    if self.autoCurveSpeedCtrl==2:
+      curveSpeed = self.update_speed_curve(CS, controls) ## longitudinal_control로 이동함.. 호출해봐야 안됨..
+    elif self.autoCurveSpeedCtrl==3:
+      curveSpeed = self.apilot_curve(CS, controls)
 
     v_ego_kph = int(CS.vEgo * CV.MS_TO_KPH + 0.5) + 2.0 #실제속도가 v_cruise_kph보다 조금 빨라 2을 더함.
     v_ego_kph_set = clip(v_ego_kph, self.cruiseSpeedMin, MAX_SET_SPEED_KPH)

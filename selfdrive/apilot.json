@@ -772,6 +772,16 @@
       "unit": 1
     },
     {
+      "group": "조향",
+      "name": "AutoCurveSpeedIndex",
+      "title": "커브제어INDEX",
+      "descr": "",
+      "min": 0,
+      "max": 15,
+      "default": 5,
+      "unit": 1
+    },
+    {
       "group": "정지",
       "name": "StopAccelApply",
       "title": "정지유지브레이크-2.0x(30%)",
