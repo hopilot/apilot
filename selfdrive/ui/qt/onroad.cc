@@ -1745,6 +1745,8 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 
         float c_y = y + 250 ; // 가운데 원이 전방 상황을 가려서 타켓 아래로 이동 hoya
 
+        textColor = QColor(255, 255, 255, 255);
+        configFont(painter, "Inter", 45, "Bold");
         str.sprintf("%.1fm", radar_detected ? radar_dist : vision_dist);
         drawTextWithColor(painter, x, c_y, str, textColor);
 
@@ -1758,11 +1760,12 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         // 차로변경, 턴 표시~
         if (true) {
             painter.setOpacity(1.0);
-            if (desireStateTurnLeft > 0.5) painter.drawPixmap(x - icon_size / 2, c_y - icon_size / 2, icon_size, icon_size, ic_turn_l);
-            else if (desireStateTurnRight > 0.5) painter.drawPixmap(x - icon_size / 2, c_y - icon_size / 2, icon_size, icon_size, ic_turn_r);
-            else if (desireStateLaneChangeLeft > 0.5) painter.drawPixmap(x - icon_size / 2, c_y - icon_size / 2, icon_size, icon_size, ic_lane_change_l);
-            else if (desireStateLaneChangeRight > 0.5) painter.drawPixmap(x - icon_size / 2, c_y - icon_size / 2, icon_size, icon_size, ic_lane_change_r);
+            if (desireStateTurnLeft > 0.5) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_turn_l);
+            else if (desireStateTurnRight > 0.5) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_turn_r);
+            else if (desireStateLaneChangeLeft > 0.5) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_lane_change_l);
+            else if (desireStateLaneChangeRight > 0.5) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_lane_change_r);
         }
+
         // blinker 표시~~
         if (false) {
             painter.setOpacity(1.0);
@@ -1772,15 +1775,15 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 
         if (no_radar) {
             if (stop_dist > 0.5 && stopping) {
-                textColor = QColor(255, 255, 255, 255);
-                configFont(painter, "Inter", 45, "Bold");
+                // textColor = QColor(255, 255, 255, 255);
+                // configFont(painter, "Inter", 45, "Bold");
                 if (stop_dist < 10.0) str.sprintf("%.1f", stop_dist);
                 else str.sprintf("%.0f", stop_dist);
                 drawTextWithColor(painter, x, c_y + 120.0, str, textColor);
             }
             else if (longActiveUser > 0 && stopping) {
-                textColor = QColor(255, 255, 255, 255);
-                configFont(painter, "Inter", 40, "Bold");
+                // textColor = QColor(255, 255, 255, 255);
+                // configFont(painter, "Inter", 40, "Bold");
                 if (brake_hold || soft_hold) {
                     //drawTextWithColor(painter, x, c_y +120, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
                 }
@@ -1790,8 +1793,8 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             }
         }
         else if(disp_dist>0.0) {
-            textColor = QColor(255, 255, 255, 255);
-            configFont(painter, "Inter", 45, "Bold");
+            // textColor = QColor(255, 255, 255, 255);
+            // configFont(painter, "Inter", 45, "Bold");
             if (disp_dist < 10.0) str.sprintf("%.1f", disp_dist);
             else str.sprintf("%.0f", disp_dist);
             drawTextWithColor(painter, x, c_y + 120.0, str, textColor);
