@@ -1259,7 +1259,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     const int center_x = width() / 2;
     const int w = 80;
     const int h = 80;
-    const int gap = fb_w / 25;
+    const int gap = fb_w / 20;
     const int margin = 0 ; // (int)(fb_w / 3.8f);
     const int base_y = (height() - h) / 2 + 100;
     const int draw_count = 18;
@@ -1277,7 +1277,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
         p.setOpacity(alpha);
         float factor = 1.0; //(float)draw_count / (i + draw_count);
         p.drawPixmap(x - w, y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_l);
-        x -= gap + w;
+        x -= w + gap;
       }
     }
 
@@ -1292,7 +1292,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
         float factor = (float)draw_count / (i + draw_count);
         p.setOpacity(alpha);
         p.drawPixmap(x + margin, y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_r);
-        x += gap + w;
+        x += w - gap;
       }
     }
 
