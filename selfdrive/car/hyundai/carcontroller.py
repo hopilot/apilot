@@ -228,6 +228,8 @@ class CarController:
                 #CC.debugTextCC = "BTN:++,T:{:.1f},C:{:.1f}".format(target, current)
 
       CC.debugTextCC = "230218a"
+      if self.CP.carFingerprint in (CAR.GENESIS_G90_2019, CAR.GENESIS_G90, CAR.K7):
+        can_sends.append(hyundaican.create_mdps12(self.packer, self.frame, CS.mdps12))
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
         # TODO: unclear if this is needed

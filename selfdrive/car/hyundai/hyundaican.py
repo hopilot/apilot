@@ -341,3 +341,17 @@ def create_clu11_mdps(packer, frame, clu11, button, car_fingerprint, speed):
   values["CF_Clu_AliveCnt1"] = frame % 0x10
   values["CF_Clu_Vanz"] = speed
   return packer.make_can_msg("CLU11", 1, values)
+
+
+def create_mdps12(packer, frame, mdps12):
+  values = mdps12
+  values["CF_Mdps_ToiActive"] = 0
+  values["CF_Mdps_ToiUnavail"] = 1
+  values["CF_Mdps_MsgCount2"] = frame % 0x100
+  values["CF_Mdps_Chksum2"] = 0
+
+  dat = packer.make_can_msg("MDPS12", 2, values)[2]
+  checksum = sum(dat) % 256
+  values["CF_Mdps_Chksum2"] = checksum
+
+  return packer.make_can_msg("MDPS12", 2, values)
