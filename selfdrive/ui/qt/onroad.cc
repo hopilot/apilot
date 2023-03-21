@@ -1924,9 +1924,9 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         speed.sprintf("%.0f", cur_speed);
         configFont(painter, "Inter", 110, "Bold");
         painter.setOpacity(1.0);
-        drawTextWithColor(painter, bx, by+30, speed, color);
+        //drawTextWithColor(painter, bx, by+30, speed, color);  과녁아래 주행/설정 속도 표시는 복잡하니 없애자
 
-        painter.drawPixmap(bx - 100, by-60, 350, 150, ic_speed_bg);
+        //painter.drawPixmap(bx - 100, by-60, 350, 150, ic_speed_bg);
 
         //color = QColor(255, 255, 255, 255);
 #ifdef __TEST
@@ -1938,7 +1938,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         if (enabled && (longActiveUser > 0 || (longOverride && blinkerOn))) str.sprintf("%d", (int)(cruiseMaxSpeed + 0.5));
         else str = "--";
         color = QColor(0, 255, 0, 255);
-        drawTextWithColor(painter, bx+170, by+15, str, color);
+        //drawTextWithColor(painter, bx+170, by+15, str, color);
 
 #ifdef __TEST
         check_millis[5] = millis_since_boot();
@@ -2048,7 +2048,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     QColor textColor = whiteColor(255);
 
     float dxGap = -128 - 10 - 40;
-    drawTextWithColor(painter, x + dxGap + 20 + 20, y + 120, strDrivingMode, textColor);
+
     if (s->show_gap_info) {
 #ifdef __TEST
         static int _gap = 0;
@@ -2059,6 +2059,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         else if (_gap < 300) gap = 3;
         else gap = 4;
 #endif
+        drawTextWithColor(painter, x + dxGap + 20 + 20, y + 120, strDrivingMode, textColor); // GAP 정보랑 같이 토글 표시되게
         QRect rectGap(x + dxGap, y - 135, 80, 128);
         //painter.setPen(Qt::NoPen);
         painter.setPen(QPen(Qt::white, 2));
