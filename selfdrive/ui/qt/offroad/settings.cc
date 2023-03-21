@@ -1,23 +1,3 @@
-
-ajouatom
-/
-apilot
-Public
-Fork your own copy of ajouatom/apilot
-Code
-Issues
-Pull requests
-Projects
-Security
-Insights
-apilot/selfdrive/ui/qt/offroad/settings.cc
-@ajouatom
-ajouatom default params~
-Latest commit c50c4c6 6 hours ago
- History
- 1 contributor
-1056 lines (911 sloc)  50.9 KB
-
 #include "selfdrive/ui/qt/offroad/settings.h"
 
 #include <cassert>
