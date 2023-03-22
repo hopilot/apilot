@@ -1842,21 +1842,21 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 
         // kph
         //float applyMaxSpeed = controls_state.getVCruiseOut();// scc_smoother.getApplyMaxSpeed();
-        float cruiseMaxSpeed = controls_state.getVCruiseCluster();// scc_smoother.getCruiseMaxSpeed();
+        //float cruiseMaxSpeed = controls_state.getVCruiseCluster();// scc_smoother.getCruiseMaxSpeed();
         //float xCruiseTarget = lp.getXCruiseTarget() * 3.6;
 
         //bool is_cruise_set = (cruiseMaxSpeed > 0 && cruiseMaxSpeed < 255);
         //bool is_cruise_set = (applyMaxSpeed > 0 && applyMaxSpeed < 255);
         //int longActiveUser = controls_state.getLongActiveUser();
-        int longOverride = car_control.getLongOverride();
+        //int longOverride = car_control.getLongOverride();
 
         int sccBus = (int)car_params.getSccBus();
         int navCluster = (int)car_params.getNaviCluster();
 
-        int enabled = controls_state.getEnabled();
+        //int enabled = controls_state.getEnabled();
 
         int activeNDA = road_limit_speed.getActive();
-        int roadLimitSpeed = road_limit_speed.getRoadLimitSpeed();
+        //int roadLimitSpeed = road_limit_speed.getRoadLimitSpeed();
         int camLimitSpeed = road_limit_speed.getCamLimitSpeed();
         int camLimitSpeedLeftDist = road_limit_speed.getCamLimitSpeedLeftDist();
         int sectionLimitSpeed = road_limit_speed.getSectionLimitSpeed();
@@ -1920,71 +1920,71 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             drawTextWithColor(painter, top_str.length() / 2 * 35 / 2 + 50, 40, top_str, color);
         }
 
-        int bx = x;
-        int by = y + 270;
+//         int bx = x;
+//         int by = y + 270;
 
-        QString speed, str;
-        speed.sprintf("%.0f", cur_speed);
-        configFont(painter, "Inter", 110, "Bold");
-        painter.setOpacity(1.0);
-        //drawTextWithColor(painter, bx, by+30, speed, color);  과녁아래 주행/설정 속도 표시는 복잡하니 없애자
+//         QString speed, str;
+//         speed.sprintf("%.0f", cur_speed);
+//         configFont(painter, "Inter", 110, "Bold");
+//         painter.setOpacity(1.0);
+//         //drawTextWithColor(painter, bx, by+30, speed, color);  과녁아래 주행/설정 속도 표시는 복잡하니 없애자
 
-        //painter.drawPixmap(bx - 100, by-60, 350, 150, ic_speed_bg);
+//         //painter.drawPixmap(bx - 100, by-60, 350, 150, ic_speed_bg);
 
-        //color = QColor(255, 255, 255, 255);
-#ifdef __TEST
-        cruiseMaxSpeed = 110;
-        enabled = true;
-        longActiveUser = 2;
-#endif
-        configFont(painter, "Inter", 60, "Bold");
-        if (enabled && (longActiveUser > 0 || (longOverride && blinkerOn))) str.sprintf("%d", (int)(cruiseMaxSpeed + 0.5));
-        else str = "--";
-        color = QColor(0, 255, 0, 255);
-        //drawTextWithColor(painter, bx+170, by+15, str, color);
+//         //color = QColor(255, 255, 255, 255);
+// #ifdef __TEST
+//         cruiseMaxSpeed = 110;
+//         enabled = true;
+//         longActiveUser = 2;
+// #endif
+//         configFont(painter, "Inter", 60, "Bold");
+//         if (enabled && (longActiveUser > 0 || (longOverride && blinkerOn))) str.sprintf("%d", (int)(cruiseMaxSpeed + 0.5));
+//         else str = "--";
+//         color = QColor(0, 255, 0, 255);
+//         //drawTextWithColor(painter, bx+170, by+15, str, color);
 
-#ifdef __TEST
-        check_millis[5] = millis_since_boot();
-#endif
-        color = QColor(255, 255, 255, 255);
-        QColor blackColor = QColor(0, 0, 0, 230);
-        bx = x - 200;
-        by = y + 250;
-        if (limit_speed > 0) {
-            QRect rectLimit(bx - 70, by - 70, 140, 140);
-            painter.setBrush(QBrush(Qt::white));
-            painter.drawEllipse(rectLimit);
-            int padding = 10;
-            rectLimit.adjust(padding, padding, -padding, -padding);
-            painter.setBrush(Qt::NoBrush);
-            painter.setPen(QPen(Qt::red, 12));
-            painter.drawEllipse(rectLimit);
-            configFont(painter, "Inter", 60, "Bold");
-            str.sprintf("%d", limit_speed);
-            drawTextWithColor(painter, bx, by + 20, str, blackColor);
-            if (left_dist > 0) {
-                configFont(painter, "Inter", 40, "Bold");
-                if (left_dist < 1000) str.sprintf("%d m", left_dist);
-                else  str.sprintf("%.1f km", left_dist / 1000.f);
-                drawTextWithColor(painter, bx, by + 120, str, color);
-            }
-        }
-        else if (roadLimitSpeed > 0 && roadLimitSpeed < 200) {
-            QRect rect(bx - 70, by - 80, 140, 170);
-            painter.setBrush(QBrush(Qt::white));
-            painter.drawRoundedRect(rect, 16, 16);
-            int padding = 10;
-            rect.adjust(padding, padding, -padding, -padding);
-            painter.setBrush(Qt::NoBrush);
-            painter.setPen(QPen(Qt::black, padding));
-            painter.drawRoundedRect(rect, 8, 8);
+// #ifdef __TEST
+//         check_millis[5] = millis_since_boot();
+// #endif
+//         color = QColor(255, 255, 255, 255);
+//         QColor blackColor = QColor(0, 0, 0, 230);
+//         bx = x - 200;
+//         by = y + 250;
+//         if (limit_speed > 0) {
+//             QRect rectLimit(bx - 70, by - 70, 140, 140);
+//             painter.setBrush(QBrush(Qt::white));
+//             painter.drawEllipse(rectLimit);
+//             int padding = 10;
+//             rectLimit.adjust(padding, padding, -padding, -padding);
+//             painter.setBrush(Qt::NoBrush);
+//             painter.setPen(QPen(Qt::red, 12));
+//             painter.drawEllipse(rectLimit);
+//             configFont(painter, "Inter", 60, "Bold");
+//             str.sprintf("%d", limit_speed);
+//             drawTextWithColor(painter, bx, by + 20, str, blackColor);
+//             if (left_dist > 0) {
+//                 configFont(painter, "Inter", 40, "Bold");
+//                 if (left_dist < 1000) str.sprintf("%d m", left_dist);
+//                 else  str.sprintf("%.1f km", left_dist / 1000.f);
+//                 drawTextWithColor(painter, bx, by + 120, str, color);
+//             }
+//         }
+//         else if (roadLimitSpeed > 0 && roadLimitSpeed < 200) {
+//             QRect rect(bx - 70, by - 80, 140, 170);
+//             painter.setBrush(QBrush(Qt::white));
+//             painter.drawRoundedRect(rect, 16, 16);
+//             int padding = 10;
+//             rect.adjust(padding, padding, -padding, -padding);
+//             painter.setBrush(Qt::NoBrush);
+//             painter.setPen(QPen(Qt::black, padding));
+//             painter.drawRoundedRect(rect, 8, 8);
 
-            str.sprintf("%d", roadLimitSpeed);
-            configFont(painter, "Inter", 35, "Bold");
-            drawTextWithColor(painter, bx, by - 10, "LIMIT", blackColor);
-            configFont(painter, "Inter", 50, "Bold");
-            drawTextWithColor(painter, bx, by + 50, str, blackColor);
-        }
+//             str.sprintf("%d", roadLimitSpeed);
+//             configFont(painter, "Inter", 35, "Bold");
+//             drawTextWithColor(painter, bx, by - 10, "LIMIT", blackColor);
+//             configFont(painter, "Inter", 50, "Bold");
+//             drawTextWithColor(painter, bx, by + 50, str, blackColor);
+//         }
     }
     
     // Tpms...
