@@ -1178,8 +1178,8 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   configFont(p, "Open Sans", 50, "Bold");
   str.sprintf("%d%%", BatPer);
   rect = QRect(x, y, w, w);
-  int r = interp<float>(BatPer, {90.f, 20.f}, {50.f, 255.f}, false);
-  int g = interp<float>(BatPer, {90.f, 20.f}, {255.f, 50.f}, false);
+  int r = interp<float>(BatPer, {20.f, 90.f}, {255.f, 50.f}, false);
+  int g = interp<float>(BatPer, {20.f, 90.f}, {50.f, 255.f}, false);
   p.setPen(QColor(r, g, 0, 200));
   p.drawText(rect, Qt::AlignCenter, str);
 
@@ -1223,8 +1223,8 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   configFont(p, "Inter", 50, "Bold");
   str.sprintf("%.0f%%", freeSpacePercent);
   rect = QRect(x, y, w, w);
-  r = interp<float>(freeSpacePercent, {90.f, 20.f}, {50.f, 255.f}, false);
-  g = interp<float>(freeSpacePercent, {90.f, 20.f}, {255.f, 50.f}, false);
+  r = interp<float>(freeSpacePercent, {20.f, 90.f}, {255.f, 50.f}, false);
+  g = interp<float>(freeSpacePercent, {20.f, 90.f}, {50.f, 255.f}, false);
   p.setPen(QColor(r, g, 0, 200));
   p.drawText(rect, Qt::AlignCenter, str);
 
