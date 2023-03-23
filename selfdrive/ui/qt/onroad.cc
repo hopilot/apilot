@@ -1259,14 +1259,11 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     bool right_on = car_state.getRightBlinker();
 
     const float img_alpha = 1.0f;
-    const int fb_w = width() / 2 - 200;
     const int center_x = width() / 2;
     const int w = 80;
     const int h = 80;
-    const int gap = fb_w / 20;
-    const int margin = 0 ; // (int)(fb_w / 3.8f);
     const int base_y = (height() - h) / 2 + 100;
-    const int draw_count = 18;
+    const int draw_count = 20;
 
     int x = center_x;
     int y = base_y + 20;
@@ -1276,12 +1273,12 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
         float alpha = img_alpha;
         int d = std::abs(blink_index - i);
         if(d > 0)
-          alpha /= d*1.1;
+          alpha /= d*0.5;
 
         p.setOpacity(alpha);
-        float factor = 1.0; //(float)draw_count / (i + draw_count);
-        p.drawPixmap(x - w, y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_l);
-        x -= w + gap;
+        float factor = (float)draw_count / (i + draw_count);
+        p.drawPixmap(x , y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_l);
+        x -= 45 * factor;
       }
     }
 
@@ -1291,12 +1288,12 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
         float alpha = img_alpha;
         int d = std::abs(blink_index - i);
         if(d > 0)
-          alpha /= d*1.1;
+          alpha /= d*0.5;
 
         float factor = (float)draw_count / (i + draw_count);
         p.setOpacity(alpha);
-        p.drawPixmap(x + margin, y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_r);
-        x += w - gap;
+        p.drawPixmap(x , y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_r);
+        x += 45 * factor; 
       }
     }
 
