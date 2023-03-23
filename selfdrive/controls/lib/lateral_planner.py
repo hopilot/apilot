@@ -39,7 +39,6 @@ class LateralPlanner:
     self.lateralMotionCost = float(int(Params().get("LateralMotionCost", encoding="utf8")))*0.01
     self.lateralAccelCost = float(int(Params().get("LateralAccelCost", encoding="utf8")))*0.01
     self.lateralJerkCost = float(int(Params().get("LateralJerkCost", encoding="utf8")))*0.01
-    self.lateralTestMode = int(Params().get("LateralTestMode", encoding="utf8"))
     self.useLaneLineSpeed = float(int(Params().get("UseLaneLineSpeed", encoding="utf8")))
 
     self.useLaneLineMode = False
@@ -79,7 +78,6 @@ class LateralPlanner:
       self.lateralMotionCost = float(int(Params().get("LateralMotionCost", encoding="utf8")))*0.01
       self.lateralAccelCost = float(int(Params().get("LateralAccelCost", encoding="utf8")))*0.01
       self.lateralJerkCost = float(int(Params().get("LateralJerkCost", encoding="utf8")))*0.01
-      self.lateralTestMode = int(Params().get("LateralTestMode", encoding="utf8"))
 
     # clip speed , lateral planning is not possible at 0 speed
     measured_curvature = sm['controlsState'].curvature
@@ -152,15 +150,9 @@ class LateralPlanner:
                              self.lateralAccelCost, self.lateralJerkCost,
                              self.steeringRateCost)
 
-    if self.lateralTestMode == 1:
-      d_path_xyz = self.path_xyz
-      y_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(d_path_xyz, axis=1), d_path_xyz[:, 1])
-      heading_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw)
-      yaw_rate_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw_rate)
-    else:
-      y_pts = self.path_xyz[:LAT_MPC_N+1, 1]
-      heading_pts = self.plan_yaw[:LAT_MPC_N+1]
-      yaw_rate_pts = self.plan_yaw_rate[:LAT_MPC_N+1]
+    y_pts = self.path_xyz[:LAT_MPC_N+1, 1]
+    heading_pts = self.plan_yaw[:LAT_MPC_N+1]
+    yaw_rate_pts = self.plan_yaw_rate[:LAT_MPC_N+1]
     self.y_pts = y_pts
 
     assert len(y_pts) == LAT_MPC_N + 1

@@ -308,7 +308,6 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "LateralMotionCost", PERSISTENT },
     { "LateralAccelCost", PERSISTENT },
     { "LateralJerkCost", PERSISTENT },
-    { "LateralTestMode", PERSISTENT },
     { "SteerDeltaUp", PERSISTENT },
     { "SteerDeltaDown", PERSISTENT },
 };
