@@ -361,10 +361,10 @@ AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* par
   ic_steer_yellow = QPixmap("../assets/images/steer_yellow.png");
   ic_lane_change_l = QPixmap("../assets/images/lane_change_l.png");
   ic_lane_change_r = QPixmap("../assets/images/lane_change_r.png");
-  ic_lane_change_inhibit = QPixmap("../assets/images/stopman.png");  //lane_change_inhibit.png");
-  ic_lane_change_steer = QPixmap("../assets/images/steer_green.png"); //lane_change_steer.png");
-  ic_bsd_l = QPixmap("../assets/images/stopman.png");  //bsd_l.png");
-  ic_bsd_r = QPixmap("../assets/images/stopman.png");  //bsd_r.png");
+  ic_lane_change_inhibit = QPixmap("../assets/images/lane_change_inhibit.png");
+  ic_lane_change_steer = QPixmap("../assets/images/lane_change_steer.png");
+  ic_bsd_l = QPixmap("../assets/images/bsd_l.png");
+  ic_bsd_r = QPixmap("../assets/images/bsd_r.png");
   ic_turn_l = QPixmap("../assets/images/turn_l.png");
   ic_turn_r = QPixmap("../assets/images/turn_r.png");
   ic_blinker_l = QPixmap("../assets/images/blink_l.png");
