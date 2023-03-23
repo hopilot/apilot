@@ -1733,15 +1733,31 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             radar_rel_speed = 20.0;
 #endif
             str.sprintf("%.0f km/h", cur_speed + radar_rel_speed * 3.6);
-            if (radar_rel_speed < -0.1) textColor = QColor(255, 0, 0, 255);
-            else if (radar_rel_speed > 0.1) textColor = QColor(0, 255, 0, 255);
-            else textColor = QColor(255, 255, 255, 255);
+            if (radar_rel_speed < -0.1) bgColor = redColor(200);
+            else if (radar_rel_speed > 0.1) bgColor = greenColor(200);
+            else bgColor = blackColor(120);
             configFont(painter, "Inter", 40, "Bold");
             if (s->show_steer_mode >= 2) {
-                drawTextWithColor(painter, path_x, (path_y > height() - 400)? height() - 400 : path_y - 40, str, textColor);
+                int radar_y = (path_y > height() - 400) ? height() - 400 : path_y - 40;
+                QRect rectRadar(path_x - 250 / 2, radar_y - 35, 250, 45);
+                painter.setPen(Qt::NoPen);
+                painter.setBrush(bgColor);
+                painter.drawRoundedRect(rectRadar, 15, 15);
+                configFont(painter, "Inter", 40, "Bold");
+                textColor = whiteColor(255);
+
+                drawTextWithColor(painter, path_x, radar_y, str, textColor);
             }
-            else
-                drawTextWithColor(painter, x, y - 140, str, textColor);
+            else {
+                int radar_y = y - 140;
+                QRect rectRadar(x - 250 / 2, radar_y - 35, 250, 45);
+                painter.setPen(Qt::NoPen);
+                painter.setBrush(bgColor);
+                painter.drawRoundedRect(rectRadar, 15, 15);
+                configFont(painter, "Inter", 40, "Bold");
+                textColor = whiteColor(255);
+                drawTextWithColor(painter, x, radar_y, str, textColor);
+            }
         }
         painter.setOpacity(0.7);
         painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, (no_radar) ? ic_radar_no : (radar_detected) ? ic_radar : ic_radar_vision);
