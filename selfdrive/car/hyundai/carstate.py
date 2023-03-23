@@ -228,6 +228,7 @@ class CarState(CarStateBase):
     self.prev_cruise_buttons = self.cruise_buttons[-1]
     self.cruise_buttons.extend(cp.vl_all["CLU11"]["CF_Clu_CruiseSwState"])
     self.main_buttons.extend(cp.vl_all["CLU11"]["CF_Clu_CruiseSwMain"])
+    self.mdps12 = copy.copy(cp.vl["MDPS12"])
     tpms_unit = cp.vl["TPMS11"]["UNIT"] * 0.725 if int(cp.vl["TPMS11"]["UNIT"]) > 0 else 1.
     ret.tpms.fl = tpms_unit * cp.vl["TPMS11"]["PRESSURE_FL"]
     ret.tpms.fr = tpms_unit * cp.vl["TPMS11"]["PRESSURE_FR"]
@@ -412,9 +413,15 @@ class CarState(CarStateBase):
       ("AVH_LAMP", "TCS15"),
 
       ("CR_Mdps_StrColTq", "MDPS12"),
+      ("CF_Mdps_Def", "MDPS12"),
       ("CF_Mdps_ToiActive", "MDPS12"),
       ("CF_Mdps_ToiUnavail", "MDPS12"),
       ("CF_Mdps_ToiFlt", "MDPS12"),
+      ("CF_Mdps_MsgCount2", "MDPS12"),
+      ("CF_Mdps_Chksum2", "MDPS12"),
+      ("CF_Mdps_SErr", "MDPS12"),
+      ("CR_Mdps_StrTq", "MDPS12"),
+      ("CF_Mdps_FailStat", "MDPS12"),
       ("CR_Mdps_OutTq", "MDPS12"),
 
       ("SAS_Angle", "SAS11"),
