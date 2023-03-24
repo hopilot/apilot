@@ -219,6 +219,7 @@ def gen_long_ocp():
   ocp.code_export_directory = EXPORT_DIR
   return ocp
 
+
 class LongitudinalMpc:
   def __init__(self, mode='acc'):
     self.mode = mode
@@ -256,6 +257,7 @@ class LongitudinalMpc:
     self.xState = XState.cruise
     self.xStop = 0.0
     self.e2ePaused = False
+    self.trafficError = False
     self.longActiveUser = 0
     self.cruiseButtonCounter = 0
     self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
@@ -497,13 +499,19 @@ class LongitudinalMpc:
         startSign = model_v > 5.0 or model_v > (v[0]+2)
         stopSign = v_ego_kph<80.0 and model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.70)) and abs(y[N]) < 5.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
 
-        self.startSignCount = self.startSignCount + 1 if startSign else 0
         ## 현재속도로 정지가 가능한경우에만 신호인식하도록 해보자~, stop_distance는 신호정지시 model_x가 0이므로... 이것도 인지하도록 함.
         self.stopSignCount = self.stopSignCount + 1 if (stopSign and (model_x > get_safe_obstacle_distance(v_ego,t_follow=0, comfort_brake=COMFORT_BRAKE, stop_distance=-1.0))) else 0 
+
+        ## 방금 startSign이 잠깐들어오고 StopSign이 들어오면.... 신호감지 오류...
+        if 0.0 < self.startSignCount*DT_MDL < 0.3 and stopSign:
+          if v_ego < 0.1 and self.xState == XState.e2eStop and not self.e2ePaused:
+            self.trafficError = True
+        self.startSignCount = self.startSignCount + 1 if startSign else 0
 
         # trafficState: 2:StartSign, 1:StopSign, 0: Ignore
         # self.trafficState = 1 if self.stopSignCount * DT_MDL > 0.3 else 2 if self.startSignCount * DT_MDL > 0.3 else 0
         # 신호등의 상태를 과거값을 기억하고 있으면 어떨까?
+
         if self.stopSignCount * DT_MDL > 0.3 and carstate.rightBlinker == False:
            self.trafficState = 1 
         elif self.startSignCount * DT_MDL > 0.3:
@@ -520,7 +528,8 @@ class LongitudinalMpc:
         model_x = self.xStop
 
         if self.e2ePaused:
-          self.trafficState += 100  # 이렇게하면.... 이벤트발생이 안됨...
+          self.trafficState |= 100  # 이렇게하면.... 이벤트발생이 안됨...
+          self.trafficError = False
 
         # SOFT_HOLD: 기능
         if carstate.brakePressed and v_ego < 0.1 and self.softHoldMode > 0:  
@@ -528,6 +537,7 @@ class LongitudinalMpc:
           if self.softHoldTimer*DT_MDL >= 0.7: 
             self.xState = XState.softHold
             self.e2ePaused = False
+            self.trafficError = 0
         else:
           self.softHoldTimer = 0
 
@@ -538,9 +548,11 @@ class LongitudinalMpc:
             v_cruise = 0.0
           if radarstate.leadOne.status and (radarstate.leadOne.dRel - model_x) < 2.0:
             self.xState = XState.lead
-          elif self.trafficState == 2:  # 출발신호
-            self.xState = XState.e2eCruise
-            self.e2ePaused = True #출발신호가 나오면 이때부터 신호무시하자... 출발후 정지하는 경우가 생김..
+          elif self.trafficState == 2:
+            if not self.trafficError or (self.trafficError and cruiseButtonCounterDiff > 0):  # 출발신호
+              self.xState = XState.e2eCruise
+              self.e2ePaused = True #출발신호가 나오면 이때부터 신호무시하자... 출발후 정지하는 경우가 생김..
+              self.trafficError = False
           if carstate.gasPressed: # or cruiseButtonCounterDiff>0:       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
             self.xState = XState.e2eCruise
             self.e2ePaused = True
@@ -555,6 +567,7 @@ class LongitudinalMpc:
             self.e2ePaused = False
         #E2E_CRUISE: 주행상태.
         else:
+          self.trafficError = False
           if self.status:
             self.xState = XState.lead
           elif self.trafficState == 1 and not self.e2ePaused and not carstate.gasPressed:                 #신호인식이 되면 정지모드
@@ -567,6 +580,7 @@ class LongitudinalMpc:
       else:
         self.xState = XState.cruise
         self.trafficState = 0
+        self.trafficError = False
 
       fakeCruiseDistance = 0.0
 

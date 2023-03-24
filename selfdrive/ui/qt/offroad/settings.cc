@@ -687,7 +687,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("HapticFeedbackWhenSpeedCamera", "핸들햅틱기능사용", "0:사용안함,1:진동,2:계기판,3:HUD표시", "../assets/offroad/icon_road.png", 0, 3, 1));
   toggleLayout->addWidget(new CValueControl("SoftHoldMode", "소프트오토홀드기능(1)", "0:사용안함,1:사용,2:SCC제어와함께사용(단,사이드가 걸리는 차량이 있음)", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(horizontal_line());
-  toggleLayout->addWidget(new CValueControl("ShowHudMode", "화면:표시모드", "0:일반,1:APILOT", "../assets/offroad/icon_shell.png", 0, 1, 1));
+  toggleLayout->addWidget(new CValueControl("ShowHudMode", "화면:표시모드", "0:일반,1:APilot,2:APilot하단고정", "../assets/offroad/icon_shell.png", 0, 2, 1));
   toggleLayout->addWidget(new ParamControl("ShowDebugUI", "화면:디버그정보", "", "../assets/offroad/icon_shell.png", this));
   toggleLayout->addWidget(new CValueControl("ShowDateTime", "화면:시간정보", "0:표시안함,1:시간/날짜표시,2:시간표시,3:날짜표시", "../assets/offroad/icon_shell.png", 0, 3, 1));
   toggleLayout->addWidget(new CValueControl("ShowSteerRotate", "화면:핸들회전", "0:안함,1:회전함", "../assets/offroad/icon_shell.png", 0, 1, 1));
@@ -732,7 +732,6 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("LateralAccelCost", "횡컨: LateralAccelCost(0)", "", "../assets/offroad/icon_road.png", 0, 300, 1));
     toggleLayout->addWidget(new CValueControl("LateralMotionCost", "횡컨: LateralMotionCost(11)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
     toggleLayout->addWidget(new CValueControl("LateralJerkCost", "횡컨: LateralJerkCost(4)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
-    toggleLayout->addWidget(new CValueControl("LateralTestMode", "횡컨: LateralTestMode(0)", "", "../assets/offroad/icon_road.png", 0, 1, 1));
     toggleLayout->addWidget(new CValueControl("SteerActuatorDelay", "횡컨:SteerActuatorDelay(30)", "표준", "../assets/offroad/icon_road.png", 0, 100, 1));
     toggleLayout->addWidget(new CValueControl("SteerActuatorDelayMid", "횡컨:SteerActuatorDelayMid(30)", "50km/h", "../assets/offroad/icon_road.png", 0, 200, 1));
     toggleLayout->addWidget(new CValueControl("SteerActuatorDelayLow", "횡컨:SteerActuatorDelayLow(30)", "0km/h", "../assets/offroad/icon_road.png", 0, 200, 1));

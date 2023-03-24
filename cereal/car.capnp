@@ -122,6 +122,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     trafficSignChanged @119; #ajouatom
     autoHold @120; #ajouatom
     trafficStopping @121; #ajouatom
+    trafficError @122; #ajouatom
+    laneChangeRoadEdge @123; #ajouatom
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
     radarCommIssueDEPRECATED @67;
@@ -453,6 +455,8 @@ struct CarControl {
       autoHold @15;
       engage2 @16;
       disengage2 @17;
+      trafficError @18;
+      bsdWarning @19;
       
     }
   }

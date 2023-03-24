@@ -15,6 +15,7 @@ from selfdrive.car.isotp_parallel_query import IsoTpParallelQuery
 from common.filter_simple import StreamingMovingAverage
 from cereal import log
 
+
 from selfdrive.road_speed_limiter import road_speed_limiter_get_max_speed, road_speed_limiter_get_active, \
   get_road_speed_limiter
 #import common.loger as trace1
@@ -45,6 +46,7 @@ XState = log.LongitudinalPlan.XState
 ## 국가법령정보센터: 도로설계기준
 V_CURVE_LOOKUP_BP = [0., 1./670., 1./560., 1./440., 1./360., 1./265., 1./190., 1./135., 1./85., 1./55., 1./30., 1./15.]
 V_CRUVE_LOOKUP_VALS = [300, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20]
+
 
 class CruiseHelper:
 
@@ -78,7 +80,7 @@ class CruiseHelper:
     self.trafficSignedFrame = 0
 
     self.update_params_count = 0
-    self.curvatureFilter = StreamingMovingAverage(10)    
+    self.curvatureFilter = StreamingMovingAverage(10)
 
     self.longCruiseGap = int(Params().get("PrevCruiseGap"))
     self.cruiseSpeedMin = int(Params().get("CruiseSpeedMin"))
@@ -173,6 +175,7 @@ class CruiseHelper:
         self.autoNaviSpeedCtrlEnd = float(Params().get("AutoNaviSpeedCtrlEnd"))
       elif self.update_params_count == 16:
         self.autoCurveSpeedIndex = int(Params().get("AutoCurveSpeedIndex"))
+
 
   def getSteerActuatorDelay(self, v_ego):
     v_ego_kph = v_ego * 3.6
@@ -428,6 +431,7 @@ class CruiseHelper:
     #    #v_cruise_kph = min(v_ego_kph_set, v_cruise_kph) # 레이더가 갑자기 사라지는 경우 현재속도로 세트함.
     
     trafficState = (controls.sm['longitudinalPlan'].trafficState % 100)
+    trafficError = controls.sm['longitudinalPlan'].trafficState >= 1000
     if self.longActiveUser>0:
       if xState != self.xState and xState == XState.softHold:
         controls.events.add(EventName.autoHold)
@@ -442,6 +446,11 @@ class CruiseHelper:
         if (frame - self.trafficSignedFrame)*DT_CTRL > 20.0: # 알리고 20초가 지나면 알리자.
           controls.events.add(EventName.trafficStopping)
           self.trafficSignedFrame = frame
+      elif trafficError:
+        if (frame - self.trafficSignedFrame)*DT_CTRL > 20.0: 
+          controls.events.add(EventName.trafficError)
+          self.trafficSignedFrame = frame
+
 
     self.trafficState = trafficState
     self.dRel = dRel
@@ -662,4 +671,3 @@ def enable_radar_tracks(CP, logcan, sendcan):
         print("Failed to enable tracks" + str(e))
   print("END Try to enable radar tracks")
   # END try to enable radar tracks
-

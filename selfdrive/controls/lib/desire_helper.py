@@ -127,7 +127,7 @@ class DesireHelper:
         self.desireEvent = 0
         self.lane_change_direction = LaneChangeDirection.none
         self.turnControlState = False
-        if one_blinker and (not self.prev_one_blinker or v_ego_kph < 4 or steering_pressed):  ##깜박이가 켜진시점에 검사, 정지상태에서는 lat_active가 아님. 깜박이켠방향으로 핸들을 돌림.
+        if one_blinker and (not self.prev_one_blinker or v_ego_kph < 4): # or steering_pressed):  ##깜박이가 켜진시점에 검사, 정지상태에서는 lat_active가 아님. 깜박이켠방향으로 핸들을 돌림(x).
           # 정지상태, 출발할때
           if v_ego_kph < 4.0:
             if self.autoTurnControl > 0: 
@@ -207,7 +207,7 @@ class DesireHelper:
               self.desireEvent = EventName.laneChangeBlocked
               self.waitTorqueApplied = True
             elif road_edge_detected: # BSD 또는 road_edge검출이 안되면 차선변경 시작.
-              self.desireEvent = EventName.laneChangeBlocked
+              self.desireEvent = EventName.laneChangeRoadEdge
             elif not self.waitTorqueApplied:
               self.lane_change_state = LaneChangeState.laneChangeStarting
 

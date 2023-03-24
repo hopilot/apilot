@@ -232,6 +232,8 @@ class LongitudinalPlanner:
     longitudinalPlan.debugLongText2 = self.mpc.debugLongText2
     longitudinalPlan.trafficState = self.mpc.trafficState
     longitudinalPlan.xState = self.mpc.xState
+    if self.mpc.trafficError:
+      longitudinalPlan.trafficState = self.mpc.trafficState + 1000
     longitudinalPlan.xStop = float(self.mpc.xStop)
     longitudinalPlan.tFollow = float(self.mpc.t_follow)
     longitudinalPlan.cruiseGap = int(self.mpc.applyCruiseGap)

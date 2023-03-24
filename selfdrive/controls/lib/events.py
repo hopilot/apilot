@@ -534,8 +534,18 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       "",
       AlertStatus.userPrompt, AlertSize.none,
       #Priority.LOW, VisualAlert.none, AudibleAlert.prompt, .1),
-      Priority.LOW, VisualAlert.none, AudibleAlert.prompt, .1),
+      Priority.LOW, VisualAlert.none, AudibleAlert.bsdWarning, .1),
   },
+
+  EventName.laneChangeRoadEdge: {
+    ET.WARNING: Alert(
+      "Car Detected in Blindspot or RoadEdge",
+      "",
+      AlertStatus.userPrompt, AlertSize.none,
+      #Priority.LOW, VisualAlert.none, AudibleAlert.prompt, .1),
+      Priority.LOW, VisualAlert.none, AudibleAlert.none, .1),
+  },
+  
 
   EventName.laneChange: {
     ET.WARNING: Alert(
@@ -988,6 +998,9 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       "",
       AlertStatus.normal, AlertSize.small,
       Priority.LOW, VisualAlert.none, AudibleAlert.autoHold, 3.),
+  },
+  EventName.trafficError: {
+     ET.WARNING: EngagementAlert(AudibleAlert.trafficError),
   },
   EventName.trafficStopping: {
     ET.WARNING: EngagementAlert(AudibleAlert.stopping),
