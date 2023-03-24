@@ -175,7 +175,7 @@ class LateralMpc():
     for i in range(N):
       self.solver.cost_set(i, "yref", self.yref[i])
       self.solver.set(i, "p", p_cp if lateralTestMode==1 else p_cp[i])
-    self.solver.set(N, "p", p_cp if lateralTestMode== else p_cp[N])
+    self.solver.set(N, "p", p_cp if lateralTestMode==1 else p_cp[N])
     self.solver.cost_set(N, "yref", self.yref[N][:COST_E_DIM])
 
     t = sec_since_boot()
