@@ -92,7 +92,7 @@ class LateralPlanner:
       self.t_idxs = np.array(md.position.t)
       self.plan_yaw = np.array(md.orientation.z)
       self.plan_yaw_rate = np.array(md.orientationRate.z)
-      if self.lateralTestMode == 1:
+      if self.lateralTestMode == 0:
         self.velocity_xyz = np.column_stack([md.velocity.x, md.velocity.y, md.velocity.z])
         car_speed = np.linalg.norm(self.velocity_xyz, axis=1) 
         self.v_plan = np.clip(car_speed, MIN_SPEED, np.inf)
@@ -168,7 +168,7 @@ class LateralPlanner:
     assert len(y_pts) == LAT_MPC_N + 1
     assert len(heading_pts) == LAT_MPC_N + 1
     assert len(yaw_rate_pts) == LAT_MPC_N + 1
-
+    
     if self.lateralTestMode == 1:
       lateral_factor = max(0, self.factor1 - (self.factor2 * self.v_ego**2))
       p = np.array([self.v_ego, lateral_factor])
