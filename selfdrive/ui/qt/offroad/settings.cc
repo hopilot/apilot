@@ -741,7 +741,7 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("JerkUpperLowerLimit", "롱컨: JERK값(8)", "값이 커지면 가감속반응이 빨라지지만, 기분이 안좋음.", "../assets/offroad/icon_road.png", 5, 50, 1));
     toggleLayout->addWidget(new CValueControl("LongitudinalTuningKf", "롱컨: FF게인(110%)", "(시험용) ACCEL을 좀 더 강력하게 적용합니다.", "../assets/offroad/icon_road.png", 100, 120, 1));
     toggleLayout->addWidget(new CValueControl("LongitudinalTuningKpV", "롱컨: P게인(100)", "(시험용) ", "../assets/offroad/icon_road.png", 50, 150, 1));
-    toggleLayout->addWidget(new CValueControl("LongitudinalTuningKiV", "롱컨: I게인(200)", "(시험용) ", "../assets/offroad/icon_road.png", 0, 600, 5));
+    toggleLayout->addWidget(new CValueControl("LongitudinalTuningKiV", "롱컨: I게인(200)", "(시험용) ", "../assets/offroad/icon_road.png", 0, 2000, 5));
     toggleLayout->addWidget(new CValueControl("StartAccelApply", "가속초기속도2.0x(0%)", "정지->출발시 가속도의 가속율을 지정합니다 0: 사용안함.", "../assets/offroad/icon_road.png", 0, 100, 10));
     toggleLayout->addWidget(new CValueControl("StopAccelApply", "정지유지브레이크-2.0x(30%)", "정지유지시 브레이크압을 조정합니다. 0: 사용안함. ", "../assets/offroad/icon_road.png", 0, 100, 10));
     toggleLayout->addWidget(horizontal_line());

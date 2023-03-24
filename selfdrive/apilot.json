@@ -264,10 +264,10 @@
     {
       "group": "주행튜닝",
       "name": "LongitudinalTuningKiV",
-      "title": "KiV게인(0)",
+      "title": "KiV게인(200)",
       "descr": "정지중에만 반영(시험용)",
       "min": 0,
-      "max": 200,
+      "max": 2000,
       "default": 0,
       "unit": 1
     },
