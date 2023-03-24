@@ -66,6 +66,8 @@ class HyundaiFlags(IntFlag):
   CANFD_CAMERA_SCC = 8
 
   ALT_LIMITS = 16
+  SEND_LFA = 128
+  USE_FCA = 256
 
 
 class CAR:
