@@ -505,7 +505,7 @@
       "group": "화면",
       "name": "ShowDateTime",
       "title": "시간정보표시",
-      "descr": "",
+      "descr": "0:표시없음,1:시간/날짜,2:시간,3:날짜",
       "min": 0,
       "max": 3,
       "default": 1,
