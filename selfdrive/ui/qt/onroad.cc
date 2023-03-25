@@ -370,6 +370,8 @@ AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* par
   ic_blinker_l = QPixmap("../assets/images/blink_l.png");
   ic_blinker_r = QPixmap("../assets/images/blink_r.png");
   ic_speed_bg = QPixmap("../assets/images/speed_bg.png");
+  ic_traffic_green = QPixmap("../assets/images/traffic_green.png");
+  ic_traffic_red = QPixmap("../assets/images/traffic_red.png");
 
 }
 
@@ -1620,10 +1622,12 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             case 1: trafficMode = 1;    // red
                 stop_dist = lp.getXStop();
                 stopping = true;
-                //painter.drawPixmap(400, 400, 350, 350, ic_stopman);
+                if (s->show_mode == 2) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_traffic_green);
                 showBg = true;
                 break;
-            case 2: trafficMode = 2; break; // green // 표시안함.
+            case 2: trafficMode = 2; 
+                painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_traffic_green);
+                break; // green // 표시안함.
             case 3: trafficMode = 3; showBg = true; break; // yellow
             }
         }
@@ -1795,7 +1799,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
                 else str.sprintf("%.0f", stop_dist);
                 drawTextWithColor(painter, x, y + 120.0, str, textColor);
             }
-            else if (longActiveUser > 0 && stopping) {
+            else if (longActiveUser > 0 && (stopping|| lp.getTrafficState() >= 1000)) {
                 textColor = QColor(255, 255, 255, 255);
                 configFont(painter, "Inter", 40, "Bold");
                 if (brake_hold || soft_hold) {
@@ -1837,6 +1841,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 
     float dxGap = -128 - 10 - 40;
     drawTextWithColor(painter, x + dxGap + 15, y + 120, strDrivingMode, textColor);
+    dxGap -= 60;
     if (s->show_gap_info) {
 #ifdef __TEST
         static int _gap = 0;
@@ -1846,22 +1851,22 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         else if (_gap < 200) gap = 2;
         else gap = 3;
 #endif
-        QRect rectGap(x + dxGap, y - 135, 40, 128);
+        QRect rectGap(x + dxGap, y, 40, 128);
         //painter.setPen(Qt::NoPen);
         painter.setPen(QPen(Qt::white, 2));
         painter.setBrush(blackColor(150));
-        rectGap = QRect(x + dxGap, y - 130, 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y + 5, 40, 64 / 3.);
         painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y - 130 + 64 * 1 / 3., 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y + 5 + 64 * 1 / 3., 40, 64 / 3.);
         painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y - 130 + 64 * 2 / 3., 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y + 5 + 64 * 2 / 3., 40, 64 / 3.);
         painter.drawRect(rectGap);
-        QRect rectGapPos(x + dxGap, y - 130 + 64, 40, -std::clamp((float)gap, 0.0f, 3.0f) / 3. * 64);
+        QRect rectGapPos(x + dxGap, y + 5 + 64, 40, -std::clamp((float)gap, 0.0f, 3.0f) / 3. * 64);
         painter.setBrush(greenColor(255));
         painter.drawRect(rectGapPos);
         textColor = whiteColor(255);
         configFont(painter, "Inter", 25, "Bold");
-        drawTextWithColor(painter, x + dxGap + 20, y - 135, "GAP", textColor);
+        drawTextWithColor(painter, x + dxGap + 20, y, "GAP", textColor);
 
 #if 0
         QRect rectGap1(x1, y1, 60, 20);
@@ -1885,7 +1890,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         QString str;
         //str.sprintf("%.1f", tFollow);
         str.sprintf("%d", gap1);
-        drawTextWithColor(painter, x + dxGap + 15, y + 60, str, textColor);
+        drawTextWithColor(painter, x + dxGap + 15 + 60, y + 60, str, textColor);
 
     }
 
@@ -1926,18 +1931,18 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     if (accel1 > 2.5) accel1 = -2.5;
     accel = accel1;
 #endif
-    if(s->show_accel) {
-        QRect rectAccel(x + dx, y - 128 - 5, 40, 128);
+    if(s->show_accel>0) {
+        QRect rectAccel(x + dx, y + 5, 40, 128);
         //painter.setPen(Qt::NoPen);
         painter.setPen(QPen(Qt::white, 2));
         painter.setBrush(blackColor(150));
         painter.drawRect(rectAccel);
-        QRect rectAccelPos(x + dx, y - 64 - 5, 40, -std::clamp((float)accel, -2.0f, 2.0f) / 2. * 64);
+        QRect rectAccelPos(x + dx, y + 64 + 5, 40, -std::clamp((float)accel, -2.0f, 2.0f) / 2. * 64);
         painter.setBrush((accel >= 0.0) ? yellowColor(255) : redColor(255));
         painter.drawRect(rectAccelPos);
         textColor = whiteColor(255);
         configFont(painter, "Inter", 25, "Bold");
-        drawTextWithColor(painter, x + dx + 20, y - 135, "ACC", textColor);
+        drawTextWithColor(painter, x + dx + 20, y + 160, "ACC", textColor);
 
     }
 
@@ -1950,7 +1955,8 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     if (engineRpm1 > 4000.0) engineRpm1 = 0.0;
     motorRpm = engineRpm1;
 #endif
-    if(s->show_accel) {
+    if(s->show_accel>1) {
+        dx += 60;
         //str.sprintf("%s: %.0f CHARGE: %.0f%%", (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
         //drawTextWithColor(p, width() - 350, 80, str, textColor);
         //painter.setPen(Qt::NoPen);
@@ -2139,38 +2145,63 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     }
     // Tpms...
     if(s->show_tpms) {
-      const int bx = (btn_size - 24) / 2 + (bdr_s * 2);
-      const int by = rect().bottom() - footer_h / 2;
+      int bx = (btn_size - 24) / 2 + (bdr_s * 2);
+      int by = rect().bottom() - footer_h / 2;
       auto tpms = car_state.getTpms();
-      const float fl = tpms.getFl();
-      const float fr = tpms.getFr();
-      const float rl = tpms.getRl();
-      const float rr = tpms.getRr();
+      float fl = tpms.getFl();
+      float fr = tpms.getFr();
+      float rl = tpms.getRl();
+      float rr = tpms.getRr();
+#ifdef __TEST
+      fl = 25;
+      fr = 28;
+      rl = 32;
+      rr = 44;
+#endif
       configFont(painter, "Inter", 38, "Bold");
 
       QFontMetrics fm(painter.font());
       QRect rcFont = fm.boundingRect("9");
 
-      int center_x = bx - 30;
-      int center_y = by - 0;
-      const int marginX = (int)(rcFont.width() * 3.2f);
-      const int marginY = (int)((footer_h / 2 - rcFont.height()) * 0.6f);
+      if (s->show_dm_info == false) {
+          bx = 80;
+          by = height() - 60;
+          painter.setPen(QPen(Qt::white, 3));
+          painter.drawLine(bx, by - 40, bx, by + 40);
+          painter.drawLine(bx-50, by, bx+50, by);
+          QColor tpmsColor = get_tpms_color(fl);
+          drawTextWithColor(painter, bx-40, by-20, get_tpms_text(fl), tpmsColor);
+          tpmsColor = get_tpms_color(fr);
+          drawTextWithColor(painter, bx+40, by-20, get_tpms_text(fr), tpmsColor);
+          tpmsColor = get_tpms_color(rl);
+          drawTextWithColor(painter, bx-40, by+45, get_tpms_text(rl), tpmsColor);
+          tpmsColor = get_tpms_color(rr);
+          drawTextWithColor(painter, bx+40, by+45, get_tpms_text(rr), tpmsColor);
+      }
+      else {
+          int center_x = bx - 30;
+          int center_y = by - 0;
+          int marginX = (int)(rcFont.width() * 3.2f);
+          int marginY = (int)((footer_h / 2 - rcFont.height()) * 0.6f);
+          drawText2(painter, center_x - marginX, center_y - marginY - rcFont.height(), Qt::AlignRight, get_tpms_text(fl), get_tpms_color(fl));
+          drawText2(painter, center_x + marginX, center_y - marginY - rcFont.height(), Qt::AlignLeft, get_tpms_text(fr), get_tpms_color(fr));
+          drawText2(painter, center_x - marginX, center_y + marginY, Qt::AlignRight, get_tpms_text(rl), get_tpms_color(rl));
+          drawText2(painter, center_x + marginX, center_y + marginY, Qt::AlignLeft, get_tpms_text(rr), get_tpms_color(rr));
+      }
 
-      drawText2(painter, center_x - marginX, center_y - marginY - rcFont.height(), Qt::AlignRight, get_tpms_text(fl), get_tpms_color(fl));
-      drawText2(painter, center_x + marginX, center_y - marginY - rcFont.height(), Qt::AlignLeft, get_tpms_text(fr), get_tpms_color(fr));
-      drawText2(painter, center_x - marginX, center_y + marginY, Qt::AlignRight, get_tpms_text(rl), get_tpms_color(rl));
-      drawText2(painter, center_x + marginX, center_y + marginY, Qt::AlignLeft, get_tpms_text(rr), get_tpms_color(rr));
     }
     // 시간표시
     if(s->show_datetime) {
         QColor color = QColor(255, 255, 255, 230);
         if (s->show_datetime == 1 || s->show_datetime == 2) {
             configFont(painter, "Open Sans", 80, "Bold");
-            drawTextWithColor(painter, 150, height() - 400, QDateTime::currentDateTime().toString("hh:mm"), color);
+            //drawTextWithColor(painter, 150, height() - 400, QDateTime::currentDateTime().toString("hh:mm"), color);
+            drawTextWithColor(painter, 150, 130, QDateTime::currentDateTime().toString("hh:mm"), color);
         }
         if (s->show_datetime == 1 || s->show_datetime == 3) {
             configFont(painter, "Open Sans", 45, "Bold");
-            drawTextWithColor(painter, 150, height() - 400 + 80, QDateTime::currentDateTime().toString("MM-dd-ddd"), color);
+            //drawTextWithColor(painter, 150, height() - 400 + 80, QDateTime::currentDateTime().toString("MM-dd-ddd"), color);
+            drawTextWithColor(painter, 150, 130 + 80, QDateTime::currentDateTime().toString("MM-dd-ddd"), color);
         }
     }
 

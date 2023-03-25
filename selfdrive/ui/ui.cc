@@ -273,6 +273,7 @@ void ui_update_params(UIState *s) {
       s->show_gap_info = std::atoi(params.get("ShowGapInfo").c_str());;
       break;
   case 50:
+      s->show_dm_info = std::atoi(params.get("ShowDmInfo").c_str());;
       break;
   }
  }

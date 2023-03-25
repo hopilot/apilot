@@ -221,6 +221,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "ShowLaneInfo", PERSISTENT },
     { "ShowBlindSpot", PERSISTENT },
     { "ShowGapInfo", PERSISTENT },
+    { "ShowDmInfo", PERSISTENT },
     { "AutoResumeFromGas", PERSISTENT },
     { "AutoResumeFromGasSpeed", PERSISTENT },
     { "AutoResumeFromGasSpeedMode", PERSISTENT },

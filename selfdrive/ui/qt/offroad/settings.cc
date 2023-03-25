@@ -693,13 +693,14 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("ShowSteerRotate", "화면:핸들회전", "0:안함,1:회전함", "../assets/offroad/icon_shell.png", 0, 1, 1));
   toggleLayout->addWidget(new CValueControl("ShowPathEnd", "화면:패스끝표시", "0:안함,1:사용함", "../assets/offroad/icon_shell.png", 0, 1, 1));
   toggleLayout->addWidget(new CValueControl("ShowAccelRpm", "화면:가속도표시", "0:안함,1:사용함", "../assets/offroad/icon_shell.png", 0, 1, 1));
-  toggleLayout->addWidget(new CValueControl("ShowTpms", "화면:TPMS표시", "0:안함,1:사용함", "../assets/offroad/icon_shell.png", 0, 1, 1));
+  toggleLayout->addWidget(new CValueControl("ShowAccelRpm", "화면:가속도표시", "0:안함,1:가속도,1:가속도+RPM", "../assets/offroad/icon_shell.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("ShowSteerMode", "화면:핸들표시모드", "0:검정핸들,1:칼라핸들,2:핸들없음", "../assets/offroad/icon_shell.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("ShowDeviceState", "화면:디바이스상태", "0:안함,1:사용함", "../assets/offroad/icon_shell.png", 0, 1, 1));
   toggleLayout->addWidget(new CValueControl("ShowConnInfo", "화면:NDA상태", "0:안함,1:사용함", "../assets/offroad/icon_shell.png", 0, 1, 1));
   toggleLayout->addWidget(new CValueControl("ShowLaneInfo", "화면:차선정보", "-1:모두표시안함, 0:패스만, 1:레인만, 2: 로드엣지까지", "../assets/offroad/icon_shell.png", -1, 2, 1));
   toggleLayout->addWidget(new CValueControl("ShowBlindSpot", "화면:BSD표시", "0:안함,1:사용함", "../assets/offroad/icon_shell.png", 0, 1, 1));
   toggleLayout->addWidget(new CValueControl("ShowGapInfo", "화면:GAP정보", "0:안함,1:사용함", "../assets/offroad/icon_shell.png", 0, 1, 1));
+  toggleLayout->addWidget(new CValueControl("ShowDmInfo", "화면:DM정보", "0:안함,1:사용함", "../assets/offroad/icon_shell.png", 0, 1, 1));
 
 }
 
@@ -732,6 +733,7 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("LateralAccelCost", "횡컨: LateralAccelCost(0)", "", "../assets/offroad/icon_road.png", 0, 300, 1));
     toggleLayout->addWidget(new CValueControl("LateralMotionCost", "횡컨: LateralMotionCost(11)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
     toggleLayout->addWidget(new CValueControl("LateralJerkCost", "횡컨: LateralJerkCost(4)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
+    toggleLayout->addWidget(new CValueControl("LateralTestMode", "횡컨: LateralTestMode(0)", "", "../assets/offroad/icon_road.png", 0, 1, 1));
     toggleLayout->addWidget(new CValueControl("SteerActuatorDelay", "횡컨:SteerActuatorDelay(30)", "표준", "../assets/offroad/icon_road.png", 0, 100, 1));
     toggleLayout->addWidget(new CValueControl("SteerActuatorDelayMid", "횡컨:SteerActuatorDelayMid(30)", "50km/h", "../assets/offroad/icon_road.png", 0, 200, 1));
     toggleLayout->addWidget(new CValueControl("SteerActuatorDelayLow", "횡컨:SteerActuatorDelayLow(30)", "0km/h", "../assets/offroad/icon_road.png", 0, 200, 1));

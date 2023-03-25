@@ -58,6 +58,7 @@ def manager_init() -> None:
     ("ShowLaneInfo", "1"),
     ("ShowBlindSpot", "1"),
     ("ShowGapInfo", "1"),
+    ("ShowDmInfo", "0"),
     ("AutoResumeFromGas", "1"),
     ("AutoResumeFromGasSpeed", "30"),
     ("AutoResumeFromGasSpeedMode", "0"),    

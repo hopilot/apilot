@@ -124,6 +124,8 @@ protected:
   QPixmap ic_blinker_l;
   QPixmap ic_blinker_r;
   QPixmap ic_speed_bg;
+  QPixmap ic_traffic_green;
+  QPixmap ic_traffic_red;
 
   int m_fps = 0;
   FirstOrderFilter apilot_filter_x;
