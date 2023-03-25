@@ -29,6 +29,7 @@ const std::tuple<AudibleAlert, QString, int> sound_list[] = {
   {AudibleAlert::AUTO_HOLD, "audio_auto_hold.wav", 0},
   {AudibleAlert::ENGAGE2, "audio_engage.wav", 0},
   {AudibleAlert::DISENGAGE2, "audio_disengage.wav", 0},
+  {AudibleAlert::SPEED_DOWN, "audio_speed_down.wav", 0},
 };
 
 class Sound : public QObject {

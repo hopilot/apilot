@@ -124,6 +124,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     trafficStopping @121; #ajouatom
     trafficError @122; #ajouatom
     laneChangeRoadEdge @123; #ajouatom
+    speedDown @124; #ajouatom
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
     radarCommIssueDEPRECATED @67;
@@ -457,6 +458,7 @@ struct CarControl {
       disengage2 @17;
       trafficError @18;
       bsdWarning @19;
+      speedDown @20;
       
     }
   }

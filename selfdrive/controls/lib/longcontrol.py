@@ -86,7 +86,7 @@ class LongControl:
       self.CP.longitudinalTuning.kpV = [self.longitudinalTuningKpV]
       #self.CP.longitudinalTuning.kiV = [self.longitudinalTuningKiV]
       self.pid._k_p = (self.CP.longitudinalTuning.kpBP, self.CP.longitudinalTuning.kpV)
-      self.pid._k_i = ([0, 2.0], [self.longitudinalTuningKiV, 0.0]) # ��������.... i�� �����غ���... ����..
+      self.pid._k_i = ([0, 1.0, 200], [self.longitudinalTuningKiV, 0.0, 0.0]) # 정지때만.... i를 적용해보자... 시험..
     elif self.readParamCount == 30:
       pass
     elif self.readParamCount == 40:

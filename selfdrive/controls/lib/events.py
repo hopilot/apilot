@@ -1010,5 +1010,8 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     #  AlertStatus.normal, AlertSize.small,
     #  Priority.LOW, VisualAlert.none, AudibleAlert.stopping, 3.),
   },
+  EventName.speedDown: {
+     ET.WARNING: EngagementAlert(AudibleAlert.speedDown),
+  },
 
 }
