@@ -2209,7 +2209,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
                 disp = (s->show_radar_info > 1) ? true : false;
             }
             if (disp) {
-                QRect rectRadar(rx - w * str.length() / 2, ry - 35, w* str.length(), 45);
+                QRect rectRadar(rx - w * str.length() / 2, ry - 35, w* (str.length()+1), 42);
                 bgColor = greenColor(255);
                 painter.setBrush(bgColor);
                 painter.drawRoundedRect(rectRadar, 15, 15);
@@ -2225,7 +2225,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
                 disp = (s->show_radar_info > 1) ? true : false;
             }
             if (disp) {
-                QRect rectRadar(rx - w * str.length() / 2, ry - 35, w * str.length(), 45);
+                QRect rectRadar(rx - w * str.length() / 2, ry - 35, w * (str.length()+1), 42);
                 bgColor = redColor(255);
                 painter.setBrush(bgColor);
                 painter.drawRoundedRect(rectRadar, 15, 15);
@@ -2241,7 +2241,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
                 disp = (s->show_radar_info > 1) ? true : false;
             }
             if (disp) {
-                QRect rectRadar(rx - w * str.length() / 2, ry - 35, w * str.length(), 45);
+                QRect rectRadar(rx - w * str.length() / 2, ry - 35, w * (str.length()+1), 42);
                 bgColor = blackColor(255);
                 painter.setBrush(bgColor);
                 painter.drawRoundedRect(rectRadar, 15, 15);
