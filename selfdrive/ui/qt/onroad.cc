@@ -562,7 +562,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
 
 
     // DMoji
-    if (s->show_dm_info > 0 && !hideDM && (sm.rcv_frame("driverState") > s->scene.started_frame)) {
+    if (s->show_dm_info && !hideDM && (sm.rcv_frame("driverState") > s->scene.started_frame)) {
       update_dmonitoring(s, sm["driverState"].getDriverState(), dm_fade_state);
       drawDriverState(p, s);
     }
@@ -1432,7 +1432,7 @@ void AnnotatedCameraWidget::drawDriverState(QPainter &painter, const UIState *s)
 
   // base icon
   int x = (btn_size - 24) / 2 + (bdr_s * 2);
-  int y = rect().bottom() - footer_h / 2;
+  int y = rect().bottom() - footer_h / 2 - 150;
 
   float opacity = dmActive ? 0.65f : 0.15f;
   drawIcon(painter, x, y, dm_img, blackColor(0), opacity);
