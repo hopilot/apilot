@@ -405,7 +405,8 @@ class CruiseHelper:
     return clip(v_cruise_kph, self.cruiseSpeedMin, MAX_SET_SPEED_KPH)
 
   def send_apilot_event(self, controls, eventName, waiting = 20):
-    if eventName != self.apilotEventPrev or (controls.sm.frame - self.apilotEventFrame)*DT_CTRL > self.apilotEventWait: 
+    #if eventName != self.apilotEventPrev or (controls.sm.frame - self.apilotEventFrame)*DT_CTRL > self.apilotEventWait: 
+    if (controls.sm.frame - self.apilotEventFrame)*DT_CTRL > self.apilotEventWait: # 시끄러..
        controls.events.add(eventName)
        self.apilotEventFrame = controls.sm.frame
        self.apilotEventPrev = eventName
@@ -451,7 +452,7 @@ class CruiseHelper:
       elif xState == XState.e2eCruise and self.trafficState != 2 and trafficState == 2 and CS.vEgo < 0.1:
         controls.events.add(EventName.trafficSignGreen)
       elif xState == XState.e2eStop and self.xState in [XState.e2eCruise, XState.lead]: # and self.longControlActiveSound >= 2:
-        self.send_apilot_event(controls, EventName.trafficStopping, 2.0)
+        self.send_apilot_event(controls, EventName.trafficStopping, 20.0)
       elif trafficError:
         self.send_apilot_event(controls, EventName.trafficError, 10.0)
 
@@ -539,7 +540,8 @@ class CruiseHelper:
         if xState == XState.softHold: #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
           self.cruise_control(controls, CS, -2)
         elif xState in [XState.e2eStop, XState.e2eCruise] and v_ego_kph_set < v_cruise_kph and controls.v_future*CV.MS_TO_KPH < v_ego_kph * 0.6: # 모델이 감속을 지시하고 엑셀을 밟으면 속도를 빠르게 하면 안됨.
-          v_cruise_kph = v_ego_kph_set
+          #v_cruise_kph = v_ego_kph_set
+          self.cruise_control(controls, CS, -2)
           pass
       elif not CS.gasPressed and self.gasPressedCount > 2 and self.longCruiseGap != 5: #엑셀을 밟았다가 떼면..
         if False: #CS.myDrivingMode == 2: 관성모드 없앰..
@@ -617,7 +619,8 @@ class CruiseHelper:
       ###### naviSpeed, roadSpeed, curveSpeed처리
       if self.autoNaviSpeedCtrl > 0 and naviSpeed > 0:
         if naviSpeed < self.v_cruise_kph_apply:
-          self.send_apilot_event(controls, EventName.speedDown, 60.0)
+          #self.send_apilot_event(controls, EventName.speedDown, 60.0)  #시끄러..
+          pass
         self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, naviSpeed)
         self.ndaActive = 2 if self.ndaActive == 1 else 0
       elif self.autoNaviSpeedCtrl > 1 and carNaviSpeed > 0:
@@ -630,7 +633,8 @@ class CruiseHelper:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
       if self.autoCurveSpeedCtrl in [2,3]:
         if curveSpeed < self.v_cruise_kph_apply and self.longActiveUser > 0:
-          self.send_apilot_event(controls, EventName.speedDown, 60.0)
+          #self.send_apilot_event(controls, EventName.speedDown, 60.0)
+          pass
         self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curveSpeed)
     else: #not enabled
       self.v_cruise_kph_backup = v_cruise_kph #not enabled
