@@ -12,7 +12,7 @@ from selfdrive.controls.lib.cluster.fastcluster_py import cluster_points_centroi
 from selfdrive.controls.lib.radar_helpers import Cluster, Track, RADAR_TO_CAMERA
 from selfdrive.swaglog import cloudlog
 from selfdrive.hardware import TICI
-
+from common.params import Params
 
 from selfdrive.controls.lib.lane_planner import TRAJECTORY_SIZE
 import numpy as np
@@ -75,11 +75,10 @@ def match_vision_to_cluster(v_ego, lead, clusters):
   else:
     return None
 
-
 def get_path_adjacent_leads(v_ego, md, lane_width, clusters):
   if len(clusters) == 0:
     return [[],[],[]]
-
+  
   if md is not None and lane_width > 0. and len(md.laneLines) == 4 and len(md.laneLines[1].x) == TRAJECTORY_SIZE:
     # get centerline approximation using one or both lanelines
     ll_x = md.laneLines[1].x  # left and right ll x is the same
@@ -99,13 +98,13 @@ def get_path_adjacent_leads(v_ego, md, lane_width, clusters):
       c_y = None
   else:
     c_y = None
-
+  
   if md is not None or len(md.position.x) == TRAJECTORY_SIZE or md.position.x[-1] > LEAD_PATH_DREL_MIN:
     md_y = md.position.y
     md_x = md.position.x
   else:
     md_y = None
-
+  
   leads_left = {}
   leads_center = {}
   leads_right = {}
@@ -120,9 +119,9 @@ def get_path_adjacent_leads(v_ego, md, lane_width, clusters):
     else:
       dPath = -c.yRel
       checkSource = 'lowSpeedOverride'
-
+      
     source = 'vision' if c.dRel > 145. else 'radar'
-
+    
     #ld = c.get_RadarState(source=source, checkSource=checkSource)
     ld = c.get_RadarState()
     ld["dPath"] = dPath
@@ -133,7 +132,7 @@ def get_path_adjacent_leads(v_ego, md, lane_width, clusters):
       leads_left[abs(dPath)] = ld
     else:
       leads_right[abs(dPath)] = ld
-
+  
   ll,lr = [[l[k] for k in sorted(list(l.keys()))] for l in [leads_left,leads_right]]
   lc = sorted(leads_center.values(), key=lambda c:c["dRel"])
   return [ll,lc,lr]
@@ -175,8 +174,11 @@ class RadarD():
     self.v_ego_hist = deque([0], maxlen=delay+1)
 
     self.ready = False
+    self.showRadarInfo = False
 
   def update(self, sm, rr):
+    self.showRadarInfo = int(Params().get("ShowRadarInfo"))
+
     self.current_time = 1e-9*max(sm.logMonoTime.values())
 
     if sm.updated['carState']:
@@ -248,7 +250,7 @@ class RadarD():
       radarState.leadOne = get_lead(self.v_ego, self.ready, clusters, leads_v3[0], low_speed_override=True)
       radarState.leadTwo = get_lead(self.v_ego, self.ready, clusters, leads_v3[1], low_speed_override=False)
 
-      if self.ready and True: #self.extended_radar_enabled and self.ready:
+      if self.ready and self.showRadarInfo: #self.extended_radar_enabled and self.ready:
         #ll,lc,lr = get_path_adjacent_leads(self.v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth, clusters)
         ll,lc,lr = get_path_adjacent_leads(self.v_ego, sm['modelV2'], 3.7, clusters)
         #try:
