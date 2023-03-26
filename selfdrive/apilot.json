@@ -632,6 +632,16 @@
       "unit": 1
     },
     {
+      "group": "화면",
+      "name": "ShowRadarInfo",
+      "title": "화면레이더감지정보",
+      "descr": "",
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "unit": 1
+    },
+    {
       "group": "시작",
       "name": "EnableAutoEngage",
       "title": "자동인게이지 사용",

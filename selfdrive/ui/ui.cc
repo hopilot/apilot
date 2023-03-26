@@ -55,6 +55,31 @@ void update_leads(UIState *s, const cereal::RadarState::Reader &radar_state, con
     else
       s->scene.lead_radar[i] = false;
   }
+
+  s->scene.lead_vertices_oncoming.clear();
+  s->scene.lead_vertices_ongoing.clear();
+  s->scene.lead_vertices_stopped.clear();
+  for (auto const& rs : { radar_state.getLeadsLeft(), radar_state.getLeadsRight() }) {
+      for (auto const& l : rs) {
+          lead_vertex_data vd;
+          QPointF vtmp;
+          float z = line.getZ()[get_path_length_idx(line, l.getDRel())];
+          calib_frame_to_full_frame(s, l.getDRel(), -l.getYRel(), z + 0.61, &vtmp);
+          vd.x = vtmp.x();
+          vd.y = vtmp.y();
+          vd.d = l.getDRel();
+          vd.v = l.getVLeadK();
+          if (vd.v > 7.) {
+              s->scene.lead_vertices_ongoing.push_back(vd);
+          }
+          else if (vd.v < -7.) {
+              s->scene.lead_vertices_oncoming.push_back(vd);
+          }
+          else {
+              s->scene.lead_vertices_stopped.push_back(vd);
+          }
+      }
+  }
 }
 
 void update_line_data(const UIState *s, const cereal::XYZTData::Reader &line,
@@ -274,6 +299,7 @@ void ui_update_params(UIState *s) {
       break;
   case 50:
       s->show_dm_info = std::atoi(params.get("ShowDmInfo").c_str());;
+      s->show_radar_info = std::atoi(params.get("ShowRadarInfo").c_str());;
       break;
   }
  }

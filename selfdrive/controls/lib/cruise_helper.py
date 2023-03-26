@@ -78,7 +78,9 @@ class CruiseHelper:
 
     self.roadLimitSpeed = 0.0
     self.ndaActive = 0
-    self.trafficSignedFrame = 0
+    self.apilotEventFrame = 0
+    self.apilotEventWait = 0
+    self.apilotEventPrev = 0
 
     self.update_params_count = 0
     self.curvatureFilter = StreamingMovingAverage(10)
@@ -403,9 +405,11 @@ class CruiseHelper:
     return clip(v_cruise_kph, self.cruiseSpeedMin, MAX_SET_SPEED_KPH)
 
   def send_apilot_event(self, controls, eventName, waiting = 20):
-    if (controls.sm.frame - self.trafficSignedFrame)*DT_CTRL > waiting: 
+    if eventName != self.apilotEventPrev or (controls.sm.frame - self.apilotEventFrame)*DT_CTRL > self.apilotEventWait: 
        controls.events.add(eventName)
-       self.trafficSignedFrame = controls.sm.frame
+       self.apilotEventFrame = controls.sm.frame
+       self.apilotEventPrev = eventName
+       self.apilotEventWait = waiting
 
   def update_v_cruise_apilot(self, v_cruise_kph, buttonEvents, enabled, metric, controls, CS):
     frame = controls.sm.frame
@@ -613,7 +617,7 @@ class CruiseHelper:
       ###### naviSpeed, roadSpeed, curveSpeed처리
       if self.autoNaviSpeedCtrl > 0 and naviSpeed > 0:
         if naviSpeed < self.v_cruise_kph_apply:
-          self.send_apilot_event(controls, EventName.speedDown, 10.0)
+          self.send_apilot_event(controls, EventName.speedDown, 60.0)
         self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, naviSpeed)
         self.ndaActive = 2 if self.ndaActive == 1 else 0
       elif self.autoNaviSpeedCtrl > 1 and carNaviSpeed > 0:
@@ -625,8 +629,8 @@ class CruiseHelper:
         elif self.autoRoadLimitCtrl == 2:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, roadSpeed)
       if self.autoCurveSpeedCtrl in [2,3]:
-        if curveSpeed < self.v_cruise_kph_apply:
-          self.send_apilot_event(controls, EventName.speedDown, 10.0)
+        if curveSpeed < self.v_cruise_kph_apply and self.longActiveUser > 0:
+          self.send_apilot_event(controls, EventName.speedDown, 60.0)
         self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curveSpeed)
     else: #not enabled
       self.v_cruise_kph_backup = v_cruise_kph #not enabled

@@ -562,7 +562,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
 
 
     // DMoji
-    if (s->show_mode > 0 && !hideDM && (sm.rcv_frame("driverState") > s->scene.started_frame)) {
+    if (s->show_dm_info > 0 && !hideDM && (sm.rcv_frame("driverState") > s->scene.started_frame)) {
       update_dmonitoring(s, sm["driverState"].getDriverState(), dm_fade_state);
       drawDriverState(p, s);
     }
@@ -1413,7 +1413,7 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
   str.sprintf("%.3f (%.3f/%.3f)\n", aReqValue, aReqValueMin, aReqValueMax);
   p.drawText(text_x, y, str);
   y += height;
-  str.sprintf("aEgo: %.3f, %.3f\n", car_state.getAEgo(), car_state.getABasis());
+  str.sprintf("aEgo: %.3f, %.3f\n", car_state.getAEgo(), cadrawDriverStater_state.getABasis());
   p.drawText(text_x, y, str);
   auto lead_radar = sm["radarState"].getRadarState().getLeadOne();
   auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
@@ -1622,11 +1622,11 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             case 1: trafficMode = 1;    // red
                 stop_dist = lp.getXStop();
                 stopping = true;
-                if (s->show_mode == 2) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_traffic_green);
+                if(s->show_mode == 2) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_traffic_red);
                 showBg = true;
                 break;
             case 2: trafficMode = 2; 
-                painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_traffic_green);
+                if (s->show_mode == 2) painter.drawPixmap(x - icon_size / 2, y - icon_size / 2, icon_size, icon_size, ic_traffic_green);
                 break; // green // 표시안함.
             case 3: trafficMode = 3; showBg = true; break; // yellow
             }
@@ -1768,7 +1768,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 
             configFont(painter, "Inter", 40, "Bold");
             if (s->show_steer_mode >= 2) {
-                int radar_y = (path_y > height() - 500) ? height() - 500 : path_y - 40;
+                int radar_y = (path_y > height() - 550) ? height() - 550 : path_y - 40;
                 QRect rectRadar(path_x - 250 / 2, radar_y - 35, 250, 45);
                 painter.setPen(Qt::NoPen);
                 painter.setBrush(bgColor);
@@ -2097,7 +2097,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         if (enabled && longActiveUser>0 && applyMaxSpeed < cruiseMaxSpeed - 0.5) {
             configFont(painter, "Inter", 50, "Bold");
             str.sprintf("%d", (int)(applyMaxSpeed + 0.5));
-            drawTextWithColor(painter, bx + 280, by, str, color);
+            drawTextWithColor(painter, bx + 250, by - 50, str, color);
         }
 
 #ifdef __TEST
@@ -2190,6 +2190,65 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
       }
 
     }
+    if (s->show_radar_info) {
+        QString str;
+        //painter.setPen(Qt::NoPen);
+        painter.setPen(QPen(Qt::white, 2));
+        configFont(painter, "Inter", 40, "Bold");
+        QFontMetrics fm(painter.font());
+        QRect rcFont = fm.boundingRect("9");
+        textColor = whiteColor(255);
+        int w = rcFont.width();
+        bool disp = false;
+        for (auto const& vrd : s->scene.lead_vertices_ongoing) {
+            auto [rx, ry, rd, rv] = vrd;
+            disp = true;
+            if (fabs(rv) > 0.5) str.sprintf(" %.0f ", rv * 3.6);
+            else {
+                str = "*"; 
+                disp = (s->show_radar_info > 1) ? true : false;
+            }
+            if (disp) {
+                QRect rectRadar(rx - w * str.length() / 2, ry - 35, w* str.length(), 45);
+                bgColor = greenColor(255);
+                painter.setBrush(bgColor);
+                painter.drawRoundedRect(rectRadar, 15, 15);
+                drawTextWithColor(painter, rx, ry, str, textColor);
+            }
+        }
+        for (auto const& vrd : s->scene.lead_vertices_oncoming) {
+            auto [rx, ry, rd, rv] = vrd;
+            disp = true;
+            if (fabs(rv) > 0.5) str.sprintf(" %.0f ", rv * 3.6);
+            else {
+                str = "*";
+                disp = (s->show_radar_info > 1) ? true : false;
+            }
+            if (disp) {
+                QRect rectRadar(rx - w * str.length() / 2, ry - 35, w * str.length(), 45);
+                bgColor = redColor(255);
+                painter.setBrush(bgColor);
+                painter.drawRoundedRect(rectRadar, 15, 15);
+                drawTextWithColor(painter, rx, ry, str, textColor);
+            }
+        }
+        for (auto const& vrd : s->scene.lead_vertices_stopped) {
+            auto [rx, ry, rd, rv] = vrd;
+            disp = true;
+            if (fabs(rv) > 0.5) str.sprintf(" %.0f ", rv * 3.6);
+            else {
+                str = "*";
+                disp = (s->show_radar_info > 1) ? true : false;
+            }
+            if (disp) {
+                QRect rectRadar(rx - w * str.length() / 2, ry - 35, w * str.length(), 45);
+                bgColor = blackColor(255);
+                painter.setBrush(bgColor);
+                painter.drawRoundedRect(rectRadar, 15, 15);
+                drawTextWithColor(painter, rx, ry, str, textColor);
+            }
+        }
+    }
     // 시간표시
     if(s->show_datetime) {
         QColor color = QColor(255, 255, 255, 230);
@@ -2228,8 +2287,8 @@ void AnnotatedCameraWidget::drawHudApilot(QPainter& p, const cereal::ModelDataV2
 
     drawLeadApilot(p, model);
 
-    drawMaxSpeed(p);
-    drawSpeed(p);
+    //drawMaxSpeed(p);
+    //drawSpeed(p);
     //drawSteer(p);
     if(s->show_device_stat) drawDeviceState(p);
     drawTurnSignals(p);
