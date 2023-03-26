@@ -513,7 +513,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
     fillAlpha = (int)(fmin(fillAlpha, 255));
   }
 
-  float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35;
+  float sz = std::clamp((25 * 54) / (d_rel / 2 + 15), 20.0f, 90.0f) * 2.35; //std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35;
   float x = std::clamp((float)vd.x(), 0.f, width() - sz / 2);
   float y = std::fmin(height() - sz * .6, (float)vd.y());
 
@@ -525,9 +525,13 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   painter.drawPolygon(glow, std::size(glow));
 
   // chevron
-  QPointF chevron[] = {{x + (sz * 1.25), y + sz}, {x, y}, {x - (sz * 1.25), y + sz}};
+  // QPointF chevron[] = {{x + (sz * 1.25), y + sz}, {x, y}, {x - (sz * 1.25), y + sz}};
+  // painter.setBrush(redColor(fillAlpha));
+  // painter.drawPolygon(chevron, std::size(chevron));
+  // square
+  QPointF square[] = {{x - sz/2, y}, {x + sz/2, y}, {x + sz/2, y + sz}, {x - sz/2, y + sz}};
   painter.setBrush(redColor(fillAlpha));
-  painter.drawPolygon(chevron, std::size(chevron));
+  painter.drawPolygon(square, std::size(square));
 
   painter.restore();
 }
@@ -2280,10 +2284,19 @@ void AnnotatedCameraWidget::drawHudApilot(QPainter& p, const cereal::ModelDataV2
 
     UIState* s = uiState();
 
-    //const SubMaster& sm = *(s->sm);
-    //const cereal::RadarState::Reader& radar_state = sm["radarState"].getRadarState();
+    const SubMaster& sm = *(s->sm);
+    const cereal::RadarState::Reader& radar_state = sm["radarState"].getRadarState();
 
     drawLaneLines(p, s);
+
+    auto lead_one = radar_state.getLeadOne();
+    auto lead_two = radar_state.getLeadTwo();
+    if (lead_one.getStatus()) {
+      drawLead(p, lead_one, s->scene.lead_vertices[0], s->scene.lead_radar[0]);
+    }
+    if (lead_two.getStatus() && (std::abs(lead_one.getDRel() - lead_two.getDRel()) > 3.0)) {
+      drawLead(p, lead_two, s->scene.lead_vertices[1], s->scene.lead_radar[1]);
+    }
 
     drawLeadApilot(p, model);
 
