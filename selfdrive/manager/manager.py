@@ -59,6 +59,7 @@ def manager_init() -> None:
     ("ShowBlindSpot", "1"),
     ("ShowGapInfo", "1"),
     ("ShowDmInfo", "0"),
+    ("ShowRadarInfo", "0"),
     ("AutoResumeFromGas", "1"),
     ("AutoResumeFromGasSpeed", "30"),
     ("AutoResumeFromGasSpeedMode", "0"),    
