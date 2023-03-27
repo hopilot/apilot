@@ -521,7 +521,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   // float g_yo = sz / 10;
 
   // QPointF glow[] = {{x + (sz * 1.35) + g_xo, y + sz + g_yo}, {x, y - g_yo}, {x - (sz * 1.35) - g_xo, y + sz + g_yo}};
-  QPointF glow[] = {{x + (sz * 1.5), y + 1.5 * sz}, {x + (sz * 1.25), y + sz}, {x - (sz * 1.25), y + sz}, {x - (sz * 1.5), y + 1.5 * sz}};
+  QPointF glow[] = {{x + (sz * 1.5), y + 1.25 * sz}, {x + (sz * 1.25), y + sz}, {x - (sz * 1.25), y + sz}, {x - (sz * 1.5), y + 1.25 * sz}};
   painter.setBrush(is_radar ? QColor(86, 121, 216, 255) : QColor(218, 202, 37, 255));
   painter.drawPolygon(glow, std::size(glow));
 
@@ -533,7 +533,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   //QPointF square[] = {{x - (sz * 1.25)/2, y}, {x + (sz * 1.25)/2, y}, {x + (sz * 1.25)/2, y + sz}, {x - (sz * 1.25)/2, y + sz}};
   painter.setBrush(redColor(fillAlpha));
   //painter.drawPolygon(square, std::size(square));
-  painter.drawRoundedRect(QRectF(x - (sz * 1.25)/2, y, sz * 1.25, sz), sz/5, sz/5); //test
+  painter.drawRoundedRect(QRectF(x - (sz * 1.5)/2, y, sz * 1.5, sz), sz/5, sz/5); //test
 
   painter.restore();
 }
