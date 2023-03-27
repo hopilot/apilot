@@ -523,7 +523,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
 
   // rounded square
   painter.setBrush(redColor(fillAlpha));
-  painter.drawRoundedRect(QRectF(x - (sz * 1.25), y, sz * 2.5, sz * 2.5), sz/5, sz/5); 
+  painter.drawRoundedRect(QRectF(x - (sz * 1.25), y - sz/2, sz * 3.0, sz * 2.5), sz/5, sz/5); 
 
   painter.restore();
 }
