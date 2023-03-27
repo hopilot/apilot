@@ -518,10 +518,10 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   float y = std::fmin(height() - sz * .6, (float)vd.y()) - sz;
 
   // float g_xo = sz / 5;
-  float g_yo = sz / 10;
+  // float g_yo = sz / 10;
 
   // QPointF glow[] = {{x + (sz * 1.35) + g_xo, y + sz + g_yo}, {x, y - g_yo}, {x - (sz * 1.35) - g_xo, y + sz + g_yo}};
-  QPointF glow[] = {{x + (sz * 1.25)/2, y + sz + g_yo}, {x + (sz * 1.25)/4, y + g_yo}, {x - (sz * 1.25)/4, y + g_yo}, {x - (sz * 1.25)/2, y + sz + g_yo}};
+  QPointF glow[] = {{x + (sz * 1.25)/2, y + 2 * sz}, {x + (sz * 1.25)/4, y + sz}, {x - (sz * 1.25)/4, y + sz}, {x - (sz * 1.25)/2, y + 2 * sz}};
   painter.setBrush(is_radar ? QColor(86, 121, 216, 255) : QColor(218, 202, 37, 255));
   painter.drawPolygon(glow, std::size(glow));
 
