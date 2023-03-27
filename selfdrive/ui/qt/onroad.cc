@@ -530,9 +530,10 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   // painter.setBrush(redColor(fillAlpha));
   // painter.drawPolygon(chevron, std::size(chevron));
   // square
-  QPointF square[] = {{x - (sz * 1.25)/2, y}, {x + (sz * 1.25)/2, y}, {x + (sz * 1.25)/2, y + sz}, {x - (sz * 1.25)/2, y + sz}};
+  //QPointF square[] = {{x - (sz * 1.25)/2, y}, {x + (sz * 1.25)/2, y}, {x + (sz * 1.25)/2, y + sz}, {x - (sz * 1.25)/2, y + sz}};
   painter.setBrush(redColor(fillAlpha));
-  painter.drawPolygon(square, std::size(square));
+  //painter.drawPolygon(square, std::size(square));
+  painter.drawRoundedRect(QRectF(x - (sz * 1.25)/2, y, sz * 1.25, sz), sz/4, sz/4); //test
 
   painter.restore();
 }
