@@ -513,7 +513,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
     fillAlpha = (int)(fmin(fillAlpha, 200));
   }
 
-  float sz = std::clamp((25 * 54) / (d_rel / 2 + 15), 20.0f, 90.0f) * 2.35; //std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35;
+  float sz = std::clamp((25 * 54) / (d_rel / 2 + 15), 20.0f, 150.0f) * 2.35; //std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35;
   float x = std::clamp((float)vd.x(), 0.f, width() - sz / 2);
   float y = std::fmin(height() - sz * .6, (float)vd.y()) - sz;
 
@@ -521,7 +521,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   // float g_yo = sz / 10;
 
   // QPointF glow[] = {{x + (sz * 1.35) + g_xo, y + sz + g_yo}, {x, y - g_yo}, {x - (sz * 1.35) - g_xo, y + sz + g_yo}};
-  QPointF glow[] = {{x + (sz * 1.25)/2, y + 1.5 * sz}, {x + (sz * 1.25)/4, y + sz}, {x - (sz * 1.25)/4, y + sz}, {x - (sz * 1.25)/2, y + 1.5 * sz}};
+  QPointF glow[] = {{x + (sz * 1.5), y + 1.5 * sz}, {x + sz, y + sz}, {x - sz, y + sz}, {x - (sz * 1.5), y + 1.5 * sz}};
   painter.setBrush(is_radar ? QColor(86, 121, 216, 255) : QColor(218, 202, 37, 255));
   painter.drawPolygon(glow, std::size(glow));
 
