@@ -500,7 +500,8 @@ class LongitudinalMpc:
         stopSign = v_ego_kph<80.0 and model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.70)) and abs(y[N]) < 5.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
 
         ## 현재속도로 정지가 가능한경우에만 신호인식하도록 해보자~, stop_distance는 신호정지시 model_x가 0이므로... 이것도 인지하도록 함.
-        self.stopSignCount = self.stopSignCount + 1 if (stopSign and (model_x > get_safe_obstacle_distance(v_ego,t_follow=0, comfort_brake=COMFORT_BRAKE, stop_distance=-1.0))) else 0 
+        #self.stopSignCount = self.stopSignCount + 1 if (stopSign and (model_x > get_safe_obstacle_distance(v_ego,t_follow=0, comfort_brake=COMFORT_BRAKE, stop_distance=-1.0))) else 0 
+        self.stopSignCount = self.stopSignCount + 1 if stopSign else 0 
 
         ## 방금 startSign이 잠깐들어오고 StopSign이 들어오면.... 신호감지 오류...
         if 0.0 < self.startSignCount*DT_MDL < 0.3 and stopSign:
