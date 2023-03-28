@@ -504,7 +504,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   const float d_rel = lead_data.getDRel();
   const float v_rel = lead_data.getVRel();
 
-  float fillAlpha = 0;
+  float fillAlpha = 100;
   if (d_rel < leadBuff) {
     fillAlpha = 200 * (1.0 - (d_rel / leadBuff));
     if (v_rel < 0) {
@@ -515,7 +515,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   }
 
   // float sz = std::clamp((25 * 54) / (d_rel / 2 + 15), 20.0f, 400.0f) * 2.35; 
-  float sz = std::clamp((25 * 50) / (d_rel / 2 + 30), 15.0f, 200.0f) * 3.0; 
+  float sz = std::clamp((25 * 50) / (d_rel / 2 + 30), 10.0f, 200.0f) * 3.0; 
   float x = std::clamp((float)vd.x(), 0.f, width() - sz / 2);
   float y = std::fmin(height() - sz * .6, (float)vd.y()) - sz;
 
