@@ -513,7 +513,8 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
     fillAlpha = (int)(fmin(fillAlpha, 200));
   }
 
-  float sz = std::clamp((25 * 54) / (d_rel / 2 + 15), 20.0f, 400.0f) * 2.35; 
+  // float sz = std::clamp((25 * 54) / (d_rel / 2 + 15), 20.0f, 400.0f) * 2.35; 
+  float sz = std::clamp((25 * 50) / (d_rel / 2 + 30), 15.0f, 200.0f) * 3.0; 
   float x = std::clamp((float)vd.x(), 0.f, width() - sz / 2);
   float y = std::fmin(height() - sz * .6, (float)vd.y()) - sz;
 
@@ -523,7 +524,7 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
 
   // rounded square
   painter.setBrush(redColor(fillAlpha));
-  painter.drawRoundedRect(QRectF(x - (sz * 1.25), y - sz, sz * 2.75, sz * 2.5), sz/5, sz/5); 
+  painter.drawRoundedRect(QRectF(x - (sz * 1.25), y - sz, sz * 2.5, sz * 2.0), sz/5, sz/5); 
 
   painter.restore();
 }
