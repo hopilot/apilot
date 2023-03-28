@@ -510,7 +510,8 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
     if (v_rel < 0) {
       fillAlpha += 200 * (-1 * (v_rel / speedBuff));
     }
-    fillAlpha = (int)(fmin(fillAlpha, 200));
+    // fillAlpha = (int)(fmin(fillAlpha, 200));
+    fillAlpha = (int)(fmax(100, fillAlpha));
   }
 
   // float sz = std::clamp((25 * 54) / (d_rel / 2 + 15), 20.0f, 400.0f) * 2.35; 
