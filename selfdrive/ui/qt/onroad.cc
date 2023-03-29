@@ -1847,7 +1847,8 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         if (_gap > 300) _gap = 0;
         else if (_gap < 100) gap = 1;
         else if (_gap < 200) gap = 2;
-        else gap = 3;
+        else if (_gap < 300) gap = 3;
+        else gap = 4;
 #endif
         QRect rectGap(x + dxGap, y, 40, 128);
         //painter.setPen(Qt::NoPen);
@@ -1855,11 +1856,13 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         painter.setBrush(blackColor(150));
         rectGap = QRect(x + dxGap, y + 5, 40, 64 / 3.);
         painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y + 5 + 64 * 1 / 3., 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y + 5 + 64 * 1 / 4., 40, 64 / 3.);
         painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y + 5 + 64 * 2 / 3., 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y + 5 + 64 * 2 / 4., 40, 64 / 3.);
         painter.drawRect(rectGap);
-        QRect rectGapPos(x + dxGap, y + 5 + 64, 40, -std::clamp((float)gap, 0.0f, 3.0f) / 3. * 64);
+        rectGap = QRect(x + dxGap, y + 5 + 64 * 3 / 4., 40, 64 / 3.);
+        painter.drawRect(rectGap);       
+        QRect rectGapPos(x + dxGap, y + 5 + 64, 40, -std::clamp((float)gap, 0.0f, 3.0f) / 4. * 64);
         painter.setBrush(greenColor(255));
         painter.drawRect(rectGapPos);
         textColor = whiteColor(255);
@@ -1870,10 +1873,12 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         QRect rectGap1(x1, y1, 60, 20);
         QRect rectGap2(x1, y1 + 35, 60, 20);
         QRect rectGap3(x1, y1 + 70, 60, 20);
+        QRect rectGap4(x1, y1 + 105, 60, 20);
         painter.setBrush(whiteColor(255));
         painter.drawRect(rectGap1);
         if (gap >= 2) painter.drawRect(rectGap2);
         if (gap >= 3) painter.drawRect(rectGap3);
+        if (gap >= 4) painter.drawRect(rectGap4);
 #endif
         //configFont(painter, "Inter", 60, "Bold");
         //textColor = whiteColor(255);
