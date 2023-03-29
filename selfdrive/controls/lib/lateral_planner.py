@@ -39,7 +39,6 @@ class LateralPlanner:
     self.lateralMotionCost = float(int(Params().get("LateralMotionCost", encoding="utf8")))*0.01
     self.lateralAccelCost = float(int(Params().get("LateralAccelCost", encoding="utf8")))*0.01
     self.lateralJerkCost = float(int(Params().get("LateralJerkCost", encoding="utf8")))*0.01
-    self.lateralTestMode = int(Params().get("LateralTestMode", encoding="utf8"))
     self.useLaneLineSpeed = float(int(Params().get("UseLaneLineSpeed", encoding="utf8")))
 
     self.useLaneLineMode = False
@@ -79,10 +78,8 @@ class LateralPlanner:
       self.lateralMotionCost = float(int(Params().get("LateralMotionCost", encoding="utf8")))*0.01
       self.lateralAccelCost = float(int(Params().get("LateralAccelCost", encoding="utf8")))*0.01
       self.lateralJerkCost = float(int(Params().get("LateralJerkCost", encoding="utf8")))*0.01
-      self.lateralTestMode = int(Params().get("LateralTestMode", encoding="utf8"))
 
     # clip speed , lateral planning is not possible at 0 speed
-    self.v_ego = max(MIN_SPEED, sm['carState'].vEgo)
     measured_curvature = sm['controlsState'].curvature
 
     # Parse model predictions
@@ -93,10 +90,9 @@ class LateralPlanner:
       self.plan_yaw = np.array(md.orientation.z)
       self.plan_yaw_rate = np.array(md.orientationRate.z)
       self.velocity_xyz = np.column_stack([md.velocity.x, md.velocity.y, md.velocity.z])
-      car_speed = np.linalg.norm(self.velocity_xyz, axis=1) 
+      car_speed = np.linalg.norm(self.velocity_xyz, axis=1)
       self.v_plan = np.clip(car_speed, MIN_SPEED, np.inf)
-      if self.lateralTestMode == 0:
-        self.v_ego = self.v_plan[0]
+      self.v_ego = self.v_plan[0]
 
     desire_state = md.meta.desireState
     if len(desire_state):
@@ -154,33 +150,21 @@ class LateralPlanner:
                              self.lateralAccelCost, self.lateralJerkCost,
                              self.steeringRateCost)
 
-    if self.lateralTestMode == 1:
-      d_path_xyz = self.path_xyz
-      y_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(d_path_xyz, axis=1), d_path_xyz[:, 1])
-      heading_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw)
-      yaw_rate_pts = np.interp(self.v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw_rate)
-    else:
-      y_pts = self.path_xyz[:LAT_MPC_N+1, 1]
-      heading_pts = self.plan_yaw[:LAT_MPC_N+1]
-      yaw_rate_pts = self.plan_yaw_rate[:LAT_MPC_N+1]
+    y_pts = self.path_xyz[:LAT_MPC_N+1, 1]
+    heading_pts = self.plan_yaw[:LAT_MPC_N+1]
+    yaw_rate_pts = self.plan_yaw_rate[:LAT_MPC_N+1]
     self.y_pts = y_pts
 
     assert len(y_pts) == LAT_MPC_N + 1
     assert len(heading_pts) == LAT_MPC_N + 1
     assert len(yaw_rate_pts) == LAT_MPC_N + 1
-    
-    if self.lateralTestMode == 1:
-      lateral_factor = max(0, self.factor1 - (self.factor2 * self.v_ego**2))
-      p = np.array([self.v_ego, lateral_factor])
-    else:
-      lateral_factor = np.clip(self.factor1 - (self.factor2 * self.v_plan**2), 0.0, np.inf)
-      p = np.column_stack([self.v_plan, lateral_factor])
+    lateral_factor = np.clip(self.factor1 - (self.factor2 * self.v_plan**2), 0.0, np.inf)
+    p = np.column_stack([self.v_plan, lateral_factor])
     self.lat_mpc.run(self.x0,
                      p,
                      y_pts,
                      heading_pts,
-                     yaw_rate_pts,
-                     self.lateralTestMode)
+                     yaw_rate_pts)
     # init state for next iteration
     # mpc.u_sol is the desired second derivative of psi given x0 curv state.
     # with x0[3] = measured_yaw_rate, this would be the actual desired yaw rate.

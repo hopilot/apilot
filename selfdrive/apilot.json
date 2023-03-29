@@ -93,16 +93,6 @@
     },
     {
       "group": "조향튜닝",
-      "name": "LateralTestMode",
-      "title": "_LateralTestMode(0)",
-      "descr": "",
-      "min": 0,
-      "max": 1,
-      "default": 0,
-      "unit": 1
-    },
-    {
-      "group": "조향튜닝",
       "name": "SteerActuatorDelay",
       "title": "SteerActuatorDelay(30)",
       "descr": "값이크면 조향을 좀더 미리함(일반,10msec)",
@@ -547,7 +537,7 @@
       "title": "화면가속도표시",
       "descr": "",
       "min": 0,
-      "max": 1,
+      "max": 2,
       "default": 1,
       "unit": 1
     },
@@ -787,7 +777,7 @@
       "title": "커브제어방법",
       "descr": "0:사용안함,1:방법1,2:방법2,3:APILOT",
       "min": 0,
-      "max": 2,
+      "max": 3,
       "default": 1,
       "unit": 1
     },

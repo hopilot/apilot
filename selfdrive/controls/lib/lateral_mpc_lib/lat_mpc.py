@@ -162,20 +162,20 @@ class LateralMpc():
       self.solver.cost_set(i, 'W', W)
     self.solver.cost_set(N, 'W', W[:COST_E_DIM,:COST_E_DIM])
 
-  def run(self, x0, p, y_pts, heading_pts, yaw_rate_pts,lateralTestMode):
+  def run(self, x0, p, y_pts, heading_pts, yaw_rate_pts):
     x0_cp = np.copy(x0)
     p_cp = np.copy(p)
     self.solver.constraints_set(0, "lbx", x0_cp)
     self.solver.constraints_set(0, "ubx", x0_cp)
     self.yref[:,0] = y_pts
-    v_ego = p_cp[0] if lateralTestMode==1 else p_cp[0, 0]
+    v_ego = p_cp[0, 0]
     # rotation_radius = p_cp[1]
     self.yref[:,1] = heading_pts * (v_ego + SPEED_OFFSET)
     self.yref[:,2] = yaw_rate_pts * (v_ego + SPEED_OFFSET)
     for i in range(N):
       self.solver.cost_set(i, "yref", self.yref[i])
-      self.solver.set(i, "p", p_cp if lateralTestMode==1 else p_cp[i])
-    self.solver.set(N, "p", p_cp if lateralTestMode==1 else p_cp[N])
+      self.solver.set(i, "p", p_cp[i])
+    self.solver.set(N, "p", p_cp[N])
     self.solver.cost_set(N, "yref", self.yref[N][:COST_E_DIM])
 
     t = sec_since_boot()
