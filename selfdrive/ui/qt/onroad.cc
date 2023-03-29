@@ -1248,7 +1248,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     const int center_x = width() / 2;
     const int w = 80;
     const int h = 80;
-    const int base_y = (height() - h) / 2 + 100;
+    const int base_y = (height() - h) / 2 + 150;
     const int draw_count = 20;
 
     int x = center_x;
@@ -1263,7 +1263,7 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
 
         p.setOpacity(alpha);
         float factor = (float)draw_count / (i + draw_count);
-        p.drawPixmap(x - 80 , y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_l);
+        p.drawPixmap(x - 80 - w , y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_l);
         x -= 45 * factor;
       }
     }
