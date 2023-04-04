@@ -462,6 +462,8 @@ class CruiseHelper:
     self.vRel = vRel
     self.radarAlarmCount = self.radarAlarmCount - 1 if self.radarAlarmCount > 0 else 0
 
+    blinker = CS.rightBlinker or CS.leftBlinker
+
     if controls.enabled:
       ##### Cruise Button 처리...
       if buttonLong:
@@ -539,16 +541,20 @@ class CruiseHelper:
             self.v_cruise_kph_backup = v_cruise_kph #가스로 할땐 백업
         if xState == XState.softHold: #소프트 홀드상태에서 가속페달을 밟으면 크루즈를 끄자~
           self.cruise_control(controls, CS, -2)
-        elif xState in [XState.e2eStop, XState.e2eCruise] and v_ego_kph_set < v_cruise_kph and controls.v_future*CV.MS_TO_KPH < v_ego_kph * 0.6: # 모델이 감속을 지시하고 엑셀을 밟으면 속도를 빠르게 하면 안됨.
+        # e2EStop 또는 e2eCruise일때, 현재속도가 설정된속도보다 느리고, 적색신호감지 엑셀을 밟으면 크루즈OFF: 즉, 신호감지로 감속중인데 가속페달을 밟음... 신호오감지또는 좌회전감지... 크루즈를 끄자
+        elif xState in [XState.e2eStop, XState.e2eCruise] and v_ego_kph_set < v_cruise_kph and trafficState == 1: #controls.v_future*CV.MS_TO_KPH < v_ego_kph * 0.6: 
           #v_cruise_kph = v_ego_kph_set
           self.cruise_control(controls, CS, -2)
           pass
-      elif not CS.gasPressed and self.gasPressedCount > 2 and self.longCruiseGap != 5: #엑셀을 밟았다가 떼면..
+      #엑셀을 밟았다가 떼면..
+      elif not CS.gasPressed and self.gasPressedCount > 2 and self.longCruiseGap != 5: 
         if False: #CS.myDrivingMode == 2: 관성모드 없앰..
           self.cruise_control(controls, CS, -3)
           self.userCruisePaused = True
         else:
+          # 크루즈가 해제되어 있는경우
           if self.longActiveUser <= 0:
+            # 설정크루즈ON속도보다 빠르거나 엑셀을 깊게 밟은경우
             if ((resume_cond and (v_ego_kph >= self.autoResumeFromGasSpeed)) or CS.gas >= 0.6) and self.autoResumeFromGas:
               if self.autoResumeFromGasSpeedMode == 0: #현재속도로 세트
                 # 60% 이상 밟으면...
@@ -564,6 +570,7 @@ class CruiseHelper:
                 else:
                   v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
               self.cruise_control(controls, CS, 3)
+          # 크루즈가 ON되어 있는경우..
           else:
             if self.gasPressedCount * DT_CTRL < 0.6 and v_ego_kph_set > 30.0 and v_cruise_kph < self.autoSyncCruiseSpeedMax:  #1초이내에 Gas페달을 잡았다가 놓으면...
               v_cruise_kph = self.v_cruise_speed_up(v_cruise_kph, roadSpeed)
@@ -578,11 +585,11 @@ class CruiseHelper:
         # 브레이크해제 켜지고, 크루즈갭이 5가 아닌경우에만 작동.
         elif self.autoResumeFromBrakeRelease and self.longCruiseGap != 5: # 브레이크 해제에 대한 크루즈 ON
           # 주행중, 전방차량이 20M(변수)이내이면
-          if resume_cond and v_ego_kph >= 3.0 and 0 < self.autoResumeFromBrakeReleaseDist < dRel and CS.rightBlinker == False:
+          if resume_cond and v_ego_kph >= 3.0 and 0 < self.autoResumeFromBrakeReleaseDist < dRel and not blinker: #CS.rightBlinker == False:
             v_cruise_kph = v_ego_kph_set  # 현재속도로 세트~
             self.cruise_control(controls, CS, 3)
-          # 70km/h미만, 신호정지신호, 직선도로인경우
-          elif v_ego_kph < 70.0 and xState == XState.e2eStop and abs(self.position_y) < 5.0 and self.autoResumeFromBrakeReleaseTrafficSign and CS.rightBlinker == False and CS.leftBlinker == False:
+          # 핸들5도미만, 70km/h미만, 신호정지신호, 깜박이 OFF
+          elif abs(CS.steeringAngleDeg) < 5.0 and v_ego_kph < 70.0 and trafficState == 1 and self.autoResumeFromBrakeReleaseTrafficSign and not blinker:
             v_cruise_kph = v_ego_kph_set  
             self.cruise_control(controls, CS, 3)
           # 전방차량이 없고, 속도가 40km/h(변수) 이상인경우

@@ -497,7 +497,12 @@ class LongitudinalMpc:
         #1단계: 모델값을 이용한 신호감지
         model_v = self.vFilter.process(v[-1])
         startSign = model_v > 5.0 or model_v > (v[0]+2)
-        stopSign = v_ego_kph<80.0 and model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.70)) and abs(y[N]) < 5.0 #직선도로에서만 감지하도록 함~ 모델속도가 70% 감소할때만..
+        if v_ego < 1.0: #정지상태인경우
+          stopSign = model_x < 50.0 and model_v < 10.0
+        elif v_ego_kph<80.0: # 80키로 이하, 
+          stopSign = model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.70)) and abs(y[N]) < 5.0 #10초후 정지, 70%감속, 직선도로에서 감지 정지...
+        else:
+          stopSign = False
 
         ## 현재속도로 정지가 가능한경우에만 신호인식하도록 해보자~, stop_distance는 신호정지시 model_x가 0이므로... 이것도 인지하도록 함.
         #self.stopSignCount = self.stopSignCount + 1 if (stopSign and (model_x > get_safe_obstacle_distance(v_ego,t_follow=0, comfort_brake=COMFORT_BRAKE, stop_distance=-1.0))) else 0 
@@ -506,14 +511,15 @@ class LongitudinalMpc:
         ## 방금 startSign이 잠깐들어오고 StopSign이 들어오면.... 신호감지 오류...
         if 0.0 < self.startSignCount*DT_MDL < 0.3 and stopSign:
           if v_ego < 0.1 and self.xState == XState.e2eStop and not self.e2ePaused:
-            self.trafficError = True
+            #self.trafficError = True  # Traffic Error잠시멈춤..
+            pass
         self.startSignCount = self.startSignCount + 1 if startSign else 0
 
         # trafficState: 2:StartSign, 1:StopSign, 0: Ignore
         # self.trafficState = 1 if self.stopSignCount * DT_MDL > 0.3 else 2 if self.startSignCount * DT_MDL > 0.3 else 0
         # 신호등의 상태를 과거값을 기억하고 있으면 어떨까?
 
-        if self.stopSignCount * DT_MDL > 0.3 and carstate.rightBlinker == False:
+        if self.stopSignCount * DT_MDL > 0.0 and carstate.rightBlinker == False:
            self.trafficState = 1 
         elif self.startSignCount * DT_MDL > 0.3:
            self.trafficState = 2 
