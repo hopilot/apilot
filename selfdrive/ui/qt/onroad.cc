@@ -1551,7 +1551,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     }
 
     x = apilot_filter_x.update(x);
-    y = apilot_filter_y.update(y) + 50;
+    y = apilot_filter_y.update(y) + 20;
 
     // 신호등(traffic)그리기.
     // 신호등내부에는 레이더거리, 비젼거리, 정지거리, 신호대기 표시함.
