@@ -796,7 +796,8 @@ class Controls:
     if self.CP.openpilotLongitudinalControl and CS.vEgo < 0.1:  #정지시에만 목표속도표시함.
       hudControl.setSpeed = float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
     else:
-      hudControl.setSpeed = float(max(1, min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply) * CV.KPH_TO_MS)) #float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
+      #hudControl.setSpeed = float(max(1, min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply) * CV.KPH_TO_MS)) #float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
+      hudControl.setSpeed = self.cruise_helper.v_cruise_kph_apply * CV.KPH_TO_MS #float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
 
     #hudControl.softHold = True if self.sm['longitudinalPlan'].xState == XState.softHold and self.cruise_helper.longActiveUser>0 else False
     hudControl.radarAlarm = True if self.cruise_helper.radarAlarmCount > 1000 else False
@@ -909,7 +910,8 @@ class Controls:
     controlsState.longActiveUser = self.cruise_helper.longActiveUser
     controlsState.longActiveUserReady = self.cruise_helper.longActiveUserReady
     controlsState.cruiseButtonCounter = self.cruiseButtonCounter
-    controlsState.longCruiseGap = self.cruise_helper.longCruiseGap if self.CP.openpilotLongitudinalControl else CS.cruiseGap
+    #controlsState.longCruiseGap = self.cruise_helper.longCruiseGap if self.CP.openpilotLongitudinalControl else CS.cruiseGap
+    controlsState.longCruiseGap = self.cruise_helper.longCruiseGap #if self.CP.openpilotLongitudinalControl else CS.cruiseGap
     controlsState.myDrivingMode = self.cruise_helper.myDrivingMode
     controlsState.mySafeModeFactor = self.cruise_helper.mySafeModeFactor
 

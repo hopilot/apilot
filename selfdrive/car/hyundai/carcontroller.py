@@ -7,6 +7,7 @@ from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.hyundai import hyundaicanfd, hyundaican
 from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerParams, CANFD_CAR, CAR, FEATURES
 import random
+from random import randint
 from common.params import Params
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
@@ -66,6 +67,7 @@ class CarController:
     self.blinking_frame = int(1.0 / DT_CTRL)
     self.steerDeltaUp = 3
     self.steerDeltaDown = 7
+    self.button_wait = 12
 
   def update(self, CC, CS):
     actuators = CC.actuators
@@ -205,11 +207,12 @@ class CarController:
             can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
             self.last_button_frame = self.frame
         else:
-          target = set_speed_in_units
+          target = int(set_speed_in_units+0.5)
           current = int(CS.out.cruiseState.speed*CV.MS_TO_KPH + 0.5)
 
           #CC.debugTextCC = "BTN:00,T:{:.1f},C:{:.1f},{},{}".format(target, current, self.wait_timer, self.alive_timer)
-          if CC.enabled and (self.frame - self.last_button_frame)*DT_CTRL > 0.12 and CS.cruise_buttons[-1] == Buttons.NONE:
+          if CC.enabled and (self.frame - self.last_button_frame) > self.button_wait and CS.cruise_buttons[-1] == Buttons.NONE:
+            self.button_wait = randint(7,15)
             self.last_button_frame = self.frame
             if not CS.out.cruiseState.enabled:
               if CC.longActive: # and hud_control.leadVisible:
@@ -218,14 +221,18 @@ class CarController:
               elif CC.longActive:
                 can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
                 #CC.debugTextCC = "BTN:--,T:{:.1f},C:{:.1f}".format(target, current)
-            elif target < current:
-              if current >= 31:
-                can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
-                #CC.debugTextCC = "BTN:--,T:{:.1f},C:{:.1f}".format(target, current)
-            elif target > current:
-              if current < 160:
-                can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
-                #CC.debugTextCC = "BTN:++,T:{:.1f},C:{:.1f}".format(target, current)
+              elif CS.out.cruiseGap != hud_control.cruiseGap:
+                can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.GAP_DIST, self.CP.carFingerprint))
+                #print("currentGap = {}, target = {}".format(CS.out.cruiseGap, hud_control.cruiseGap))
+            elif target < current and current>= 31:
+              can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
+              #CC.debugTextCC = "BTN:--,T:{:.1f},C:{:.1f}".format(target, current)
+            elif target > current and current < 160:
+              can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
+              #CC.debugTextCC = "BTN:++,T:{:.1f},C:{:.1f}".format(target, current)
+            elif CS.out.cruiseGap != hud_control.cruiseGap:
+              can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.GAP_DIST, self.CP.carFingerprint))
+              #print("currentGap = {}, target = {}".format(CS.out.cruiseGap, hud_control.cruiseGap))
 
       CC.debugTextCC = "230218a"
       if self.CP.carFingerprint in (CAR.GENESIS_G90_2019, CAR.GENESIS_G90, CAR.K7):

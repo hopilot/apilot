@@ -264,6 +264,7 @@ class LongitudinalMpc:
     self.reset()
     self.source = SOURCES[2]
     self.x_obstacle_min = 0.0
+    self.openpilotLongitudinalControl = False
 
   def reset(self):
     # self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
@@ -466,6 +467,14 @@ class LongitudinalMpc:
       # 선행차감속도* 내차감속도 : 둘다감속이 심하면 더 t_follow를 크게..
       self.t_follow *= interp(radarstate.leadOne.aLeadK, [-4, 0], [self.applyDynamicTFollowDecel, 1.0]) # 선행차의 accel텀은 이미 사용하고 있지만(aLeadK).... 그러나, t_follow에 추가로 적용시험
       self.t_follow *= interp(a_ego, [-4, 0], [self.applyDynamicTFollowDecel, 1.0]) # 내차의 감속도에 추가 적용
+
+      if not self.openpilotLongitudinalControl:
+        if v_ego < 0.1:
+          self.applyCruiseGap = 1
+        elif a_ego < 0.1:
+          self.applyCruiseGap = int(interp(a_ego, [-2.0, 0.0], [4, self.applyCruiseGap]))
+        else:
+          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [0, 10.0], [self.applyCruiseGap, 1]))
 
     self.comfort_brake = COMFORT_BRAKE
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])

@@ -73,6 +73,8 @@ class LongitudinalPlanner:
     self.cruiseMaxVals6 = float(int(Params().get("CruiseMaxVals6", encoding="utf8"))) / 100.
     self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
 
+    self.mpc.openpilotLongitudinalControl = CP.openpilotLongitudinalControl
+
 
   def update_params(self):
     self.params_count = (self.params_count + 1) % 200
