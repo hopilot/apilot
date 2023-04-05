@@ -628,6 +628,7 @@ struct ControlsState @0x97ff69c53601abf1 {
   longCruiseGap @70: Int8;
   myDrivingMode @71 : Int32; #0: Eco, Eco2, Normal, Speed
   mySafeModeFactor @72 : Float32;
+  longActiveUserReady @73 : Int32;
 
 
   enum OpenpilotState @0xdbe58b96d2d1ac61 {
@@ -939,11 +940,10 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   trafficState @38 : Int32;
   xState @39 : XState;
   xCruiseTarget @40 : Float32;
-  visionTurnControllerState @41 :VisionTurnControllerState;
-  visionTurnSpeed @42 :Float32;
-  xStop @43 : Float32;
-  tFollow @44 : Float32;
-  cruiseGap @45 : Int32;
+  xStop @41 : Float32;
+  tFollow @42 : Float32;
+  cruiseGap @43 : Int32;
+  xObstacle @44 : Float32;
 
   enum XState {
     lead @0;
@@ -993,12 +993,6 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   struct GpsTrajectory {
     x @0 :List(Float32);
     y @1 :List(Float32);
-  }
-  enum VisionTurnControllerState {
-    disabled @0; # No predicted substancial turn on vision range or feature disabled.
-    entering @1; # A subsantial turn is predicted ahead, adapting speed to turn confort levels.
-    turning @2; # Actively turning. Managing acceleration to provide a roll on turn feeling.
-    leaving @3; # Road ahead straightens. Start to allow positive acceleration.
   }
 }
 

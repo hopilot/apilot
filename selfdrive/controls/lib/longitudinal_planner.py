@@ -9,15 +9,13 @@ from common.filter_simple import FirstOrderFilter
 from common.realtime import DT_MDL
 from selfdrive.modeld.constants import T_IDXS
 from selfdrive.controls.lib.longcontrol import LongCtrlState
-from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc, MIN_ACCEL, MAX_ACCEL
+from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc, MIN_ACCEL, MAX_ACCEL, N
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDXS as T_IDXS_MPC
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, CONTROL_N
-from selfdrive.controls.lib.vision_turn_controller import VisionTurnController
 from selfdrive.swaglog import cloudlog
 from common.params import Params
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
-AWARENESS_DECEL = -0.2  # car smoothly decel at .2m/s^2 when user is distracted
 A_CRUISE_MIN = -1.2
 #A_CRUISE_MAX_VALS = [1.6, 1.2, 0.8, 0.6]
 #A_CRUISE_MAX_VALS = [2.0, 1.2, 0.8, 0.6]
@@ -65,7 +63,6 @@ class LongitudinalPlanner:
 
     self.vCluRatio = 1.0
 
-    self.accelBoost = 1.0
     self.myEcoModeFactor = 1.0
     self.params_count = 0
     self.cruiseMaxVals1 = float(int(Params().get("CruiseMaxVals1", encoding="utf8"))) / 100.
@@ -80,7 +77,6 @@ class LongitudinalPlanner:
   def update_params(self):
     self.params_count = (self.params_count + 1) % 200
     if self.params_count == 50:
-      self.accelBoost = float(int(Params().get("AccelBoost", encoding="utf8"))) / 100.
       self.myEcoModeFactor = float(int(Params().get("MyEcoModeFactor", encoding="utf8"))) / 100.
     elif self.params_count == 100:
       self.cruiseMaxVals1 = float(int(Params().get("CruiseMaxVals1", encoding="utf8"))) / 100.
@@ -147,16 +143,18 @@ class LongitudinalPlanner:
     reset_state = long_control_off if self.CP.openpilotLongitudinalControl else not sm['controlsState'].enabled
 
     # No change cost when user is controlling the speed, or when standstill
-    prev_accel_constraint = not (reset_state or sm['carState'].standstill)
+    # longControl OFF상태 또는 정지상태 인경우, A_CHANGE_COST를 적용안하여 시작의 제한이 없을것 같음..
+    # 정지상태에서만 적용하고 주행중이며, longControl OFF상태에서는 적용해야할것 같음... pid가 ON이 되면, 급격한 가속도변화로 인해, 주행이 자연스럽지못함.
+    prev_accel_constraint = not sm['carState'].standstill  #prev_accel_constraint = not (reset_state or sm['carState'].standstill)
 
     if self.mpc.mode == 'acc':
       #accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]      
       if myDrivingMode in [1]: # 연비
-        myMaxAccel = clip(self.get_max_accel(v_ego)*self.accelBoost*self.myEcoModeFactor, 0, MAX_ACCEL)
+        myMaxAccel = clip(self.get_max_accel(v_ego)*self.myEcoModeFactor, 0, MAX_ACCEL)
       elif myDrivingMode in [2]: # 안전
-        myMaxAccel = clip(self.get_max_accel(v_ego)*self.accelBoost*self.myEcoModeFactor*mySafeModeFactor, 0, MAX_ACCEL)
+        myMaxAccel = clip(self.get_max_accel(v_ego)*self.myEcoModeFactor*mySafeModeFactor, 0, MAX_ACCEL)
       elif myDrivingMode in [3,4]: # 일반, 고속
-        myMaxAccel = clip(self.get_max_accel(v_ego)*self.accelBoost, 0, MAX_ACCEL)
+        myMaxAccel = clip(self.get_max_accel(v_ego), 0, MAX_ACCEL)
       else:
         myMaxAccel = self.get_max_accel(v_ego)
       accel_limits = [A_CRUISE_MIN, myMaxAccel]
@@ -169,7 +167,8 @@ class LongitudinalPlanner:
       self.v_desired_filter.x = v_ego
       # Clip aEgo to cruise limits to prevent large accelerations when becoming active
       self.a_desired = clip(sm['carState'].aEgo, accel_limits[0], accel_limits[1])
-    
+      self.mpc.prev_a = np.full(N+1, self.a_desired) ## mpc에서는 prev_a를 참고하여 constraint작동함.... pid off -> on시에는 현재 constraint가 작동하지 않아서 집어넣어봄...
+
     # Prevent divergence, smooth in current v_ego
     self.v_desired_filter.x = max(0.0, self.v_desired_filter.update(v_ego))
     # Compute model v_ego error
@@ -223,8 +222,6 @@ class LongitudinalPlanner:
     longitudinalPlan.fcw = self.fcw
 
     longitudinalPlan.solverExecutionTime = self.mpc.solve_time
-    #longitudinalPlan.visionTurnControllerState = self.vision_turn_controller.state
-    #longitudinalPlan.visionTurnSpeed = float(self.vision_turn_controller.v_turn)
 
     longitudinalPlan.debugLongText1 = self.mpc.debugLongText1
     #self.mpc.debugLongText2 = "Vout={:3.2f},{:3.2f},{:3.2f},{:3.2f},{:3.2f}".format(longitudinalPlan.speeds[0]*3.6,longitudinalPlan.speeds[1]*3.6,longitudinalPlan.speeds[2]*3.6,longitudinalPlan.speeds[3]*3.6,longitudinalPlan.speeds[-1]*3.6)
@@ -237,6 +234,7 @@ class LongitudinalPlanner:
     longitudinalPlan.xStop = float(self.mpc.xStop)
     longitudinalPlan.tFollow = float(self.mpc.t_follow)
     longitudinalPlan.cruiseGap = int(self.mpc.applyCruiseGap)
+    longitudinalPlan.xObstacle = float(self.mpc.x_obstacle_min[0])
     if self.CP.openpilotLongitudinalControl:
       longitudinalPlan.xCruiseTarget = float(self.mpc.v_cruise / self.vCluRatio)
     else:

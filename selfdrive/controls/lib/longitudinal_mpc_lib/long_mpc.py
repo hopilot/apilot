@@ -263,6 +263,7 @@ class LongitudinalMpc:
     self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
     self.reset()
     self.source = SOURCES[2]
+    self.x_obstacle_min = 0.0
 
   def reset(self):
     # self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
@@ -498,7 +499,7 @@ class LongitudinalMpc:
         model_v = self.vFilter.process(v[-1])
         startSign = model_v > 5.0 or model_v > (v[0]+2)
         if v_ego < 1.0: #정지상태인경우
-          stopSign = model_x < 50.0 and model_v < 10.0
+          stopSign = model_x < 20.0 and model_v < 10.0
         elif v_ego_kph<80.0: # 80키로 이하, 
           stopSign = model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.70)) and abs(y[N]) < 5.0 #10초후 정지, 70%감속, 직선도로에서 감지 정지...
         else:
@@ -521,7 +522,7 @@ class LongitudinalMpc:
 
         if self.stopSignCount * DT_MDL > 0.0 and carstate.rightBlinker == False:
            self.trafficState = 1 
-        elif self.startSignCount * DT_MDL > 0.3:
+        elif self.startSignCount * DT_MDL > 0.1:
            self.trafficState = 2 
 
         if self.xState == XState.e2eStop: # and abs(self.xStop - model_x) < 20.0:
@@ -638,8 +639,8 @@ class LongitudinalMpc:
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
-      self.debugLongText1 = 'A{:.2f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f},{:3.1f},{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}'.format(
-        self.prev_a[0], y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],model.position.x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
+      #self.debugLongText1 = 'A{:.2f},Y{:.1f},TR={:.2f},state={} {},L{:3.1f} C{:3.1f},{:3.1f},{:3.1f} X{:3.1f} S{:3.1f},V={:.1f}:{:.1f}:{:.1f}'.format(
+      #  self.prev_a[0], y[-1], self.t_follow, self.xState, self.e2ePaused, lead_0_obstacle[0], cruise_obstacle[0], cruise_obstacle[1], cruise_obstacle[-1],model.position.x[-1], model_x, v_ego*3.6, v[0]*3.6, v[-1]*3.6)
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
 
@@ -698,6 +699,7 @@ class LongitudinalMpc:
         self.source = 'lead1'
 
     self.v_cruise = v_cruise
+    self.x_obstacle_min = self.params[:,2]
 
   def run(self):
     # t0 = sec_since_boot()

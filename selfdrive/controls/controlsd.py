@@ -907,6 +907,7 @@ class Controls:
     controlsState.debugText1 = self.debugText1
     controlsState.debugText2 = self.debugText2
     controlsState.longActiveUser = self.cruise_helper.longActiveUser
+    controlsState.longActiveUserReady = self.cruise_helper.longActiveUserReady
     controlsState.cruiseButtonCounter = self.cruiseButtonCounter
     controlsState.longCruiseGap = self.cruise_helper.longCruiseGap if self.CP.openpilotLongitudinalControl else CS.cruiseGap
     controlsState.myDrivingMode = self.cruise_helper.myDrivingMode

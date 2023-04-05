@@ -1493,6 +1493,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     auto car_control = sm["carControl"].getCarControl();
     auto car_state = sm["carState"].getCarState();
     int longActiveUser = controls_state.getLongActiveUser();
+    int longActiveUserReady = controls_state.getLongActiveUserReady();
 
     int     uiDrawSeq = sm.frame % 3;   // 시간이 많이 걸리는것들은 해당순서에서 그리자,, 0,1,2
 
@@ -1900,9 +1901,9 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     // 타겟하단: 롱컨상태표시
     {
         QString str;
+        auto xState = lp.getXState();
         if (brake_hold) str.sprintf("AUTOHOLD");
         else if (longActiveUser > 0) {
-            auto xState = lp.getXState();
             if (xState == cereal::LongitudinalPlan::XState::E2E_STOP) str.sprintf("신호감지");
             else if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) str.sprintf("SOFTHOLD");
             else if (xState == cereal::LongitudinalPlan::XState::LEAD) str.sprintf("LEAD");
@@ -1913,7 +1914,13 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 #ifdef __TEST
         else str.sprintf("E2E주행");
 #else
-        else str.sprintf("수동운전");
+        else {
+            if (longActiveUserReady > 0) {
+                if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) str.sprintf("SOFTHOLD");
+                else str.sprintf("크루즈대기");
+            }
+            else str.sprintf("수동운전");
+        }
 #endif
         QRect rectBrake(x - 250 / 2, y + 140, 250, 45);
         painter.setPen(Qt::NoPen);
