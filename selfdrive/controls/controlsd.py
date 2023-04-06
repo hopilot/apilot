@@ -902,7 +902,7 @@ class Controls:
     controlsState.vPid = float(self.LoC.v_pid)
     controlsState.vCruise = float(self.cruise_helper.v_cruise_kph_apply) #if self.CP.openpilotLongitudinalControl else float(self.v_cruise_kph)
     controlsState.vCruiseCluster = float(self.v_cruise_helper.v_cruise_cluster_kph)
-    controlsState.vCruiseOut = min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply)
+    controlsState.vCruiseOut = self.cruise_helper.v_cruise_kph_apply #min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply)
 
     #ajouatom
     controlsState.debugText1 = self.debugText1
