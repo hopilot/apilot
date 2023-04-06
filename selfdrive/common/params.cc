@@ -304,6 +304,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "UseLaneLineSpeed", PERSISTENT },
     { "PathOffset", PERSISTENT },
     { "PathCostApply", PERSISTENT },
+    { "PathCostApplyLow", PERSISTENT },
     { "HapticFeedbackWhenSpeedCamera", PERSISTENT },
     { "SoftHoldMode", PERSISTENT },
     { "ApplyModelDistOrder", PERSISTENT },

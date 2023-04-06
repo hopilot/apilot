@@ -942,7 +942,7 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   xCruiseTarget @40 : Float32;
   xStop @41 : Float32;
   tFollow @42 : Float32;
-  cruiseGap @43 : Int32;
+  cruiseGap @43 : Float32;
   xObstacle @44 : Float32;
 
   enum XState {

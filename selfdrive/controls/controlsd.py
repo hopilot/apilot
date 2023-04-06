@@ -810,7 +810,7 @@ class Controls:
     #hudControl.rightLaneVisible = True
     #hudControl.leftLaneVisible = True
 
-    hudControl.cruiseGap = self.sm['longitudinalPlan'].cruiseGap #CS.cruiseGap
+    hudControl.cruiseGap = int(self.sm['longitudinalPlan'].cruiseGap) #CS.cruiseGap
     hudControl.objDist = int(self.cruise_helper.dRel)
     hudControl.objRelSpd = self.cruise_helper.vRel
 

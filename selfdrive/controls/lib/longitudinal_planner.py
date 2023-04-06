@@ -235,11 +235,11 @@ class LongitudinalPlanner:
       longitudinalPlan.trafficState = self.mpc.trafficState + 1000
     longitudinalPlan.xStop = float(self.mpc.xStop)
     longitudinalPlan.tFollow = float(self.mpc.t_follow)
-    longitudinalPlan.cruiseGap = int(self.mpc.applyCruiseGap)
+    longitudinalPlan.cruiseGap = float(self.mpc.applyCruiseGap)
     longitudinalPlan.xObstacle = float(self.mpc.x_obstacle_min[0])
     if self.CP.openpilotLongitudinalControl:
       longitudinalPlan.xCruiseTarget = float(self.mpc.v_cruise / self.vCluRatio)
     else:
       longitudinalPlan.xCruiseTarget = float(longitudinalPlan.speeds[-1] / self.vCluRatio)
 
-    pm.send('longitudinalPlan', plan_send)
+    pm.send('longitudinalPlan', plan_send)        

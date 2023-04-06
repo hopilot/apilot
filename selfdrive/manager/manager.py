@@ -134,6 +134,7 @@ def manager_init() -> None:
     ("UseLaneLineSpeed", "80"),    
     ("PathOffset", "0"),  
     ("PathCostApply", "100"),
+    ("PathCostApplyLow", "100"),
     ("HapticFeedbackWhenSpeedCamera", "0"),       
     ("SoftHoldMode", "1"),       
     ("ApplyModelDistOrder", "28"),       

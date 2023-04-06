@@ -731,6 +731,7 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("LiveSteerRatioApply", "횡컨: LiveSteerRatioApply(100)", "오버스티어가 발생하면 줄입니다.", "../assets/offroad/icon_road.png", 50, 110, 1));
     toggleLayout->addWidget(new CValueControl("SteeringRateCost", "횡컨: SteeringRateCost(700)", "", "../assets/offroad/icon_road.png", 0, 2000, 10));
     toggleLayout->addWidget(new CValueControl("PathCostApply", "횡컨: PathCostApply(100)", "", "../assets/offroad/icon_road.png", 0, 200, 5));
+    toggleLayout->addWidget(new CValueControl("PathCostApplyLow", "횡컨: PathCostApplyLow(100)", "", "../assets/offroad/icon_road.png", 0, 200, 5));
     toggleLayout->addWidget(new CValueControl("LateralAccelCost", "횡컨: LateralAccelCost(0)", "", "../assets/offroad/icon_road.png", 0, 300, 1));
     toggleLayout->addWidget(new CValueControl("LateralMotionCost", "횡컨: LateralMotionCost(11)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
     toggleLayout->addWidget(new CValueControl("LateralJerkCost", "횡컨: LateralJerkCost(4)", "", "../assets/offroad/icon_road.png", 0, 50, 1));

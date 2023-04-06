@@ -286,6 +286,8 @@ class LongitudinalMpc:
     self.xState = XState.cruise
     self.startSignCount = 0
     self.stopSignCount = 0
+    self.longActiveUser_prev = 0
+
     for i in range(N+1):
       self.solver.set(i, 'x', np.zeros(X_DIM))
     self.last_cloudlog_t = 0
@@ -454,7 +456,7 @@ class LongitudinalMpc:
       cruiseGapRatio = interp(self.applyCruiseGap, [1,2,3,4], [1.1, 1.2, 1.3, 1.45])
       self.applyCruiseGap = clip(self.applyCruiseGap, 1, 4)
     else:
-      self.applyCruiseGap = controls.longCruiseGap
+      self.applyCruiseGap = float(controls.longCruiseGap)
       cruiseGapRatio = interp(controls.longCruiseGap, [1,2,3], [1.1, 1.3, 1.6])
 
     self.t_follow = max(0.9, cruiseGapRatio * self.tFollowRatio * (2.0 - mySafeModeFactor)) # 0.9아래는 위험하니 적용안함.
@@ -471,10 +473,12 @@ class LongitudinalMpc:
       if not self.openpilotLongitudinalControl:
         if v_ego < 0.1:
           self.applyCruiseGap = 1
-        elif a_ego < 0.1:
-          self.applyCruiseGap = int(interp(a_ego, [-2.0, 0.0], [4, self.applyCruiseGap]))
         else:
-          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [0, 10.0], [self.applyCruiseGap, 1]))
+          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-10.0, 0, 10.0], [4, self.applyCruiseGap, 1]))
+        #elif a_ego < 0.1:
+        #  self.applyCruiseGap = int(interp(a_ego, [-2.0, 0.0], [4, self.applyCruiseGap]))
+        #else:
+        #  self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [0, 10.0], [self.applyCruiseGap, 1]))
 
     self.comfort_brake = COMFORT_BRAKE
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
@@ -518,8 +522,14 @@ class LongitudinalMpc:
         #self.stopSignCount = self.stopSignCount + 1 if (stopSign and (model_x > get_safe_obstacle_distance(v_ego,t_follow=0, comfort_brake=COMFORT_BRAKE, stop_distance=-1.0))) else 0 
         self.stopSignCount = self.stopSignCount + 1 if stopSign else 0 
 
+        # cruise_helper에서 깜박이 켜고 신호감지, 브레이크 크루즈ON을 기동하면... 신호오류와 같이, 크루즈버튼으로 출발해야함.
+        if self.longActiveUser_prev != controls.longActiveUser:
+          if controls.longActiveUser > 10:
+            self.trafficError = True
+          self.longActiveUser_prev = controls.longActiveUser
+
         ## 방금 startSign이 잠깐들어오고 StopSign이 들어오면.... 신호감지 오류...
-        if 0.0 < self.startSignCount*DT_MDL < 0.3 and stopSign:
+        if 0.0 < self.startSignCount*DT_MDL < 0.1 and stopSign:
           if v_ego < 0.1 and self.xState == XState.e2eStop and not self.e2ePaused:
             #self.trafficError = True  # Traffic Error잠시멈춤..
             pass
