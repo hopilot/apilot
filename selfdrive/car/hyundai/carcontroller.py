@@ -223,10 +223,10 @@ class CarController:
                 #CC.debugTextCC = "BTN:--,T:{:.1f},C:{:.1f}".format(target, current)
               elif CS.out.cruiseGap != hud_control.cruiseGap:
                 can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.GAP_DIST, self.CP.carFingerprint))
-                #print("currentGap = {}, target = {}".format(CS.out.cruiseGap, hud_control.cruiseGap))
+                print("currentGap = {}, target = {}".format(CS.out.cruiseGap, hud_control.cruiseGap))
             elif CS.out.cruiseGap != hud_control.cruiseGap:
               can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.GAP_DIST, self.CP.carFingerprint))
-              #print("currentGap = {}, target = {}".format(CS.out.cruiseGap, hud_control.cruiseGap))
+              print("currentGap = {}, target = {}".format(CS.out.cruiseGap, hud_control.cruiseGap))
             elif target < current and current>= 31:
               can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
               #CC.debugTextCC = "BTN:--,T:{:.1f},C:{:.1f}".format(target, current)
