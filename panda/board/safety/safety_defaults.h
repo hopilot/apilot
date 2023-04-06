@@ -30,16 +30,24 @@ static int nooutput_tx_lin_hook(int lin_num, uint8_t *data, int len) {
   return false;
 }
 
+bool check_mdps_bus1 = false;
 static int default_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
-  UNUSED(to_fwd);
+  int addr = GET_ADDR(to_fwd);  
   int bus_fwd = -1;
 
   if (true) {
       if (bus_num == 0) {
           bus_fwd = 2;
+          if (check_mdps_bus1) bus_fwd = 12;
+      }
+      if (bus_num == 1) {
+          if (addr == 593) check_mdps_bus1 = true;
+          bus_fwd = -1;
+          if (check_mdps_bus1) bus_fwd = 20;
       }
       if (bus_num == 2) {
           bus_fwd = 0;
+          if (check_mdps_bus1) bus_fwd = 10;
       }
   }
 
@@ -82,15 +90,22 @@ static int alloutput_tx_lin_hook(int lin_num, uint8_t *data, int len) {
 }
 
 static int alloutput_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
-  UNUSED(to_fwd);
-  int bus_fwd = -1;
+    int addr = GET_ADDR(to_fwd);
+    int bus_fwd = -1;
 
   if (true || alloutput_passthrough) {
     if (bus_num == 0) {
       bus_fwd = 2;
+      if (check_mdps_bus1) bus_fwd = 12;
+    }
+    if (bus_num == 1) {
+        bus_fwd = -1;
+        if (addr == 593) check_mdps_bus1 = true;
+        if (check_mdps_bus1) bus_fwd = 20;
     }
     if (bus_num == 2) {
       bus_fwd = 0;
+      if (check_mdps_bus1) bus_fwd = 10;
     }
   }
 

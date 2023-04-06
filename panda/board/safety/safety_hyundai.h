@@ -31,6 +31,7 @@ const CanMsg HYUNDAI_TX_MSGS[] = {
 const CanMsg HYUNDAI_LONG_TX_MSGS[] = {
   {593, 2, 8},  // MDPS12, Bus 2
   {832, 0, 8},  // LKAS11 Bus 0
+  {832, 1, 8},  // LKAS11 Bus 1
   {1265, 0, 4}, // CLU11 Bus 0
   {1265, 1, 4}, // CLU11 Bus 1
   {1157, 0, 4}, // LFAHDA_MFC Bus 0
@@ -109,6 +110,7 @@ uint32_t LKAS11_lastTxTime = 0;
 uint32_t LKAS11_maxTxDiffTime = 0;
 bool LKAS11_forwarding = true;
 uint32_t last_ts_mdps12_from_op = 0; // from neokii
+bool  mdpsConnectedBus1 = false;
 
 
 addr_checks hyundai_rx_checks = {hyundai_addr_checks, HYUNDAI_ADDR_CHECK_LEN};
@@ -218,13 +220,15 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
       }
       hyundai_common_cruise_state_check(cruise_engaged);
   }
+  if (valid) {
+      if (addr == 593) {
+          int torque_driver_new = ((GET_BYTES_04(to_push) & 0x7ffU) * 0.79) - 808; // scale down new driver torque signal to match previous one
+          // update array of samples
+          update_sample(&torque_driver, torque_driver_new);
+      }
+  }
 
   if (valid && (bus == 0)) {
-    if (addr == 593) {
-      int torque_driver_new = ((GET_BYTES_04(to_push) & 0x7ffU) * 0.79) - 808; // scale down new driver torque signal to match previous one
-      // update array of samples
-      update_sample(&torque_driver, torque_driver_new);
-    }
 
     // ACC steering wheel buttons
     if (addr == 1265) {
@@ -392,13 +396,26 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   }
   if (bus_num == 0) {
     bus_fwd = 2;
-
+    if (mdpsConnectedBus1) bus_fwd = 12;  // 모든 메시지를 Bus1으로도 보냄... MDPS개조..
     // from neokii
-    if (addr == 593) {
+    if (addr == 593) {  // MDPS12
+        mdpsConnectedBus1 = false;
         if (now - last_ts_mdps12_from_op < 200000) {
             bus_fwd = -1;
         }
     }
+  }
+  // mdps12(593)이 오파에서 전송되고 있으면.... forward하지 말자... carcontroller에서 보내고 있음..
+  if (bus_num == 1 && addr == 593) {
+      mdpsConnectedBus1 = true;
+      bus_fwd = 20;  // BUS0, 2로 전송
+      if (now - last_ts_mdps12_from_op < 200000) {
+          bus_fwd = -1;
+      }
+  }
+  else if (bus_num == 1) {
+    //if (addr == 688 || addr == 897) bus_fwd = 20; // BUS0, 2로 전송: MDPS개조 BUS1
+      bus_fwd = 20; // BUS0, 2로 전송: MDPS개조 BUS1
   }
   if (bus_num == 2) {
 
@@ -409,10 +426,12 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
       if (apilot_connected) {
           if (!block_msg) {
               bus_fwd = 0;
+              if (mdpsConnectedBus1) bus_fwd = 10;  // block된 메시지 외의 것도 Bus1으로도 보냄... MDPS개조..
           }
       }
       else {
           bus_fwd = 0;
+          if (mdpsConnectedBus1) bus_fwd = 10;  // 모든 메시지를 Bus1으로도 보냄... MDPS개조..
           if (is_lkas11_msg) {
               LKAS11_lastTxTime = microsecond_timer_get();
               LKAS11_maxTxDiffTime = 0;
