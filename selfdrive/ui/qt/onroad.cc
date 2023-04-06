@@ -524,8 +524,8 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   painter.drawPolygon(glow, std::size(glow));
 
   // rounded square
-  painter.setBrush(redColor(fillAlpha));
-  painter.drawRoundedRect(QRectF(x - (sz * 1.25), y - sz, sz * 2.5, sz * 2.0), sz/5, sz/5); 
+  painter.setBrush(whiteColor(fillAlpha));
+  painter.drawRoundedRect(QRectF(x - (sz * 1.25), y - sz, sz * 2.5, sz * 2.0), sz/2, sz/2); 
 
   painter.restore();
 }
@@ -2313,7 +2313,7 @@ void AnnotatedCameraWidget::drawHudApilot(QPainter& p, const cereal::ModelDataV2
     if (lead_one.getStatus()) {
       drawLead(p, lead_one, s->scene.lead_vertices[0], s->scene.lead_radar[0]);
     }
-    if (lead_two.getStatus() && (std::abs(lead_one.getDRel() - lead_two.getDRel()) > 3.0)) {
+    if (lead_two.getStatus()) { // && (std::abs(lead_one.getDRel() - lead_two.getDRel()) > 3.0)) {
       drawLead(p, lead_two, s->scene.lead_vertices[1], s->scene.lead_radar[1]);
     }
 
