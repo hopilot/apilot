@@ -474,7 +474,7 @@ class LongitudinalMpc:
         if v_ego < 0.1:
           self.applyCruiseGap = 1
         else:
-          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-10.0, 0, 10.0], [4, self.applyCruiseGap, 1]))
+          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-5.0, 0, 3.0], [4, self.applyCruiseGap, 1]))
         #elif a_ego < 0.1:
         #  self.applyCruiseGap = int(interp(a_ego, [-2.0, 0.0], [4, self.applyCruiseGap]))
         #else:
