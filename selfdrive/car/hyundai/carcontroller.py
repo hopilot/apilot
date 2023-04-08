@@ -3,7 +3,7 @@ from common.conversions import Conversions as CV
 from common.numpy_fast import clip
 from common.realtime import DT_CTRL
 from opendbc.can.packer import CANPacker
-from selfdrive.car import apply_std_steer_torque_limits
+from selfdrive.car import apply_driver_steer_torque_limits
 from selfdrive.car.hyundai import hyundaicanfd, hyundaican
 from selfdrive.car.hyundai.values import HyundaiFlags, Buttons, CarControllerParams, CANFD_CAR, CAR, FEATURES
 import random
@@ -77,7 +77,7 @@ class CarController:
     new_steer = int(round(actuators.steer * self.params.STEER_MAX))
     self.params.STEER_DELTA_UP = self.steerDeltaUp
     self.params.STEER_DELTA_DOWN = self.steerDeltaDown
-    apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, self.params)
+    apply_steer = apply_driver_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, self.params)
 
     if not CC.latActive:
       apply_steer = 0
@@ -190,11 +190,21 @@ class CarController:
       can_sends.append(hyundaican.create_lkas11(self.packer, self.frame, self.car_fingerprint, self.send_lfa_mfa_lkas, apply_steer, lat_active,
                                                 torque_fault, CS.lkas11, sys_warning, sys_state, CC.enabled,
                                                 hud_control.leftLaneVisible, hud_control.rightLaneVisible,
-                                                left_lane_warning, right_lane_warning))
+                                                left_lane_warning, right_lane_warning, 0))
+      if self.CP.mdpsBus > 0:
+        can_sends.append(hyundaican.create_lkas11(self.packer, self.frame, self.car_fingerprint, self.send_lfa_mfa_lkas, apply_steer, lat_active,
+                                                  torque_fault, CS.lkas11, sys_warning, sys_state, CC.enabled,
+                                                  hud_control.leftLaneVisible, hud_control.rightLaneVisible,
+                                                  left_lane_warning, right_lane_warning, self.CP.mdpsBus))
+      
 
       ##HW: 임시로 코드넣음.. 나중에  MDPS 저속(60kmh)개조 된것들은 넣어줘야함.
-      if self.frame % 2 == 0 and False: # and self.mdpsMode:
-        can_sends.append(hyundaican.create_clu11_mdps(self.packer, self.frame, CS.clu11, Buttons.NONE, self.CP.carFingerprint, 60))
+      if self.frame % 2 == 0 and self.CP.mdpsBus>0:
+        enabled_speed = 60
+        clu11_speed = CS.clu11["CF_Clu_Vanz"]
+        if clu11_speed > enabled_speed:
+          enabled_speed = clu11_speed
+        can_sends.append(hyundaican.create_clu11_mdps(self.packer, self.frame, CS.clu11, Buttons.NONE, self.CP.carFingerprint, self.CP.mdpsBus, enabled_speed))
 
       if not self.CP.openpilotLongitudinalControl:
         if CC.cruiseControl.cancel:
@@ -223,10 +233,10 @@ class CarController:
                 #CC.debugTextCC = "BTN:--,T:{:.1f},C:{:.1f}".format(target, current)
               elif CS.out.cruiseGap != hud_control.cruiseGap:
                 can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.GAP_DIST, self.CP.carFingerprint))
-                print("currentGap = {}, target = {}".format(CS.out.cruiseGap, hud_control.cruiseGap))
+                #print("currentGap = {}, target = {}".format(CS.out.cruiseGap, hud_control.cruiseGap))
             elif CS.out.cruiseGap != hud_control.cruiseGap:
               can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.GAP_DIST, self.CP.carFingerprint))
-              print("currentGap = {}, target = {}".format(CS.out.cruiseGap, hud_control.cruiseGap))
+              #print("currentGap = {}, target = {}".format(CS.out.cruiseGap, hud_control.cruiseGap))
             elif target < current and current>= 31:
               can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.SET_DECEL, self.CP.carFingerprint))
               #CC.debugTextCC = "BTN:--,T:{:.1f},C:{:.1f}".format(target, current)
@@ -234,8 +244,9 @@ class CarController:
               can_sends.append(hyundaican.create_clu11_button(self.packer, self.frame, CS.clu11, Buttons.RES_ACCEL, self.CP.carFingerprint))
               #CC.debugTextCC = "BTN:++,T:{:.1f},C:{:.1f}".format(target, current)
 
-      CC.debugTextCC = "230218a"
-      if self.CP.carFingerprint in (CAR.GENESIS_G90_2019, CAR.GENESIS_G90, CAR.K7):
+      CC.debugTextCC = "230206"
+
+      if self.CP.carFingerprint in (CAR.GENESIS_G90_2019, CAR.GENESIS_G90, CAR.K7) or self.CP.mdpsBus>0:
         can_sends.append(hyundaican.create_mdps12(self.packer, self.frame, CS.mdps12))
 
       if self.frame % 2 == 0 and self.CP.openpilotLongitudinalControl:
@@ -261,7 +272,6 @@ class CarController:
 
     new_actuators = actuators.copy()
     new_actuators.steer = apply_steer / self.params.STEER_MAX
-    # new_actuators.steerOutputCan = apply_steer
     new_actuators.accel = accel
 
     self.frame += 1

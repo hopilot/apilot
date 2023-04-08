@@ -31,6 +31,7 @@ const CanMsg HYUNDAI_TX_MSGS[] = {
 const CanMsg HYUNDAI_LONG_TX_MSGS[] = {
   {593, 2, 8},  // MDPS12, Bus 2
   {832, 0, 8},  // LKAS11 Bus 0
+  {832, 1, 8},  // LKAS11 Bus 1
   {1265, 0, 4}, // CLU11 Bus 0
   {1265, 1, 4}, // CLU11 Bus 1
   {1157, 0, 4}, // LFAHDA_MFC Bus 0
@@ -109,6 +110,7 @@ uint32_t LKAS11_lastTxTime = 0;
 uint32_t LKAS11_maxTxDiffTime = 0;
 bool LKAS11_forwarding = true;
 uint32_t last_ts_mdps12_from_op = 0; // from neokii
+extern int mdpsConnectedBus;
 
 
 addr_checks hyundai_rx_checks = {hyundai_addr_checks, HYUNDAI_ADDR_CHECK_LEN};
@@ -218,13 +220,15 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
       }
       hyundai_common_cruise_state_check(cruise_engaged);
   }
+  if (valid) {
+      if (addr == 593) {
+          int torque_driver_new = ((GET_BYTES_04(to_push) & 0x7ffU) * 0.79) - 808; // scale down new driver torque signal to match previous one
+          // update array of samples
+          update_sample(&torque_driver, torque_driver_new);
+      }
+  }
 
   if (valid && (bus == 0)) {
-    if (addr == 593) {
-      int torque_driver_new = ((GET_BYTES_04(to_push) & 0x7ffU) * 0.79) - 808; // scale down new driver torque signal to match previous one
-      // update array of samples
-      update_sample(&torque_driver, torque_driver_new);
-    }
 
     // ACC steering wheel buttons
     if (addr == 1265) {
@@ -393,27 +397,44 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   }
   if (bus_num == 0) {
     bus_fwd = 2;
-
-    // from neokii
-    if (addr == 593) {
+    if (mdpsConnectedBus == 1) bus_fwd = 12; 
+    else if (mdpsConnectedBus == 3) bus_fwd = 32; 
+    if (addr == 593) {  // MDPS12
+        mdpsConnectedBus = 0;
         if (now - last_ts_mdps12_from_op < 200000) {
             bus_fwd = -1;
         }
     }
   }
+  // mdps12(593)이 오파에서 전송되고 있으면.... forward하지 말자... carcontroller에서 보내고 있음..
+  if (bus_num == mdpsConnectedBus && addr == 593) {
+      bus_fwd = 20;  // BUS0, 2로 전송
+      if (now - last_ts_mdps12_from_op < 200000) {
+          bus_fwd = -1;
+      }
+  }
+  else if (bus_num == mdpsConnectedBus) {
+    //if (addr == 688 || addr == 897) bus_fwd = 20; // BUS0, 2로 전송: MDPS개조 BUS3
+      if (mdpsConnectedBus == 1) bus_fwd = 20; 
+      else if (mdpsConnectedBus == 3) bus_fwd = 20; 
+  }
   if (bus_num == 2) {
 
       //int block_msg = is_lkas11_msg || is_lfahda_mfc_msg || is_scc_msg;
       int block_msg = is_lfahda_mfc_msg || is_scc_msg;
-      block_msg |= (LKAS11_forwarding) ? 0 : is_lkas11_msg;  // LKAS�޽����� �ҷ��� ������ TX�� ����.. ���⼭ �׳� �������ع����� => ����..
+      block_msg |= (LKAS11_forwarding) ? 0 : is_lkas11_msg;  // LKAS메시지에 불량이 있으면 TX를 안함.. 여기서 그냥 포워딩해버리자 => 시험..
 
       if (apilot_connected) {
           if (!block_msg) {
               bus_fwd = 0;
+            if (mdpsConnectedBus == 1) bus_fwd = 10; 
+            else if (mdpsConnectedBus == 3) bus_fwd = 30; 
           }
       }
       else {
           bus_fwd = 0;
+          if (mdpsConnectedBus == 1) bus_fwd = 10; 
+          else if (mdpsConnectedBus == 3) bus_fwd = 30; 
           if (is_lkas11_msg) {
               LKAS11_lastTxTime = microsecond_timer_get();
               LKAS11_maxTxDiffTime = 0;
@@ -429,7 +450,7 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
           puts("diff="); puth(diff); puts("\n");
       }
       if (diff > 0x15000) {
-          apilot_connected = false;  // Neokii�ڵ� ����: �������Ϸ��� �װų� ������ϸ�,,,, ������ ������.
+          apilot_connected = false;  // Neokii코드 참조: 오픈파일럿이 죽거나 재부팅하면,,,, 강제로 끊어줌.
           puts("apilot may be reboot...\n");
           controls_allowed = false;
       }

@@ -23,7 +23,7 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def _get_params(ret, candidate, fingerprint, car_fw, experimental_long):
     ret.carName = "hyundai"
-    ret.radarOffCan = RADAR_START_ADDR not in fingerprint[1] or DBC[ret.carFingerprint]["radar"] is None
+    ret.radarUnavailable = RADAR_START_ADDR not in fingerprint[1] or DBC[ret.carFingerprint]["radar"] is None
 
     # These cars have been put into dashcam only due to both a lack of users and test coverage.
     # These cars likely still work fine. Once a user confirms each car works and a test route is
@@ -52,6 +52,20 @@ class CarInterface(CarInterfaceBase):
       if 0x38d in fingerprint[0] or 0x38d in fingerprint[2]:
         ret.flags |= HyundaiFlags.USE_FCA.value
 
+      ## MDPS연결된 bus찾기..
+      if 593 in fingerprint[0] and 688 in fingerprint[0] and 897 in fingerprint[0]:
+        ret.mdpsBus = 0    
+      elif 593 in fingerprint[3] and 688 in fingerprint[3] and 897 in fingerprint[3]:
+        ret.mdpsBus = 3
+      elif 593 in fingerprint[1] and 688 in fingerprint[1] and 897 in fingerprint[1]: # and len(fingerprint[1]) < 5:      
+        ret.mdpsBus = 1
+      else:
+        ret.mdpsBus = 0
+
+      print("MDPS bus = ", ret.mdpsBus)
+        
+      ## TODO: MDPS개조 관련된 차량은 minSteerSpeed를 수정해야함.
+      print("fingerprint[1] len = ", len(fingerprint[1]))
 
     ret.steerActuatorDelay = 0.1  # Default delay
     ret.steerLimitTimer = 0.4
@@ -59,13 +73,8 @@ class CarInterface(CarInterfaceBase):
     ret.steerRatio = 16.
     tire_stiffness_factor = 1.
     CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
-    if candidate in (CAR.GRANDEUR_IG_FL, CAR.GRANDEUR_IG_FL_HEV):
-      ret.mass = 1675. + STD_CARGO_KG
-      ret.wheelbase = 2.885
-      ret.steerRatio = 16.5  
-      tire_stiffness_factor = 0.8
-      ret.steerActuatorDelay = 0.2
-    elif candidate in (CAR.SANTA_FE, CAR.SANTA_FE_2022, CAR.SANTA_FE_HEV_2022, CAR.SANTA_FE_PHEV_2022):
+
+    if candidate in (CAR.SANTA_FE, CAR.SANTA_FE_2022, CAR.SANTA_FE_HEV_2022, CAR.SANTA_FE_PHEV_2022):
       ret.mass = 3982. * CV.LB_TO_KG + STD_CARGO_KG
       ret.wheelbase = 2.766
       # Values from optimizer
@@ -118,7 +127,8 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 13.73  # Spec
       tire_stiffness_factor = 0.385
       if candidate not in (CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.IONIQ_HEV_2022):
-        ret.minSteerSpeed = 32 * CV.MPH_TO_MS
+        #ret.minSteerSpeed = 32 * CV.MPH_TO_MS
+        pass
     elif candidate == CAR.IONIQ_PHEV_2019:
       ret.mass = 1550. + STD_CARGO_KG  # weight per hyundai site https://www.hyundaiusa.com/us/en/vehicles/2019-ioniq-plug-in-hybrid/compare-specs
       ret.wheelbase = 2.7
@@ -245,6 +255,12 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 16.
       tire_stiffness_factor = 0.8
       ret.centerToFront = ret.wheelbase * 0.385
+    elif candidate in (CAR.GRANDEUR_IG_FL, CAR.GRANDEUR_IG_FL_HEV):
+      ret.mass = 1675. + STD_CARGO_KG
+      ret.wheelbase = 2.885
+      ret.steerRatio = 16.5  
+      tire_stiffness_factor = 0.8
+      ret.steerActuatorDelay = 0.2
     elif candidate == CAR.NEXO: # fix PolorBear - 22.06.05
       ret.mass = 1885. + STD_CARGO_KG
       ret.wheelbase = 2.79
@@ -383,7 +399,7 @@ class CarInterface(CarInterfaceBase):
       enable_radar_tracks(CP, logcan, sendcan)      
 
   def _update(self, c):
-    ret = self.CS.update(self.cp, self.cp_cam)
+    ret = self.CS.update(self.cp, self.cp2, self.cp_cam)
 
     #if self.CS.CP.openpilotLongitudinalControl and self.CS.cruise_buttons[-1] != self.CS.prev_cruise_buttons:
     if self.CS.cruise_buttons[-1] != self.CS.prev_cruise_buttons:
@@ -399,9 +415,6 @@ class CarInterface(CarInterfaceBase):
     # Main button also can trigger an engagement on these cars
     allow_enable = any(btn in ENABLE_BUTTONS for btn in self.CS.cruise_buttons) or any(self.CS.main_buttons)
     events = self.create_common_events(ret, pcm_enable=self.CS.CP.pcmCruise, allow_enable=allow_enable)
-
-    if self.CS.brake_error:
-      events.add(EventName.brakeUnavailable)
 
     # low speed steer alert hysteresis logic (only for cars with steer cut off above 10 m/s)
     if ret.vEgo < (self.CP.minSteerSpeed + 2.) and self.CP.minSteerSpeed > 10.:

@@ -186,6 +186,7 @@ def get_car(logcan, sendcan):
 
   selected_car = Params().get("SelectedCar")
   if selected_car:
+    print ("SelectedCar = ", selected_car)
     candidate = selected_car.decode("utf-8")
 
   CarInterface, CarController, CarState = interfaces[candidate]
