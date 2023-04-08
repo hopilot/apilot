@@ -2,7 +2,7 @@ import math
 
 from cereal import log
 from common.numpy_fast import interp
-from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
+from selfdrive.controls.lib.latcontrol import LatControl
 from selfdrive.controls.lib.pid import PIDController
 from selfdrive.controls.lib.vehicle_model import ACCELERATION_DUE_TO_GRAVITY
 
@@ -39,9 +39,10 @@ class LatControlTorque(LatControl):
   def update(self, active, CS, VM, params, last_actuators, steer_limited, desired_curvature, desired_curvature_rate, llk):
     pid_log = log.ControlsState.LateralTorqueState.new_message()
 
-    if CS.vEgo < MIN_STEER_SPEED or not active:
+    if not active:
       output_torque = 0.0
       pid_log.active = False
+      angle_steers_des = 0.
     else:
       if self.use_steering_angle:
         actual_curvature = -VM.calc_curvature(math.radians(CS.steeringAngleDeg - params.angleOffsetDeg), CS.vEgo, params.roll)
@@ -61,13 +62,15 @@ class LatControlTorque(LatControl):
       low_speed_factor = interp(CS.vEgo, LOW_SPEED_X, LOW_SPEED_Y)**2
       setpoint = desired_lateral_accel + low_speed_factor * desired_curvature
       measurement = actual_lateral_accel + low_speed_factor * actual_curvature
-      error = setpoint - measurement
       gravity_adjusted_lateral_accel = desired_lateral_accel - params.roll * ACCELERATION_DUE_TO_GRAVITY
-      pid_log.error = self.torque_from_lateral_accel(error, self.torque_params, error,
-                                                     lateral_accel_deadzone, CS.vEgo, friction_compensation=False)
+      torque_from_setpoint = self.torque_from_lateral_accel(setpoint, self.torque_params, setpoint,
+                                                     lateral_accel_deadzone, friction_compensation=False)
+      torque_from_measurement = self.torque_from_lateral_accel(measurement, self.torque_params, measurement,
+                                                     lateral_accel_deadzone, friction_compensation=False)
+      pid_log.error = torque_from_setpoint - torque_from_measurement
       ff = self.torque_from_lateral_accel(gravity_adjusted_lateral_accel, self.torque_params,
                                           desired_lateral_accel - actual_lateral_accel,
-                                          lateral_accel_deadzone, CS.vEgo, friction_compensation=True)
+                                          lateral_accel_deadzone, friction_compensation=True)
 
       freeze_integrator = steer_limited or CS.steeringPressed or CS.vEgo < 5
       output_torque = self.pid.update(pid_log.error,
@@ -84,6 +87,7 @@ class LatControlTorque(LatControl):
       pid_log.actualLateralAccel = actual_lateral_accel
       pid_log.desiredLateralAccel = desired_lateral_accel
       pid_log.saturated = self._check_saturation(self.steer_max - abs(output_torque) < 1e-3, CS, steer_limited)
+      angle_steers_des = math.degrees(VM.get_steer_from_curvature(-desired_curvature, CS.vEgo, params.roll)) + params.angleOffsetDeg
 
     # TODO left is positive in this convention
-    return -output_torque, 0.0, pid_log
+    return -output_torque, angle_steers_des, pid_log

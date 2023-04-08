@@ -11,15 +11,16 @@ from common.kalman.simple_kalman import KF1D
 from common.numpy_fast import clip, interp
 from common.realtime import DT_CTRL
 from selfdrive.car import apply_hysteresis, gen_empty_fingerprint, scale_rot_inertia, scale_tire_stiffness
-from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, apply_center_deadzone
+from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, get_friction
 from selfdrive.controls.lib.events import Events
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from common.params import Params
 
+
 ButtonType = car.CarState.ButtonEvent.Type
 GearShifter = car.CarState.GearShifter
 EventName = car.CarEvent.EventName
-TorqueFromLateralAccelCallbackType = Callable[[float, car.CarParams.LateralTorqueTuning, float, float, float, bool], float]
+TorqueFromLateralAccelCallbackType = Callable[[float, car.CarParams.LateralTorqueTuning, float, float, bool], float]
 
 MAX_CTRL_SPEED = (V_CRUISE_MAX + 4) * CV.KPH_TO_MS
 ACCEL_MAX = 2.0
@@ -33,14 +34,14 @@ TORQUE_SUBSTITUTE_PATH = os.path.join(BASEDIR, 'selfdrive/car/torque_data/substi
 
 def get_torque_params(candidate):
   with open(TORQUE_SUBSTITUTE_PATH) as f:
-    sub = yaml.load(f, Loader=yaml.CSafeLoader)
+    sub = yaml.load(f, Loader=yaml.Loader)
   if candidate in sub:
     candidate = sub[candidate]
 
   with open(TORQUE_PARAMS_PATH) as f:
-    params = yaml.load(f, Loader=yaml.CSafeLoader)
+    params = yaml.load(f, Loader=yaml.Loader)
   with open(TORQUE_OVERRIDE_PATH) as f:
-    override = yaml.load(f, Loader=yaml.CSafeLoader)
+    override = yaml.load(f, Loader=yaml.Loader)
 
   # Ensure no overlap
   if sum([candidate in x for x in [sub, params, override]]) > 1:
@@ -65,6 +66,7 @@ class CarInterfaceBase(ABC):
     self.frame = 0
     self.steering_unpressed = 0
     self.low_speed_alert = False
+    self.no_steer_warning = False
     self.silent_steer_warning = True
     self.v_ego_cluster_seen = False
 
@@ -135,42 +137,14 @@ class CarInterfaceBase(ABC):
     return self.get_steer_feedforward_default
 
   @staticmethod
-  def torque_from_lateral_accel_linear(lateral_accel_value, torque_params, lateral_accel_error, lateral_accel_deadzone, vego, friction_compensation):
+  def torque_from_lateral_accel_linear(lateral_accel_value: float, torque_params: car.CarParams.LateralTorqueTuning,
+                                       lateral_accel_error: float, lateral_accel_deadzone: float, friction_compensation: bool) -> float:
     # The default is a linear relationship between torque and lateral acceleration (accounting for road roll and steering friction)
-    friction_interp = interp(
-      apply_center_deadzone(lateral_accel_error, lateral_accel_deadzone),
-      [-FRICTION_THRESHOLD, FRICTION_THRESHOLD],
-      [-torque_params.friction, torque_params.friction]
-    )
-    friction = friction_interp if friction_compensation else 0.0
-    return (lateral_accel_value / torque_params.latAccelFactor) + friction
+    friction = get_friction(lateral_accel_error, lateral_accel_deadzone, FRICTION_THRESHOLD, torque_params, friction_compensation)
+    return (lateral_accel_value / float(torque_params.latAccelFactor)) + friction
 
   def torque_from_lateral_accel(self) -> TorqueFromLateralAccelCallbackType:
     return self.torque_from_lateral_accel_linear
-
-  @staticmethod
-  def get_torque_params(candidate):
-    with open(TORQUE_SUBSTITUTE_PATH) as f:
-      sub = yaml.load(f, Loader=yaml.Loader)
-    if candidate in sub:
-      candidate = sub[candidate]
-
-    with open(TORQUE_PARAMS_PATH) as f:
-      params = yaml.load(f, Loader=yaml.Loader)
-    with open(TORQUE_OVERRIDE_PATH) as f:
-      override = yaml.load(f, Loader=yaml.Loader)
-
-    # Ensure no overlap
-    if sum([candidate in x for x in [sub, params, override]]) > 1:
-      raise RuntimeError(f'{candidate} is defined twice in torque config')
-
-    if candidate in override:
-      out = override[candidate]
-    elif candidate in params:
-      out = params[candidate]
-    else:
-      raise NotImplementedError(f"Did not find torque params for {candidate}")
-    return {key: out[i] for i, key in enumerate(params['legend'])}
 
   # returns a set of default params to avoid repetition in car specific params
   @staticmethod
@@ -179,7 +153,8 @@ class CarInterfaceBase(ABC):
     ret.carFingerprint = candidate
 
     # Car docs fields
-    ret.maxLateralAccel = CarInterfaceBase.get_torque_params(candidate)['MAX_LAT_ACCEL_MEASURED']
+    ret.maxLateralAccel = get_torque_params(candidate)['MAX_LAT_ACCEL_MEASURED']
+    print("====================================== get_torque_params() ")
     ret.autoResumeSng = True  # describes whether car can resume from a stop automatically
 
     # standard ALC params
@@ -211,7 +186,7 @@ class CarInterfaceBase(ABC):
 
   @staticmethod
   def configure_torque_tune(candidate, tune, steering_angle_deadzone_deg=0.0, use_steering_angle=True):
-    params = CarInterfaceBase.get_torque_params(candidate)
+    params = get_torque_params(candidate)
 
     tune.init('torque')
     tune.torque.useSteeringAngle = use_steering_angle
@@ -315,13 +290,19 @@ class CarInterfaceBase(ABC):
     # Handle permanent and temporary steering faults
     self.steering_unpressed = 0 if cs_out.steeringPressed else self.steering_unpressed + 1
     if cs_out.steerFaultTemporary:
-      # if the user overrode recently, show a less harsh alert
-      if self.silent_steer_warning or cs_out.standstill or self.steering_unpressed < int(1.5 / DT_CTRL):
-        self.silent_steer_warning = True
-        events.add(EventName.steerTempUnavailableSilent)
+      if cs_out.steeringPressed and (not self.CS.out.steerFaultTemporary or self.no_steer_warning):
+        self.no_steer_warning = True
       else:
-        events.add(EventName.steerTempUnavailable)
+        self.no_steer_warning = False
+
+        # if the user overrode recently, show a less harsh alert
+        if self.silent_steer_warning or cs_out.standstill or self.steering_unpressed < int(1.5 / DT_CTRL):
+          self.silent_steer_warning = True
+          events.add(EventName.steerTempUnavailableSilent)
+        else:
+          events.add(EventName.steerTempUnavailable)
     else:
+      self.no_steer_warning = False
       self.silent_steer_warning = False
     if cs_out.steerFaultPermanent:
       events.add(EventName.steerUnavailable)

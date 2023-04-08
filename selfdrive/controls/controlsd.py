@@ -17,11 +17,11 @@ from selfdrive.boardd.boardd import can_list_to_can_capnp
 from selfdrive.car.car_helpers import get_car, get_startup_event, get_one_can
 from selfdrive.controls.lib.lateral_planner import CAMERA_OFFSET
 from selfdrive.controls.lib.drive_helpers import VCruiseHelper, get_lag_adjusted_curvature
-from selfdrive.controls.lib.latcontrol import LatControl
+from selfdrive.controls.lib.latcontrol import LatControl, MIN_LATERAL_CONTROL_SPEED
 from selfdrive.controls.lib.longcontrol import LongControl
 from selfdrive.controls.lib.latcontrol_pid import LatControlPID
 from selfdrive.controls.lib.latcontrol_indi import LatControlINDI
-from selfdrive.controls.lib.latcontrol_angle import LatControlAngle
+from selfdrive.controls.lib.latcontrol_angle import LatControlAngle, STEER_ANGLE_SATURATION_THRESHOLD
 from selfdrive.controls.lib.latcontrol_torque import LatControlTorque
 from selfdrive.controls.lib.events import Events, ET
 from selfdrive.controls.lib.alertmanager import AlertManager, set_offroad_alert
@@ -191,8 +191,8 @@ class Controls:
     self.steer_limited = False
     self.desired_curvature = 0.0
     self.desired_curvature_rate = 0.0
+    self.experimental_mode = False
     self.v_cruise_helper = VCruiseHelper(self.CP)
-    self.experimentalMode = self.params.get_bool("ExperimentalMode") and self.CP.openpilotLongitudinalControl
 
     #ajouatom
     self.cruise_helper = CruiseHelper()
@@ -649,11 +649,13 @@ class Controls:
 
     CC = car.CarControl.new_message()
     CC.enabled = self.enabled
+
     # Check which actuators can be enabled
+    standstill = CS.vEgo <= max(self.CP.minSteerSpeed, MIN_LATERAL_CONTROL_SPEED) or CS.standstill
     CC.latEnabled = True if self.active and CS.gearShifter in [GearShifter.drive] else False
     CC.longEnabled = True if self.enabled and CS.gearShifter in [GearShifter.drive] else False
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
-                   CS.vEgo > self.CP.minSteerSpeed and not CS.standstill and CC.latEnabled
+                   (not standstill or self.joystick_mode) and CC.latEnabled
     #CC.longActive = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
     CC.latOverride = CC.latActive and self.events.any(ET.OVERRIDE_LATERAL)
     longOverrideFlag = self.events.any(ET.OVERRIDE_LONGITUDINAL) or CS.brakeHoldActive
@@ -796,7 +798,8 @@ class Controls:
     if self.CP.openpilotLongitudinalControl and CS.vEgo < 0.1:  #정지시에만 목표속도표시함.
       hudControl.setSpeed = float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
     else:
-      hudControl.setSpeed = float(max(1, min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply) * CV.KPH_TO_MS)) #float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
+      #hudControl.setSpeed = float(max(1, min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply) * CV.KPH_TO_MS)) #float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
+      hudControl.setSpeed = self.cruise_helper.v_cruise_kph_apply * CV.KPH_TO_MS #float(self.v_cruise_helper.v_cruise_cluster_kph * CV.KPH_TO_MS)
 
     #hudControl.softHold = True if self.sm['longitudinalPlan'].xState == XState.softHold and self.cruise_helper.longActiveUser>0 else False
     hudControl.radarAlarm = True if self.cruise_helper.radarAlarmCount > 1000 else False
@@ -809,7 +812,7 @@ class Controls:
     #hudControl.rightLaneVisible = True
     #hudControl.leftLaneVisible = True
 
-    hudControl.cruiseGap = self.sm['longitudinalPlan'].cruiseGap #CS.cruiseGap
+    hudControl.cruiseGap = int(self.sm['longitudinalPlan'].cruiseGap) #CS.cruiseGap
     hudControl.objDist = int(self.cruise_helper.dRel)
     hudControl.objRelSpd = self.cruise_helper.vRel
 
@@ -861,7 +864,11 @@ class Controls:
       self.last_actuators, can_sends = self.CI.apply(CC)
       self.pm.send('sendcan', can_list_to_can_capnp(can_sends, msgtype='sendcan', valid=CS.canValid))
       CC.actuatorsOutput = self.last_actuators
-      self.steer_limited = abs(CC.actuators.steer - CC.actuatorsOutput.steer) > 1e-2
+      if self.CP.steerControlType == car.CarParams.SteerControlType.angle:
+        self.steer_limited = abs(CC.actuators.steeringAngleDeg - CC.actuatorsOutput.steeringAngleDeg) > \
+                             STEER_ANGLE_SATURATION_THRESHOLD
+      else:
+        self.steer_limited = abs(CC.actuators.steer - CC.actuatorsOutput.steer) > 1e-2
 
     force_decel = (self.sm['driverMonitoringState'].awarenessStatus < 0.) or \
                   (self.state == State.softDisabling)
@@ -901,7 +908,7 @@ class Controls:
     controlsState.vPid = float(self.LoC.v_pid)
     controlsState.vCruise = float(self.cruise_helper.v_cruise_kph_apply) #if self.CP.openpilotLongitudinalControl else float(self.v_cruise_kph)
     controlsState.vCruiseCluster = float(self.v_cruise_helper.v_cruise_cluster_kph)
-    controlsState.vCruiseOut = min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply)
+    controlsState.vCruiseOut = self.cruise_helper.v_cruise_kph_apply #min(self.pcmLongSpeed, self.cruise_helper.v_cruise_kph_apply)
 
     #ajouatom
     controlsState.debugText1 = self.debugText1
@@ -909,7 +916,8 @@ class Controls:
     controlsState.longActiveUser = self.cruise_helper.longActiveUser
     controlsState.longActiveUserReady = self.cruise_helper.longActiveUserReady
     controlsState.cruiseButtonCounter = self.cruiseButtonCounter
-    controlsState.longCruiseGap = self.cruise_helper.longCruiseGap if self.CP.openpilotLongitudinalControl else CS.cruiseGap
+    #controlsState.longCruiseGap = self.cruise_helper.longCruiseGap if self.CP.openpilotLongitudinalControl else CS.cruiseGap
+    controlsState.longCruiseGap = self.cruise_helper.longCruiseGap #if self.CP.openpilotLongitudinalControl else CS.cruiseGap
     controlsState.myDrivingMode = self.cruise_helper.myDrivingMode
     controlsState.mySafeModeFactor = self.cruise_helper.mySafeModeFactor
 
@@ -925,9 +933,7 @@ class Controls:
     controlsState.startMonoTime = int(start_time * 1e9)
     controlsState.forceDecel = bool(force_decel)
     controlsState.canErrorCounter = self.can_rcv_timeout_counter
-    if not CC.longActive:
-      self.experimentalMode = self.params.get_bool("ExperimentalMode") and self.CP.openpilotLongitudinalControl
-    controlsState.experimentalMode = self.experimentalMode #self.params.get_bool("ExperimentalMode") and self.CP.openpilotLongitudinalControl
+    controlsState.experimentalMode = self.experimental_mode
 
     lat_tuning = self.CP.lateralTuning.which()
     if self.joystick_mode:
@@ -978,6 +984,7 @@ class Controls:
     self.prof.checkpoint("Ratekeeper", ignore=True)
 
     self.is_metric = self.params.get_bool("IsMetric")
+    self.experimental_mode = self.params.get_bool("ExperimentalMode") and self.CP.openpilotLongitudinalControl
 
     # Sample data from sockets and get a carState
     CS = self.data_sample()

@@ -134,6 +134,7 @@ def manager_init() -> None:
     ("UseLaneLineSpeed", "80"),    
     ("PathOffset", "0"),  
     ("PathCostApply", "100"),
+    ("PathCostApplyLow", "100"),
     ("HapticFeedbackWhenSpeedCamera", "0"),       
     ("SoftHoldMode", "1"),       
     ("ApplyModelDistOrder", "28"),       
@@ -197,6 +198,8 @@ def manager_init() -> None:
   sentry.init(sentry.SentryProject.SELFDRIVE)
   cloudlog.bind_global(dongle_id=dongle_id, version=get_version(), dirty=is_dirty(),
                        device=HARDWARE.get_device_type())
+  if os.path.isfile('/data/tmux_error.log'):
+    os.remove('/data/tmux_error.log')
 
 
 def manager_prepare() -> None:

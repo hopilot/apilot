@@ -482,7 +482,7 @@ class CruiseHelper:
               longActiveUser = 3
           elif self.dRel == 0 and self.trafficState==1: #선행차없이 신호검출정지
             if self.blinker: # 깜박이켜면 일단 패스
-              pass
+              longActiveUser = 13  ## 크루즈 ON은 하되... 신호오류로 처리하여, (+)크루즈버튼을 눌러야 출발하도록 함.
             else:  # 깜박이가 꺼져있으면 직진이라 가정
               if self.autoResumeFromBrakeReleaseTrafficSign:
                 longActiveUser = 3  

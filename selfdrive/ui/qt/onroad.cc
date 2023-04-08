@@ -1837,7 +1837,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     // 타겟좌측 : 갭표시
     int myDrivingMode = controls_state.getMyDrivingMode();
     //const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
-    int gap = lp.getCruiseGap();
+    float gap = lp.getCruiseGap();
     //float tFollow = lp.getTFollow();
     int gap1 = controls_state.getLongCruiseGap(); // car_state.getCruiseGap();
 #ifdef __TEST
@@ -1862,10 +1862,11 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
 #ifdef __TEST
         static int _gap = 0;
         _gap += 10;
-        if (_gap > 300) _gap = 0;
+        if (_gap > 400) _gap = 0;
         else if (_gap < 100) gap = 1;
         else if (_gap < 200) gap = 2;
-        else gap = 3;
+        else if (_gap < 300) gap = 3;
+        else gap = 4;
 #endif
         QRect rectGap(x + dxGap, y, 40, 128);
         //painter.setPen(Qt::NoPen);
@@ -1873,11 +1874,13 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         painter.setBrush(blackColor(150));
         rectGap = QRect(x + dxGap, y + 5, 40, 64 / 3.);
         painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y + 5 + 64 * 1 / 3., 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y + 5 + 64 * 1 / 4., 40, 64 / 3.);
         painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y + 5 + 64 * 2 / 3., 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y + 5 + 64 * 2 / 4., 40, 64 / 3.);
         painter.drawRect(rectGap);
-        QRect rectGapPos(x + dxGap, y + 5 + 64, 40, -std::clamp((float)gap, 0.0f, 3.0f) / 3. * 64);
+        rectGap = QRect(x + dxGap, y + 5 + 64 * 3 / 4., 40, 64 / 3.);
+        painter.drawRect(rectGap);       
+        QRect rectGapPos(x + dxGap, y + 5 + 64, 40, -std::clamp((float)gap, 0.0f, 4.0f) / 4. * 64);
         painter.setBrush(greenColor(255));
         painter.drawRect(rectGapPos);
         textColor = whiteColor(255);

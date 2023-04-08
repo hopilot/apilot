@@ -614,21 +614,23 @@ struct ControlsState @0x97ff69c53601abf1 {
   lateralControlState :union {
     indiState @52 :LateralINDIState;
     pidState @53 :LateralPIDState;
-    lqrState @55 :LateralLQRState;
     angleState @58 :LateralAngleState;
     debugState @59 :LateralDebugState;
     torqueState @60 :LateralTorqueState;
+    curvatureState @65 :LateralCurvatureState;
+
+    lqrStateDEPRECATED @55 :LateralLQRState;
   }
 
-  debugText1 @65 : Text;
-  debugText2 @66 : Text;
-  longActiveUser @67: Int32;
-  vCruiseOut @68: Float32;
-  cruiseButtonCounter @69: Int32;
-  longCruiseGap @70: Int8;
-  myDrivingMode @71 : Int32; #0: Eco, Eco2, Normal, Speed
-  mySafeModeFactor @72 : Float32;
-  longActiveUserReady @73 : Int32;
+  debugText1 @66 : Text;
+  debugText2 @67 : Text;
+  longActiveUser @68: Int32;
+  vCruiseOut @69: Float32;
+  cruiseButtonCounter @70: Int32;
+  longCruiseGap @71: Int8;
+  myDrivingMode @72 : Int32; #0: Eco, Eco2, Normal, Speed
+  mySafeModeFactor @73 : Float32;
+  longActiveUserReady @74 : Int32;
 
 
   enum OpenpilotState @0xdbe58b96d2d1ac61 {
@@ -711,6 +713,18 @@ struct ControlsState @0x97ff69c53601abf1 {
     output @2 :Float32;
     saturated @3 :Bool;
     steeringAngleDesiredDeg @4 :Float32;
+  }
+
+  struct LateralCurvatureState {
+    active @0 :Bool;
+    actualCurvature @1 :Float32;
+    desiredCurvature @2 :Float32;
+    error @3 :Float32;
+    p @4 :Float32;
+    i @5 :Float32;
+    f @6 :Float32;
+    output @7 :Float32;
+    saturated @8 :Bool;
   }
 
   struct LateralDebugState {
@@ -942,7 +956,7 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   xCruiseTarget @40 : Float32;
   xStop @41 : Float32;
   tFollow @42 : Float32;
-  cruiseGap @43 : Int32;
+  cruiseGap @43 : Float32;
   xObstacle @44 : Float32;
 
   enum XState {
@@ -958,7 +972,6 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
     lead1 @2;
     lead2 @3;
     e2e @4;
-    turn @5;
   }
 
   # deprecated
@@ -996,6 +1009,7 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   }
 }
 struct UiPlan {
+  frameId @2 :UInt32;
   position @0 :XYZTData;
   accel @1 :List(Float32);
 }

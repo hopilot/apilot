@@ -36,6 +36,7 @@ class LateralPlanner:
 
     self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
     self.pathCostApply = float(int(Params().get("PathCostApply", encoding="utf8")))*0.01
+    self.pathCostApplyLow = float(int(Params().get("PathCostApplyLow", encoding="utf8")))*0.01
     self.lateralMotionCost = float(int(Params().get("LateralMotionCost", encoding="utf8")))*0.01
     self.lateralAccelCost = float(int(Params().get("LateralAccelCost", encoding="utf8")))*0.01
     self.lateralJerkCost = float(int(Params().get("LateralJerkCost", encoding="utf8")))*0.01
@@ -73,6 +74,7 @@ class LateralPlanner:
       self.useLaneLineSpeed = float(int(Params().get("UseLaneLineSpeed", encoding="utf8")))
       self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
       self.pathCostApply = float(int(Params().get("PathCostApply", encoding="utf8")))*0.01
+      self.pathCostApplyLow = float(int(Params().get("PathCostApplyLow", encoding="utf8")))*0.01
       self.steeringRateCost = float(int(Params().get("SteeringRateCost", encoding="utf8")))
     elif self.readParams == 50:
       self.lateralMotionCost = float(int(Params().get("LateralMotionCost", encoding="utf8")))*0.01
@@ -141,12 +143,12 @@ class LateralPlanner:
 
     self.path_xyz[:, 1] += self.pathOffset
 
-    #pathCost = interp(self.v_ego, [2., 10.], [PATH_COST, PATH_COST * self.pathCostApply])
+    pathCost = interp(self.v_ego, [30./3.6, 100/3.6], [self.pathCostApplyLow, self.pathCostApply])
     #steeringRateCost = interp(self.v_ego, [2., 10.], [self.steeringRateCost, self.steeringRateCost/3.])
     #self.lat_mpc.set_weights(pathCost, LATERAL_MOTION_COST,
     #                         LATERAL_ACCEL_COST, LATERAL_JERK_COST,
     #                         steeringRateCost)
-    self.lat_mpc.set_weights(self.pathCostApply, self.lateralMotionCost,
+    self.lat_mpc.set_weights(pathCost, self.lateralMotionCost,
                              self.lateralAccelCost, self.lateralJerkCost,
                              self.steeringRateCost)
 
