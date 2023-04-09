@@ -1016,7 +1016,7 @@ struct UiPlan {
 
 struct LateralPlan @0xe1e9318e2ae8b51e {
   modelMonoTime @31 :UInt64;
-  laneWidthDEPRECATED @0 :Float32;
+  laneWidth @0 :Float32;
   lProbDEPRECATED @5 :Float32;
   rProbDEPRECATED @7 :Float32;
   dPathPoints @20 :List(Float32);

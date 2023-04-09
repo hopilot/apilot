@@ -109,6 +109,7 @@ class LateralPlanner:
       self.useLaneLineMode = True
     elif self.v_ego*3.6 < self.useLaneLineSpeed - 2:
       self.useLaneLineMode = False
+    self.d_path_w_lines_xyz = self.LP.get_d_path(self.v_ego, self.t_idxs, self.path_xyz)
     if self.useLaneLineMode and self.useLaneLineSpeed > 0:
       # Parse model predictions
       self.LP.parse_model(md)
@@ -131,7 +132,7 @@ class LateralPlanner:
   
       # Calculate final driving path and set MPC costs
       if self.lanelines_active:
-        self.path_xyz = self.LP.get_d_path(self.v_ego, self.t_idxs, self.path_xyz)
+        self.path_xyz = self.d_path_w_lines_xyz
       else:
         pass #d_path_xyz = self.path_xyz
       
@@ -209,6 +210,7 @@ class LateralPlanner:
     lateralPlan.laneChangeState = self.DH.lane_change_state
     lateralPlan.laneChangeDirection = self.DH.lane_change_direction
     lateralPlan.desireEvent = self.DH.desireEvent
+    lateralPlan.laneWidth = float(self.LP.lane_width)
 
     plan_send.lateralPlan.dPathWLinesX = [float(x) for x in self.d_path_w_lines_xyz[:, 0]]
     plan_send.lateralPlan.dPathWLinesY = [float(y) for y in self.d_path_w_lines_xyz[:, 1]]

@@ -2212,63 +2212,46 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         int wStr = 0;
         bool disp = false;
         for (auto const& vrd : s->scene.lead_vertices_ongoing) {
-            auto [rx, ry, rd, rv] = vrd;
+            auto [rx, ry, rd, rv, ry_rel] = vrd;
             disp = true;
-            if (fabs(rv) > 0.5) {
-                str.sprintf("%.0f", rv * 3.6);
-                wStr = w * (str.length() + 1);
-            }
-            else {
-                str = "*"; 
-                wStr = w;
-                disp = (s->show_radar_info > 1) ? true : false;
-            }
-            if (disp) {
-                QRect rectRadar(rx - wStr / 2, ry - 35, wStr, 42);
-                bgColor = greenColor(255);
-                painter.setBrush(bgColor);
-                painter.drawRoundedRect(rectRadar, 15, 15);
-                drawTextWithColor(painter, rx, ry, str, textColor);
+            str.sprintf("%.0f", rv * 3.6);
+            wStr = w * (str.length() + 1);
+            QRect rectRadar(rx - wStr / 2, ry - 35, wStr, 42);
+            bgColor = greenColor(255);
+            painter.setBrush(bgColor);
+            painter.drawRoundedRect(rectRadar, 15, 15);
+            drawTextWithColor(painter, rx, ry, str, textColor);
+            if (s->show_radar_info == 2) {
+                str.sprintf("%.1f", ry_rel);
+                drawTextWithColor(painter, rx, ry+40, str, textColor);
             }
         }
         for (auto const& vrd : s->scene.lead_vertices_oncoming) {
-            auto [rx, ry, rd, rv] = vrd;
-            disp = true;
-            if (fabs(rv) > 0.5) {
-                str.sprintf("%.0f", rv * 3.6);
-                wStr = w * (str.length() + 1);
-            }
-            else {
-                str = "*";
-                wStr = w;
-                disp = (s->show_radar_info > 1) ? true : false;
-            }
-            if (disp) {
-                QRect rectRadar(rx - wStr / 2, ry - 35, wStr, 42);
-                bgColor = redColor(255);
-                painter.setBrush(bgColor);
-                painter.drawRoundedRect(rectRadar, 15, 15);
-                drawTextWithColor(painter, rx, ry, str, textColor);
+            auto [rx, ry, rd, rv, ry_rel] = vrd;
+            str.sprintf("%.0f", rv * 3.6);
+            wStr = w * (str.length() + 1);
+            QRect rectRadar(rx - wStr / 2, ry - 35, wStr, 42);
+            bgColor = redColor(255);
+            painter.setBrush(bgColor);
+            painter.drawRoundedRect(rectRadar, 15, 15);
+            drawTextWithColor(painter, rx, ry, str, textColor);
+            if (s->show_radar_info == 2) {
+                str.sprintf("%.1f", ry_rel);
+                drawTextWithColor(painter, rx, ry + 40, str, textColor);
             }
         }
-        for (auto const& vrd : s->scene.lead_vertices_stopped) {
-            auto [rx, ry, rd, rv] = vrd;
-            disp = true;
-            if (fabs(rv) > 0.5) {
-                str.sprintf("%.0f", rv * 3.6);
-                wStr = w * (str.length() + 1);
-            }
-            else {
+        if (s->show_radar_info == 2) {
+            for (auto const& vrd : s->scene.lead_vertices_stopped) {
+                auto [rx, ry, rd, rv, ry_rel] = vrd;
                 str = "*";
                 wStr = w;
-                disp = (s->show_radar_info > 1) ? true : false;
-            }
-            if (disp) {
-                QRect rectRadar(rx - wStr / 2, ry - 35, wStr, 42);
-                bgColor = blackColor(255);
-                painter.setBrush(bgColor);
-                painter.drawRoundedRect(rectRadar, 15, 15);
-                drawTextWithColor(painter, rx, ry, str, textColor);
+                if (true) {
+                    QRect rectRadar(rx - wStr / 2, ry - 35, wStr, 42);
+                    bgColor = blackColor(255);
+                    painter.setBrush(bgColor);
+                    painter.drawRoundedRect(rectRadar, 15, 15);
+                    drawTextWithColor(painter, rx, ry, str, textColor);
+                }
             }
         }
     }
