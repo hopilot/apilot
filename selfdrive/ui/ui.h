@@ -181,7 +181,7 @@ public:
   int  show_lane_info = 2;
   bool show_blind_spot = true;
   bool show_gap_info = true;
-  bool show_dm_info = false;
+  int show_dm_info = -1;
   int show_radar_info = 0;
   int show_mode = 1;
 

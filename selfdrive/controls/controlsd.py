@@ -200,7 +200,6 @@ class Controls:
     self.debugText2 = ""
     self.pcmLongSpeed = 100.0
     self.cruiseButtonCounter = 0
-    self.v_future = 100
     self.enableAutoEngage = Params().get_bool("EnableAutoEngage") and self.CP.openpilotLongitudinalControl
     self.autoEngageCounter = 200
     self.right_lane_visible = False
@@ -467,13 +466,6 @@ class Controls:
       not_running = {p.name for p in self.sm['managerState'].processes if not p.running}
       if self.sm.rcv_frame['managerState'] and (not_running - IGNORE_PROCESSES):
         self.events.add(EventName.processNotRunning)
-
-    # Only allow engagement with brake pressed when stopped behind another stopped car
-    speeds = self.sm['longitudinalPlan'].speeds
-    if len(speeds) > 1:
-      self.v_future = speeds[-1]
-    else:
-      self.v_future = 100.0
 
   def data_sample(self):
     """Receive data from sockets and update carState"""
@@ -878,8 +870,6 @@ class Controls:
 
     steer_angle_without_offset = math.radians(CS.steeringAngleDeg - lp.angleOffsetDeg)
     curvature = -self.VM.calc_curvature(steer_angle_without_offset, CS.vEgo, lp.roll)
-
-    self.cruise_helper.curvature = curvature  #ajouatom
 
     # controlsState
     dat = messaging.new_message('controlsState')

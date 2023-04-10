@@ -560,7 +560,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
 
 
     // DMoji
-    if (s->show_dm_info && !hideDM && (sm.rcv_frame("driverState") > s->scene.started_frame)) {
+    if (s->show_dm_info==1 && !hideDM && (sm.rcv_frame("driverState") > s->scene.started_frame)) {
       update_dmonitoring(s, sm["driverState"].getDriverState(), dm_fade_state);
       drawDriverState(p, s);
     }
@@ -2173,7 +2173,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
       QFontMetrics fm(painter.font());
       QRect rcFont = fm.boundingRect("9");
 
-      if (s->show_dm_info == false) {
+      if (s->show_dm_info < 1>) {
           bx = 80;
           by = height() - 60;
           painter.setPen(QPen(Qt::white, 3));

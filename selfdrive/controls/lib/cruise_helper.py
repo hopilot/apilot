@@ -7,7 +7,7 @@ from common.realtime import DT_CTRL
 from common.conversions import Conversions as CV
 from selfdrive.car.hyundai.values import Buttons
 from common.params import Params
-from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, CONTROL_N
+from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, CONTROL_N_LAT
 from selfdrive.controls.lib.lateral_planner import TRAJECTORY_SIZE
 #from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import AUTO_TR_CRUISE_GAP
 from selfdrive.car.hyundai.values import CAR
@@ -44,9 +44,9 @@ LongPressed = False
 XState = log.LongitudinalPlan.XState
 
 ## 국가법령정보센터: 도로설계기준
-V_CURVE_LOOKUP_BP = [0., 1./670., 1./560., 1./440., 1./360., 1./265., 1./190., 1./135., 1./85., 1./55., 1./30., 1./15.]
-#V_CRUVE_LOOKUP_VALS = [300, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20]
-V_CRUVE_LOOKUP_VALS = [300, 120, 110, 100, 90, 80, 70, 60, 50, 45, 35, 30]
+V_CURVE_LOOKUP_BP = [0., 1./800., 1./670., 1./560., 1./440., 1./360., 1./265., 1./190., 1./135., 1./85., 1./55., 1./30., 1./15.]
+#V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 40, 30, 20]
+V_CRUVE_LOOKUP_VALS = [300, 150, 120, 110, 100, 90, 80, 70, 60, 50, 45, 35, 30]
 
 
 class CruiseHelper:
@@ -60,7 +60,6 @@ class CruiseHelper:
     self.preBrakePressed = False
     self.preGasPressedMax = 0.0
     self.gasPressedCount = 0
-    self.curvature = 0
     self.position_x = 1000.0
     self.position_y = 300.0
     self.cruiseButtons = 0
@@ -99,7 +98,6 @@ class CruiseHelper:
     self.cruiseSpeedMin = int(Params().get("CruiseSpeedMin"))
 
     self.autoCurveSpeedCtrlUse = int(Params().get("AutoCurveSpeedCtrlUse"))
-    self.autoCurveSpeedIndex = int(Params().get("AutoCurveSpeedIndex"))
     self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
     self.autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
     self.autoNaviSpeedCtrlStart = float(Params().get("AutoNaviSpeedCtrlStart"))
@@ -187,7 +185,7 @@ class CruiseHelper:
         self.autoNaviSpeedCtrlStart = float(Params().get("AutoNaviSpeedCtrlStart"))
         self.autoNaviSpeedCtrlEnd = float(Params().get("AutoNaviSpeedCtrlEnd"))
       elif self.update_params_count == 16:
-        self.autoCurveSpeedIndex = int(Params().get("AutoCurveSpeedIndex"))
+        pass
 
 
   def getSteerActuatorDelay(self, v_ego):
@@ -338,8 +336,9 @@ class CruiseHelper:
   def apilot_curve(self, CS, controls):
     curvatures = controls.sm['lateralPlan'].curvatures
     turnSpeed = 300
-    if len(curvatures) == CONTROL_N:
-      curvature = abs(self.curvatureFilter.process(curvatures[self.autoCurveSpeedIndex]))  * self.autoCurveSpeedFactor
+    if len(curvatures) == CONTROL_N_LAT:
+      #curvature = abs(self.curvatureFilter.process(curvatures[self.autoCurveSpeedIndex]))  * self.autoCurveSpeedFactor
+      curvature = self.curvatureFilter.process(np.max(np.abs(curvatures))) * self.autoCurveSpeedFactor
       if abs(curvature) > 0.001:
         turnSpeed = interp(curvature, V_CURVE_LOOKUP_BP, V_CRUVE_LOOKUP_VALS)
         turnSpeed = clip(turnSpeed, MIN_CURVE_SPEED, MAX_SET_SPEED_KPH)
