@@ -859,9 +859,8 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
   UIState *s = uiState();
   const SubMaster &sm = *(s->sm);
   //const auto car_control = sm["carControl"].getCarControl();
-  const auto car_state = sm["carState"].getCarState();
+  //const auto car_state = sm["carState"].getCarState();
   const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
-  const auto navi_info = car_state.getNaviSafetyInfo();
   bool is_metric = s->scene.is_metric;
 
   // kph
@@ -897,10 +896,7 @@ void AnnotatedCameraWidget::drawMaxSpeed(QPainter &p) {
       int y = 40 - bdr_s;
 
       p.setOpacity(1.f);
-      p.drawPixmap(x, y, w, h, activeNDA == 1 ? ic_nda : ic_hda);
-  }
-  else {
-      limit_speed = navi_info.getSpeedLimit();
+      p.drawPixmap(x, y, w, h, ic_nda);
   }
 
 
@@ -1995,7 +1991,6 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     // 속도표시
     if(true) {
         const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
-        const auto navi_info = car_state.getNaviSafetyInfo();
         const auto car_params = sm["carParams"].getCarParams();
 
         //bool is_metric = s->scene.is_metric;
@@ -2012,7 +2007,6 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         int longOverride = car_control.getLongOverride();
 
         int sccBus = (int)car_params.getSccBus();
-        int navCluster = (int)car_params.getNaviCluster();
 
         int enabled = controls_state.getEnabled();
 
@@ -2036,17 +2030,11 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         }
 
         int radar_tracks = Params().getBool("EnableRadarTracks");
-        QString nda_mode_str = QString::fromStdString(Params().get("AutoNaviSpeedCtrl"));
-        int nda_mode = nda_mode_str.toInt();
-
-        if (activeNDA > 0 && nda_mode > 0);
-        else {
-            limit_speed = navi_info.getSpeedLimit();
-            left_dist = navi_info.getDist();
-        }
+        //QString nda_mode_str = QString::fromStdString(Params().get("AutoNaviSpeedCtrl"));
+        //int nda_mode = nda_mode_str.toInt();
 
         QString top_str;
-        top_str.sprintf("%s %s %s %s", (sccBus) ? "SCC2" : "", (navCluster == 1 && nda_mode == 2) ? "NAVI" : "", (activeNDA > 0 && nda_mode > 0) ? ((activeNDA == 1) ? "NDA" : "HDA") : "", (radar_tracks) ? "RadarTracks" : "");
+        top_str.sprintf("%s %s %s", (sccBus) ? "SCC2" : "", (activeNDA > 0) ? "NDA" : "", (radar_tracks) ? "RadarTracks" : "");
 
         //float accel = car_state.getAEgo();
 #ifdef __TEST

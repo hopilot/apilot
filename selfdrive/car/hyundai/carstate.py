@@ -251,41 +251,6 @@ class CarState(CarStateBase):
     vEgoClu, aEgoClu = self.update_clu_speed_kf(ret.vEgoCluster)
     ret.vCluRatio = (ret.vEgo / vEgoClu) if (vEgoClu > 3. and ret.vEgo > 3.) else 1.0
 
-    # OPKR에서 측정한 속도리밋(속도별로 다른듯)
-    # self.safety_sign_check: speed_limit
-    # 24,25,26: 30km/h
-    # 0,1,2 : 40km/h
-    # 8,9,10 : 50km/h
-    # 16,17,18: 60km/h
-    # 24,25,26: 70 km/h
-    # 0,1,2: 80km/h
-    # 8,9,10: 90km/h
-    # 16,17,18: 100km/h
-    # 24,25,26: 110km/h
-    # safety_block_sl < 150 : safety_block_sl
-    #self.safety_sign_check = cp.vl["NAVI"]["OPKR_S_Sign"]
-    #self.safety_block_sl = cp.vl["NAVI"]["OPKR_SBR_LSpd"]
-    #if cp.vl["NAVI"]["OPKR_S_Dist"] < 1023:
-    #  self.safety_dist = cp.vl["NAVI"]["OPKR_S_Dist"]
-    #elif cp.vl["NAVI"]["OPKR_SBR_Dist"] < 65535:
-    #  self.safety_dist = cp.vl["NAVI"]["OPKR_SBR_Dist"]
-    #else:
-    #  self.safety_dist = 0
-    #self.is_highway = cp_scc.vl["SCC11"]["Navi_SCC_Camera_Act"] != 0.
-
-    if "NAVI" in cp.vl:
-      ret.naviSafetyInfo.sign = cp.vl["NAVI"]["OPKR_S_Sign"]
-      ret.naviSafetyInfo.dist1 = cp.vl["NAVI"]["OPKR_S_Dist"]
-      ret.naviSafetyInfo.speed2 = cp.vl["NAVI"]["OPKR_SBR_LSpd"]
-      ret.naviSafetyInfo.dist2 = cp.vl["NAVI"]["OPKR_SBR_Dist"]
-      ret.naviSafetyInfo.dist = ret.naviSafetyInfo.dist1 if ret.naviSafetyInfo.dist1 < 1023 else ret.naviSafetyInfo.dist2 if ret.naviSafetyInfo.dist2 < 65535 else 0
-
-    if self.CP.naviCluster == 1:
-      speedLimit = cp.vl["Navi_HU"]["SpeedLim_Nav_Clu"]
-      ret.naviSafetyInfo.speedLimit = speedLimit if speedLimit < 255 else 0
-    else:
-      ret.naviSafetyInfo.speedLimit = 0
-
     #scc12_2 = cp_cam.vl["SCC12"]
     #scc12 = cp.vl["SCC12"]
     #print("scc12_2=", scc12_2)
@@ -417,14 +382,8 @@ class CarState(CarStateBase):
       ("PRESSURE_RL", "TPMS11"),
       ("PRESSURE_RR", "TPMS11"),
 
-      ("OPKR_S_Dist", "NAVI"),
-      ("OPKR_S_Sign", "NAVI"),
-      ("OPKR_SBR_Dist", "NAVI"),
-      ("OPKR_SBR_LSpd", "NAVI"),
-
       ("N", "EMS_366"),
 
-      ("OPKR_EV_Charge_Level", "EV_Info")
     ]
     checks = [
       # address, frequency
@@ -525,10 +484,6 @@ class CarState(CarStateBase):
     else:
       signals.append(("CF_Lvr_Gear", "LVR12"))
       checks.append(("LVR12", 100))
-
-    if CP.naviCluster == 1:
-      signals.append(("SpeedLim_Nav_Clu", "Navi_HU"))
-      checks.append(("Navi_HU", 5))
 
     return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 0, enforce_checks=False)
 

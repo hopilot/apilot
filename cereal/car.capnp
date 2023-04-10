@@ -214,9 +214,6 @@ struct CarState {
   # clutch (manual transmission only)
   clutchPressed @28 :Bool;
 
-  # which packets this state came from
-  canMonoTimes @12: List(UInt64);
-
   # blindspot sensors
   leftBlindspot @33 :Bool; # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
@@ -230,19 +227,9 @@ struct CarState {
   # neokii
   vCluRatio @47 :Float32;
   driverOverride @49 : Int32; #0: Normal, 1:Gas, 2:Brake
-  naviSafetyInfo @50 : NaviSafetyInfo;
-  engineRpm @51 : Float32;
-  chargeMeter @52 : Float32;
-  motorRpm @53 : Float32;
-
-  struct NaviSafetyInfo {
-    sign @0 : Int32; # OPKR_S_Sign
-    dist1 @1 : Int32; # OPKR_S_Dist  < 1023
-    speed2 @2 : Int32; # OPKR_SBR_LSpd < 150 
-    dist2 @3 : Int32; # OPKR_SBR_Dist < 65535
-    speedLimit @4: Int32; # SpeedLim_Nav_Clu
-    dist @5: Int32; # SafetyDist
-  }
+  engineRpm @50 : Float32;
+  chargeMeter @51 : Float32;
+  motorRpm @52 : Float32;
 
   struct Tpms {
     fl @0 :Float32;
@@ -304,9 +291,11 @@ struct CarState {
     }
   }
 
+  # deprecated
   errorsDEPRECATED @0 :List(CarEvent.EventName);
   brakeLights @19 :Bool;
   steeringRateLimitedDEPRECATED @29 :Bool;
+  canMonoTimesDEPRECATED @12: List(UInt64);
 }
 
 # ******* radar state @ 20hz *******
@@ -314,9 +303,6 @@ struct CarState {
 struct RadarData @0x888ad6581cf0aacb {
   errors @0 :List(Error);
   points @1 :List(RadarPoint);
-
-  # which packets this state came from
-  canMonoTimes @2 :List(UInt64);
 
   enum Error {
     canError @0;
@@ -341,6 +327,9 @@ struct RadarData @0x888ad6581cf0aacb {
     # some radars flag measurements VS estimates
     measured @6 :Bool;
   }
+
+  # deprecated
+  canMonoTimesDEPRECATED @2 :List(UInt64);
 }
 
 # ******* car controls @ 100hz *******
@@ -551,8 +540,7 @@ struct CarParams {
 
   sccBus @72 : Int8;
   hasLfaHda @73 : Bool;
-  naviCluster @74 : Int8;
-  mdpsBus @75 : Int8;
+  mdpsBus @74 : Int8;
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;
