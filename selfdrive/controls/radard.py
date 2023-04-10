@@ -8,9 +8,9 @@ from cereal import car
 from common.numpy_fast import interp
 from common.params import Params
 from common.realtime import Ratekeeper, Priority, config_realtime_process
-from selfdrive.controls.lib.cluster.fastcluster_py import cluster_points_centroid
 from selfdrive.controls.lib.radar_helpers import Cluster, Track, RADAR_TO_CAMERA
 from selfdrive.swaglog import cloudlog
+from third_party.cluster.fastcluster_py import cluster_points_centroid
 from selfdrive.hardware import TICI
 from common.params import Params
 
@@ -46,7 +46,7 @@ class KalmanParams():
     self.K = [[interp(dt, dts, K0)], [interp(dt, dts, K1)]]
 
 
-def laplacian_cdf(x, mu, b):
+def laplacian_pdf(x, mu, b):
   b = max(b, 1e-4)
   return math.exp(-abs(x-mu)/b)
 
@@ -56,9 +56,9 @@ def match_vision_to_cluster(v_ego, lead, clusters):
   offset_vision_dist = lead.x[0] - RADAR_TO_CAMERA
 
   def prob(c):
-    prob_d = laplacian_cdf(c.dRel, offset_vision_dist, lead.xStd[0])
-    prob_y = laplacian_cdf(c.yRel, -lead.y[0], lead.yStd[0])
-    prob_v = laplacian_cdf(c.vRel + v_ego, lead.v[0], lead.vStd[0])
+    prob_d = laplacian_pdf(c.dRel, offset_vision_dist, lead.xStd[0])
+    prob_y = laplacian_pdf(c.yRel, -lead.y[0], lead.yStd[0])
+    prob_v = laplacian_pdf(c.vRel + v_ego, lead.v[0], lead.vStd[0])
 
     # This is isn't exactly right, but good heuristic
     return prob_d * prob_y * prob_v
@@ -137,7 +137,7 @@ def get_path_adjacent_leads(v_ego, md, lane_width, clusters):
   lc = sorted(leads_center.values(), key=lambda c:c["dRel"])
   return [ll,lc,lr]
 
-def get_lead(v_ego, ready, clusters, lead_msg, low_speed_override=True):
+def get_lead(v_ego, ready, clusters, lead_msg, lead_index, low_speed_override=True):
   # Determine leads, this is where the essential logic happens
   if len(clusters) > 0 and ready and lead_msg.prob > .5:
     cluster = match_vision_to_cluster(v_ego, lead_msg, clusters)
@@ -148,7 +148,7 @@ def get_lead(v_ego, ready, clusters, lead_msg, low_speed_override=True):
   if cluster is not None:
     lead_dict = cluster.get_RadarState(lead_msg.prob)
   elif (cluster is None) and ready and (lead_msg.prob > .5):
-    lead_dict = Cluster().get_RadarState_from_vision(lead_msg, v_ego)
+    lead_dict = Cluster().get_RadarState_from_vision(lead_msg, lead_index, v_ego)
 
   if low_speed_override:
     low_speed_clusters = [c for c in clusters if c.potential_low_speed_lead(v_ego)]
@@ -247,8 +247,8 @@ class RadarD():
 
     leads_v3 = sm['modelV2'].leadsV3
     if len(leads_v3) > 1:
-      radarState.leadOne = get_lead(self.v_ego, self.ready, clusters, leads_v3[0], low_speed_override=True)
-      radarState.leadTwo = get_lead(self.v_ego, self.ready, clusters, leads_v3[1], low_speed_override=False)
+      radarState.leadOne = get_lead(self.v_ego, self.ready, clusters, leads_v3[0], 0, low_speed_override=True)
+      radarState.leadTwo = get_lead(self.v_ego, self.ready, clusters, leads_v3[1], 1, low_speed_override=False)
 
       if self.ready and self.showRadarInfo: #self.extended_radar_enabled and self.ready:
         #ll,lc,lr = get_path_adjacent_leads(self.v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth, clusters)

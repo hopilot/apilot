@@ -8,7 +8,7 @@ from collections import deque, defaultdict
 import cereal.messaging as messaging
 from cereal import car, log
 from common.params import Params
-from common.realtime import Priority, config_realtime_process, DT_MDL
+from common.realtime import config_realtime_process, DT_MDL
 from common.filter_simple import FirstOrderFilter
 from selfdrive.swaglog import cloudlog
 from selfdrive.controls.lib.vehicle_model import ACCELERATION_DUE_TO_GRAVITY
@@ -260,7 +260,7 @@ class TorqueEstimator:
 
 
 def main(sm=None, pm=None):
-  config_realtime_process(2, Priority.CTRL_LOW)
+  config_realtime_process([0, 1, 2, 3], 5)
 
   if sm is None:
     sm = messaging.SubMaster(['carControl', 'carState', 'liveLocationKalman'], poll=['liveLocationKalman'])
