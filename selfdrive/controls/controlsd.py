@@ -909,6 +909,7 @@ class Controls:
     controlsState.longCruiseGap = self.cruise_helper.longCruiseGap #if self.CP.openpilotLongitudinalControl else CS.cruiseGap
     controlsState.myDrivingMode = self.cruise_helper.myDrivingMode
     controlsState.mySafeModeFactor = self.cruise_helper.mySafeModeFactor
+    controlsState.curveSpeed = self.cruise_helper.curveSpeed
 
     controlsState.upAccelCmd = float(self.LoC.pid.p)
     controlsState.uiAccelCmd = float(self.LoC.pid.i)

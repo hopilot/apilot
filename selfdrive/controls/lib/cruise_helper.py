@@ -81,6 +81,7 @@ class CruiseHelper:
     self.longActiveUserReady = 0
     self.naviSpeed = 255
     self.roadSpeed = 255
+    self.curveSpeed = 255
 
     self.active_cam = False
     self.over_speed_limit = False
@@ -590,9 +591,9 @@ class CruiseHelper:
     self.update_params(self.frame)
     self.naviSpeed, self.roadSpeed = self.update_speed_nda(CS, controls)
     
-    curveSpeed = 255
+    self.curveSpeed = 255
     if self.autoCurveSpeedCtrlUse > 0:
-      curveSpeed = self.apilot_curve(CS, controls)
+      self.curveSpeed = self.apilot_curve(CS, controls)
 
     self.v_ego_kph = int(CS.vEgo * CV.MS_TO_KPH + 0.5) + 2.0 #실제속도가 v_cruise_kph보다 조금 빨라 2을 더함.
     self.v_ego_kph_set = clip(self.v_ego_kph, self.cruiseSpeedMin, MAX_SET_SPEED_KPH)
@@ -686,10 +687,10 @@ class CruiseHelper:
         elif self.autoRoadLimitCtrl == 2:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.roadSpeed)
       if self.autoCurveSpeedCtrlUse > 0:
-        if curveSpeed < self.v_cruise_kph_apply and self.longActiveUser > 0:
+        if self.curveSpeed < self.v_cruise_kph_apply and self.longActiveUser > 0:
           #self.send_apilot_event(controls, EventName.speedDown, 60.0)
           pass
-        self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curveSpeed)
+        self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.curveSpeed)
     else: #not enabled
       self.v_cruise_kph_backup = v_cruise_kph #not enabled
 
