@@ -434,20 +434,10 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
 
   // show_lane_info: -1 : all off, 0: path only, 1: path+lane, 2: path+lane+edge
   // lanelines
-  float red_lvl_line = 0;
-  float green_lvl_line = 0;
   if (s->show_lane_info > 0) {
-      for (int i = 0; i < std::size(scene.lane_line_vertices); i++) {
-        float prob = std::clamp<float>(scene.lane_line_probs[i]*2.0, 0.5, 1.0);    
-        if (scene.lane_line_probs[i] > 0.4){
-          red_lvl_line = 1.0 - ((scene.lane_line_probs[i] - 0.4) * 1.0);
-          green_lvl_line = 1.0;
-        } else {
-          red_lvl_line = 1.0;
-          green_lvl_line = 1.0 - ((0.4 - scene.lane_line_probs[i]) * 2.0);
-        }
-        painter.setBrush(QColor::fromRgbF(red_lvl_line, green_lvl_line, 0, std::clamp<float>(scene.lane_line_probs[i], 0.2, prob)));
-        painter.drawPolygon(scene.lane_line_vertices[i]);
+      for (int i = 0; i < std::size(scene.lane_line_vertices); ++i) {
+          painter.setBrush(QColor::fromRgbF(1.0, 1.0, 1.0, std::clamp<float>(scene.lane_line_probs[i] * 2.0, 0.5, 1.0)));
+          painter.drawPolygon(scene.lane_line_vertices[i]);
       }
   }
   if (s->show_blind_spot) {
@@ -504,28 +494,30 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   const float d_rel = lead_data.getDRel();
   const float v_rel = lead_data.getVRel();
 
-  float fillAlpha = 50;
+  float fillAlpha = 0;
   if (d_rel < leadBuff) {
-    fillAlpha = 100 * (1.0 - (d_rel / leadBuff));
+    fillAlpha = 255 * (1.0 - (d_rel / leadBuff));
     if (v_rel < 0) {
-      fillAlpha += 100 * (-1 * (v_rel / speedBuff));
+      fillAlpha += 255 * (-1 * (v_rel / speedBuff));
     }
-    // fillAlpha = (int)(fmin(fillAlpha, 200));
-    fillAlpha = (int)(fmax(50, fillAlpha));
+    fillAlpha = (int)(fmin(fillAlpha, 255));
   }
 
-  // float sz = std::clamp((25 * 54) / (d_rel / 2 + 15), 20.0f, 400.0f) * 2.35; 
-  float sz = std::clamp((25 * 50) / (d_rel / 2 + 30), 10.0f, 200.0f) * 3.0; 
+  float sz = std::clamp((25 * 30) / (d_rel / 3 + 30), 15.0f, 30.0f) * 2.35;
   float x = std::clamp((float)vd.x(), 0.f, width() - sz / 2);
-  float y = std::fmin(height() - sz * .6, (float)vd.y()) - sz;
+  float y = std::fmin(height() - sz * .6, (float)vd.y());
 
-  QPointF glow[] = {{x + (sz * 1.5), y + (1.2 * sz)}, {x + (sz * 1.25), (y + sz)}, {x - (sz * 1.25), (y + sz)}, {x - (sz * 1.5), y + (1.2 * sz)}};
+  float g_xo = sz / 5;
+  float g_yo = sz / 10;
+
+  QPointF glow[] = {{x + (sz * 1.35) + g_xo, y + sz + g_yo}, {x, y - g_yo}, {x - (sz * 1.35) - g_xo, y + sz + g_yo}};
   painter.setBrush(is_radar ? QColor(86, 121, 216, 255) : QColor(218, 202, 37, 255));
   painter.drawPolygon(glow, std::size(glow));
 
-  // rounded square
-  painter.setBrush(whiteColor(fillAlpha));
-  painter.drawRoundedRect(QRectF(x - (sz * 1.25), y - sz, sz * 2.5, sz * 2.0), sz/2, sz/2); 
+  // chevron
+  QPointF chevron[] = {{x + (sz * 1.25), y + sz}, {x, y}, {x - (sz * 1.25), y + sz}};
+  painter.setBrush(redColor(fillAlpha));
+  painter.drawPolygon(chevron, std::size(chevron));
 
   painter.restore();
 }
@@ -560,7 +552,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
 
 
     // DMoji
-    if (s->show_dm_info==1 && !hideDM && (sm.rcv_frame("driverState") > s->scene.started_frame)) {
+    if (s->show_dm_info == 1 && !hideDM && (sm.rcv_frame("driverState") > s->scene.started_frame)) {
       update_dmonitoring(s, sm["driverState"].getDriverState(), dm_fade_state);
       drawDriverState(p, s);
     }
@@ -1146,7 +1138,6 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   const SubMaster &sm = *(uiState()->sm);
   auto deviceState = sm["deviceState"].getDeviceState();
 
-  const auto BatPer = deviceState.getBatteryPercent();
   const auto cpuTempC = deviceState.getCpuTempC();
   //const auto gpuTempC = deviceState.getGpuTempC();
   float ambientTemp = deviceState.getAmbientTempC();
@@ -1177,11 +1168,12 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   QRect rect;
 
   configFont(p, "Open Sans", 50, "Bold");
-  str.sprintf("%d%%", BatPer);
+  str.sprintf("%d%%", deviceState.getBatteryPercent());
   rect = QRect(x, y, w, w);
-  int r = interp<float>(BatPer, {50.f, 90.f}, {255.f, 50.f}, false);
-  int g = interp<float>(BatPer, {50.f, 90.f}, {50.f, 255.f}, false);
-  p.setPen(QColor(r, g, 0, 200));
+
+  int r = interp<float>(cpuTemp, {50.f, 90.f}, {200.f, 255.f}, false);
+  int g = interp<float>(cpuTemp, {50.f, 90.f}, {255.f, 200.f}, false);
+  p.setPen(QColor(r, g, 200, 200));
   p.drawText(rect, Qt::AlignCenter, str);
 
   y += 55;
@@ -1194,9 +1186,9 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   configFont(p, "Inter", 50, "Bold");
   str.sprintf("%.0f°C", cpuTemp);
   rect = QRect(x, y, w, w);
-  r = interp<float>(cpuTemp, {50.f, 80.f}, {50.f, 255.f}, false);
-  g = interp<float>(cpuTemp, {50.f, 80.f}, {255.f, 50.f}, false);
-  p.setPen(QColor(r, g, 0, 200));
+  r = interp<float>(cpuTemp, {50.f, 90.f}, {200.f, 255.f}, false);
+  g = interp<float>(cpuTemp, {50.f, 90.f}, {255.f, 200.f}, false);
+  p.setPen(QColor(r, g, 200, 200));
   p.drawText(rect, Qt::AlignCenter, str);
 
   y += 55;
@@ -1209,9 +1201,9 @@ void AnnotatedCameraWidget::drawDeviceState(QPainter &p) {
   configFont(p, "Inter", 50, "Bold");
   str.sprintf("%.0f°C", ambientTemp);
   rect = QRect(x, y, w, w);
-  r = interp<float>(ambientTemp, {35.f, 60.f}, {50.f, 255.f}, false);
-  g = interp<float>(ambientTemp, {35.f, 60.f}, {255.f, 50.f}, false);
-  p.setPen(QColor(r, g, 0, 200));
+  r = interp<float>(ambientTemp, {35.f, 60.f}, {200.f, 255.f}, false);
+  g = interp<float>(ambientTemp, {35.f, 60.f}, {255.f, 200.f}, false);
+  p.setPen(QColor(r, g, 200, 200));
   p.drawText(rect, Qt::AlignCenter, str);
 
   y += 55;
@@ -1240,27 +1232,30 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
     bool left_on = car_state.getLeftBlinker();
     bool right_on = car_state.getRightBlinker();
 
-    const float img_alpha = 1.0f;
+    const float img_alpha = 0.8f;
+    const int fb_w = width() / 2 - 200;
     const int center_x = width() / 2;
-    const int w = 80;
-    const int h = 80;
-    const int base_y = (height() - h) / 2 + 150;
-    const int draw_count = 20;
+    const int w = fb_w / 25;
+    const int h = 160;
+    const int gap = fb_w / 25;
+    const int margin = (int)(fb_w / 3.8f);
+    const int base_y = (height() - h) / 2;
+    const int draw_count = 8;
 
     int x = center_x;
-    int y = base_y + 20;
+    int y = base_y;
 
     if(left_on) {
       for(int i = 0; i < draw_count; i++) {
         float alpha = img_alpha;
         int d = std::abs(blink_index - i);
         if(d > 0)
-          alpha /= d*0.5;
+          alpha /= d*2;
 
         p.setOpacity(alpha);
         float factor = (float)draw_count / (i + draw_count);
-        p.drawPixmap(x - 80 - w , y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_l);
-        x -= 45 * factor;
+        p.drawPixmap(x - w - margin, y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_l);
+        x -= gap + w;
       }
     }
 
@@ -1270,26 +1265,26 @@ void AnnotatedCameraWidget::drawTurnSignals(QPainter &p) {
         float alpha = img_alpha;
         int d = std::abs(blink_index - i);
         if(d > 0)
-          alpha /= d*0.5;
+          alpha /= d*2;
 
         float factor = (float)draw_count / (i + draw_count);
         p.setOpacity(alpha);
-        p.drawPixmap(x + 80 , y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_r);
-        x += 45 * factor; 
+        p.drawPixmap(x + margin, y + (h-h*factor)/2, w*factor, h*factor, ic_turn_signal_r);
+        x += gap + w;
       }
     }
 
     if(left_on || right_on) {
 
       double now = millis_since_boot();
-      if(now - prev_ts > 300/UI_FREQ) {
+      if(now - prev_ts > 900/UI_FREQ) {
         prev_ts = now;
         blink_index++;
       }
 
       if(blink_index >= draw_count) {
         blink_index = draw_count - 1;
-        blink_wait = UI_FREQ/20;
+        blink_wait = UI_FREQ/4;
       }
     }
     else {
@@ -1358,16 +1353,22 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
   /*p.save();
   const SubMaster &sm = *(uiState()->sm);
   QString str, temp;
+
   int y = 80;
   const int height = 60;
+
   const int text_x = width()/2 + 250;
+
   auto controls_state = sm["controlsState"].getControlsState();
   auto car_control = sm["carControl"].getCarControl();
   auto car_state = sm["carState"].getCarState();
+
   float applyAccel = controls_state.getApplyAccel();
+
   float aReqValue = controls_state.getAReqValue();
   float aReqValueMin = controls_state.getAReqValueMin();
   float aReqValueMax = controls_state.getAReqValueMax();
+
   float vEgo = car_state.getVEgo();
   float vEgoRaw = car_state.getVEgoRaw();
   int longControlState = (int)controls_state.getLongControlState();
@@ -1376,46 +1377,62 @@ void AnnotatedCameraWidget::drawDebugText(QPainter &p) {
   float uiAccelCmd = controls_state.getUiAccelCmd();
   float ufAccelCmd = controls_state.getUfAccelCmd();
   float accel = car_control.getActuators().getAccel();
+
   const char* long_state[] = {"off", "pid", "stopping", "starting"};
+
   configFont(p, "Inter", 35, "Regular");
   p.setPen(QColor(255, 255, 255, 200));
   p.setRenderHint(QPainter::TextAntialiasing);
+
   str.sprintf("State: %s\n", long_state[longControlState]);
   p.drawText(text_x, y, str);
+
   y += height;
   str.sprintf("vEgo: %.2f/%.2f\n", vEgo*3.6f, vEgoRaw*3.6f);
   p.drawText(text_x, y, str);
+
   y += height;
   str.sprintf("vPid: %.2f/%.2f\n", vPid, vPid*3.6f);
   p.drawText(text_x, y, str);
+
   y += height;
   str.sprintf("P: %.3f\n", upAccelCmd);
   p.drawText(text_x, y, str);
+
   y += height;
   str.sprintf("I: %.3f\n", uiAccelCmd);
   p.drawText(text_x, y, str);
+
   y += height;
   str.sprintf("F: %.3f\n", ufAccelCmd);
   p.drawText(text_x, y, str);
+
   y += height;
   str.sprintf("Accel: %.3f\n", accel);
   p.drawText(text_x, y, str);
+
   y += height;
   str.sprintf("Apply: %.3f, Stock: %.3f\n", applyAccel, aReqValue);
   p.drawText(text_x, y, str);
+
   y += height;
   str.sprintf("%.3f (%.3f/%.3f)\n", aReqValue, aReqValueMin, aReqValueMax);
   p.drawText(text_x, y, str);
+
   y += height;
-  str.sprintf("aEgo: %.3f, %.3f\n", car_state.getAEgo(), cadrawDriverStater_state.getABasis());
+  str.sprintf("aEgo: %.3f, %.3f\n", car_state.getAEgo(), car_state.getABasis());
   p.drawText(text_x, y, str);
+
   auto lead_radar = sm["radarState"].getRadarState().getLeadOne();
   auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
+
   float radar_dist = lead_radar.getStatus() && lead_radar.getRadar() ? lead_radar.getDRel() : 0;
   float vision_dist = lead_one.getProb() > .5 ? (lead_one.getX()[0] - 1.5) : 0;
+
   y += height;
   str.sprintf("Lead: %.1f/%.1f/%.1f\n", radar_dist, vision_dist, (radar_dist - vision_dist));
   p.drawText(text_x, y, str);
+
   p.restore();*/
 }
 
@@ -1547,7 +1564,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
     }
 
     x = apilot_filter_x.update(x);
-    y = apilot_filter_y.update(y) + 20;
+    y = apilot_filter_y.update(y);
 
     // 신호등(traffic)그리기.
     // 신호등내부에는 레이더거리, 비젼거리, 정지거리, 신호대기 표시함.
@@ -1870,12 +1887,10 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         QRect rectGap1(x1, y1, 60, 20);
         QRect rectGap2(x1, y1 + 35, 60, 20);
         QRect rectGap3(x1, y1 + 70, 60, 20);
-        QRect rectGap4(x1, y1 + 105, 60, 20);
         painter.setBrush(whiteColor(255));
         painter.drawRect(rectGap1);
         if (gap >= 2) painter.drawRect(rectGap2);
         if (gap >= 3) painter.drawRect(rectGap3);
-        if (gap >= 4) painter.drawRect(rectGap4);
 #endif
         //configFont(painter, "Inter", 60, "Bold");
         //textColor = whiteColor(255);
@@ -2095,12 +2110,11 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             str.sprintf("%d", (int)(applyMaxSpeed + 0.5));
             drawTextWithColor(painter, bx + 250, by - 50, str, color);
         }
-
         if (enabled && curveSpeed > 0 && curveSpeed < 200) {
             configFont(painter, "Inter", 50, "Bold");
             str.sprintf("%d", (int)(curveSpeed + 0.5));
             color = QColor(255, 255, 0, 255);
-            drawTextWithColor(painter, bx + 150, by + 110, str, color);
+            drawTextWithColor(painter, bx + 140, by + 110, str, color);
         }
 
 #ifdef __TEST
@@ -2279,27 +2293,16 @@ void AnnotatedCameraWidget::drawHudApilot(QPainter& p, const cereal::ModelDataV2
 
     UIState* s = uiState();
 
-    const SubMaster& sm = *(s->sm);
-    const cereal::RadarState::Reader& radar_state = sm["radarState"].getRadarState();
+    //const SubMaster& sm = *(s->sm);
+    //const cereal::RadarState::Reader& radar_state = sm["radarState"].getRadarState();
 
     drawLaneLines(p, s);
 
-    auto lead_one = radar_state.getLeadOne();
-    auto lead_two = radar_state.getLeadTwo();
-    if (lead_one.getStatus()) {
-      drawLead(p, lead_one, s->scene.lead_vertices[0], s->scene.lead_radar[0]);
-    }
-    if (lead_two.getStatus()) { // && (std::abs(lead_one.getDRel() - lead_two.getDRel()) > 3.0)) {
-      drawLead(p, lead_two, s->scene.lead_vertices[1], s->scene.lead_radar[1]);
-    }
-
     drawLeadApilot(p, model);
 
-    //drawMaxSpeed(p);
-    //drawSpeed(p);
     //drawSteer(p);
     if(s->show_device_stat) drawDeviceState(p);
-    drawTurnSignals(p);
+    //drawTurnSignals(p);
     //drawGpsStatus(p);
 #ifdef __TEST
     drawDebugText(p);
