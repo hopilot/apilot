@@ -1907,9 +1907,6 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             else if (xState == cereal::LongitudinalPlan::XState::CRUISE) str.sprintf("정속주행");
             else str.sprintf("UNKNOWN");
         }
-#ifdef __TEST
-        else str.sprintf("E2E주행");
-#else
         else {
             if (longActiveUserReady > 0) {
                 if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) str.sprintf("SOFTHOLD");
@@ -1917,7 +1914,6 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             }
             else str.sprintf("수동운전");
         }
-#endif
         QRect rectBrake(x - 250 / 2, y + 140, 250, 45);
         painter.setPen(Qt::NoPen);
         painter.setBrush((brake_valid) ? redColor(200) : greenColor(200));
@@ -2100,10 +2096,10 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
             drawTextWithColor(painter, bx + 250, by - 50, str, color);
         }
 
-        if (enabled && curveSpeed < 200) {
+        if (enabled && curveSpeed > 0 && curveSpeed < 200) {
             configFont(painter, "Inter", 50, "Bold");
             str.sprintf("%d", (int)(curveSpeed + 0.5));
-            drawTextWithColor(painter, bx + 250, by + 50, str, color);
+            drawTextWithColor(painter, bx + 150, by + 70, str, color);
         }
 
 #ifdef __TEST
