@@ -687,10 +687,10 @@ class CruiseHelper:
         elif self.autoRoadLimitCtrl == 2:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.roadSpeed)
       if self.autoCurveSpeedCtrlUse > 0:
-        if curveSpeed < self.v_cruise_kph_apply and self.longActiveUser > 0:
+        if self.curveSpeed < self.v_cruise_kph_apply and self.longActiveUser > 0:
           #self.send_apilot_event(controls, EventName.speedDown, 60.0)
           pass
-        self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, curveSpeed)
+        self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.curveSpeed)
     else: #not enabled
       self.v_cruise_kph_backup = v_cruise_kph #not enabled
 

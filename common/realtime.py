@@ -81,7 +81,7 @@ class Ratekeeper:
     self._next_frame_time = sec_since_boot() + self._interval
     self._frame = 0
     self._remaining = 0.0
-
+    self._last_monitor_time = sec_since_boot()
 
   # Maintain loop rate by calling this at the end of each loop
   def keep_time(self) -> bool:

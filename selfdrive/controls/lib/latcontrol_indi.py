@@ -82,7 +82,7 @@ class LatControlINDI(LatControl):
     rate_des = VM.get_steer_from_curvature(-desired_curvature_rate, CS.vEgo, 0)
     indi_log.steeringRateDesiredDeg = math.degrees(rate_des)
 
-    if CS.vEgo < MIN_STEER_SPEED or not active:
+    if not active:
       indi_log.active = False
       self.steer_filter.x = 0.0
       output_steer = 0

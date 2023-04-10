@@ -630,8 +630,6 @@ struct ControlsState @0x97ff69c53601abf1 {
   myDrivingMode @72 : Int32; #0: Eco, Eco2, Normal, Speed
   mySafeModeFactor @73 : Float32;
   longActiveUserReady @74 : Int32;
-
-
   curveSpeed @75 : Float32;
 
 

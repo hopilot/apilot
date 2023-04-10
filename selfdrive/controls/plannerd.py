@@ -5,6 +5,7 @@ from selfdrive.modeld.constants import T_IDXS
 from common.params import Params
 from common.realtime import Priority, config_realtime_process
 from selfdrive.swaglog import cloudlog
+from selfdrive.modeld.constants import T_IDXS
 from selfdrive.controls.lib.longitudinal_planner import LongitudinalPlanner
 from selfdrive.controls.lib.lateral_planner import LateralPlanner
 from selfdrive.hardware import TICI
