@@ -19,6 +19,7 @@ void order_nodes(const int N, const int * const merge, const t_index * const nod
                  parents of other nodes.
      node_size : array of node sizes - makes it easier
      order     : output array of size N
+
      Runtime: Θ(N)
   */
   auto_array_ptr<pos_node> queue(N/2);

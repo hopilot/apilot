@@ -33,4 +33,3 @@ int main(int argc, const char* argv[]) {
   delete[] correct_idx;
   delete[] pts;
 }
-0 comments on commi

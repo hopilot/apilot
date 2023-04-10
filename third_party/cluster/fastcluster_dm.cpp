@@ -1,25 +1,36 @@
 /*
   fastcluster: Fast hierarchical clustering routines for R and Python
+
   Copyright © 2011 Daniel Müllner
   <http://danifold.net>
+
   This library implements various fast algorithms for hierarchical,
   agglomerative clustering methods:
+
   (1) Algorithms for the "stored matrix approach": the input is the array of
       pairwise dissimilarities.
+
       MST_linkage_core: single linkage clustering with the "minimum spanning
       tree algorithm (Rohlfs)
+
       NN_chain_core: nearest-neighbor-chain algorithm, suitable for single,
       complete, average, weighted and Ward linkage (Murtagh)
+
       generic_linkage: generic algorithm, suitable for all distance update
       formulas (Müllner)
+
   (2) Algorithms for the "stored data approach": the input are points in a
       vector space.
+
       MST_linkage_core_vector: single linkage clustering for vector data
+
       generic_linkage_vector: generic algorithm for vector data, suitable for
       the Ward, centroid and median methods.
+
       generic_linkage_vector_alternative: alternative scheme for updating the
       nearest neighbors. This method seems faster than "generic_linkage_vector"
       for the centroid and median methods but slower for the Ward method.
+
   All these implementation treat infinity values correctly. They throw an
   exception if a NaN distance value occurs.
 */
@@ -131,6 +142,7 @@ typedef int_fast32_t t_index;
 typedef double t_float;
 
 /* Method codes.
+
    These codes must agree with the METHODS array in fastcluster.R and the
    dictionary mthidx in fastcluster.py.
 */
@@ -279,6 +291,7 @@ class doubly_linked_list {
     Class for a doubly linked list. Initially, the list is the integer range
     [0, size]. We provide a forward iterator and a method to delete an index
     from the list.
+
     Typical use: for (i=L.start; L<size; i=L.succ[I])
     or
     for (i=somevalue; L<size; i=L.succ[I])
@@ -334,6 +347,7 @@ public:
 
 /*
   Lookup function for a union-find data structure.
+
   The function finds the root of idx by going iteratively through all
   parent elements until a root is found. An element i is a root if
   nodes[i] is zero. To make subsequent searches faster, the entry for
@@ -384,7 +398,9 @@ static void MST_linkage_core(const t_index N, const t_float * const D,
     N: integer, number of data points
     D: condensed distance matrix N*(N-1)/2
     Z2: output data structure
+
     The basis of this algorithm is an algorithm by Rohlf:
+
     F. James Rohlf, Hierarchical clustering using the minimum spanning tree,
     The Computer Journal, vol. 16, 1973, p. 93–95.
 */
@@ -550,7 +566,9 @@ static void NN_chain_core(const t_index N, t_float * const D, t_members * const 
     N: integer
     D: condensed distance matrix N*(N-1)/2
     Z2: output data structure
+
     This is the NN-chain algorithm, described on page 86 in the following book:
+
     Fionn Murtagh, Multidimensional Clustering Algorithms,
     Vienna, Würzburg: Physica-Verlag, 1985.
 */
@@ -648,6 +666,7 @@ static void NN_chain_core(const t_index N, t_float * const D, t_members * const 
     case METHOD_METR_SINGLE:
       /*
       Single linkage.
+
       Characteristic: new distances are never longer than the old distances.
       */
       // Update the distance matrix in the range [start, idx1).
@@ -664,6 +683,7 @@ static void NN_chain_core(const t_index N, t_float * const D, t_members * const 
     case METHOD_METR_COMPLETE:
       /*
       Complete linkage.
+
       Characteristic: new distances are never shorter than the old distances.
       */
       // Update the distance matrix in the range [start, idx1).
@@ -680,6 +700,7 @@ static void NN_chain_core(const t_index N, t_float * const D, t_members * const 
     case METHOD_METR_AVERAGE: {
       /*
       Average linkage.
+
       Shorter and longer distances can occur.
       */
       // Update the distance matrix in the range [start, idx1).
@@ -699,6 +720,7 @@ static void NN_chain_core(const t_index N, t_float * const D, t_members * const 
     case METHOD_METR_WEIGHTED:
       /*
       Weighted linkage.
+
       Shorter and longer distances can occur.
       */
       // Update the distance matrix in the range [start, idx1).
@@ -715,6 +737,7 @@ static void NN_chain_core(const t_index N, t_float * const D, t_members * const 
     case METHOD_METR_WARD:
       /*
       Ward linkage.
+
       Shorter and longer distances can occur, not smaller than min(d1,d2)
       but maybe bigger than max(d1,d2).
       */
@@ -747,7 +770,9 @@ class binary_min_heap {
   Class for a binary min-heap. The data resides in an array A. The elements of
   A are not changed but two lists I and R of indices are generated which point
   to elements of A and backwards.
+
   The heap tree structure is
+
      H[2*i+1]     H[2*i+2]
          \            /
           \          /
@@ -755,9 +780,11 @@ class binary_min_heap {
             \      /
              \    /
               H[i]
+
   where the children must be less or equal than their parent. Thus, H[0]
   contains the minimum. The lists I and R are made such that H[i] = A[I[i]]
   and R[I[i]] = i.
+
   This implementation is not designed to handle NaN values.
   */
 private:
@@ -967,24 +994,32 @@ static void generic_linkage(const t_index N, t_float * const D, t_members * cons
     /*
       Here is a special feature that allows fast bookkeeping and updates of the
       minimal distances.
+
       mindist[i] stores a lower bound on the minimum distance of the point i to
       all points of higher index:
+
           mindist[i] ≥ min_{j>i} D(i,j)
+
       Normally, we have equality. However, this minimum may become invalid due
       to the updates in the distance matrix. The rules are:
+
       1) If mindist[i] is equal to D(i, n_nghbr[i]), this is the correct
          minimum and n_nghbr[i] is a nearest neighbor.
+
       2) If mindist[i] is smaller than D(i, n_nghbr[i]), this might not be the
          correct minimum. The minimum needs to be recomputed.
+
       3) mindist[i] is never bigger than the true minimum. Hence, we never
          miss the true minimum if we take the smallest mindist entry,
          re-compute the value if necessary (thus maybe increasing it) and
          looking for the now smallest mindist entry until a valid minimal
          entry is found. This step is done in the lines below.
+
       The update process for D below takes care that these rules are
       fulfilled. This makes sure that the minima in the rows D(i,i+1:)of D are
       re-calculated when necessary but re-calculation is avoided whenever
       possible.
+
       The re-calculation of the minima makes the worst-case runtime of this
       algorithm cubic in N. We avoid this whenever possible, and in most cases
       the runtime appears to be quadratic.
@@ -1034,6 +1069,7 @@ static void generic_linkage(const t_index N, t_float * const D, t_members * cons
     case METHOD_METR_SINGLE:
       /*
         Single linkage.
+
         Characteristic: new distances are never longer than the old distances.
       */
       // Update the distance matrix in the range [start, idx1).
@@ -1070,6 +1106,7 @@ static void generic_linkage(const t_index N, t_float * const D, t_members * cons
     case METHOD_METR_COMPLETE:
       /*
         Complete linkage.
+
         Characteristic: new distances are never shorter than the old distances.
       */
       // Update the distance matrix in the range [start, idx1).
@@ -1089,6 +1126,7 @@ static void generic_linkage(const t_index N, t_float * const D, t_members * cons
     case METHOD_METR_AVERAGE: {
       /*
         Average linkage.
+
         Shorter and longer distances can occur.
       */
       // Update the distance matrix in the range [start, idx1).
@@ -1127,6 +1165,7 @@ static void generic_linkage(const t_index N, t_float * const D, t_members * cons
     case METHOD_METR_WEIGHTED:
       /*
         Weighted linkage.
+
         Shorter and longer distances can occur.
       */
       // Update the distance matrix in the range [start, idx1).
@@ -1162,6 +1201,7 @@ static void generic_linkage(const t_index N, t_float * const D, t_members * cons
     case METHOD_METR_WARD:
       /*
         Ward linkage.
+
         Shorter and longer distances can occur, not smaller than min(d1,d2)
         but maybe bigger than max(d1,d2).
       */
@@ -1202,6 +1242,7 @@ static void generic_linkage(const t_index N, t_float * const D, t_members * cons
     case METHOD_METR_CENTROID: {
       /*
         Centroid linkage.
+
         Shorter and longer distances can occur, not bigger than max(d1,d2)
         but maybe smaller than min(d1,d2).
       */
@@ -1246,6 +1287,7 @@ static void generic_linkage(const t_index N, t_float * const D, t_members * cons
     case METHOD_METR_MEDIAN: {
       /*
         Median linkage.
+
         Shorter and longer distances can occur, not bigger than max(d1,d2)
         but maybe smaller than min(d1,d2).
       */
@@ -1306,7 +1348,9 @@ static void MST_linkage_core_vector(const t_index N,
     N: integer, number of data points
     dist: function pointer to the metric
     Z2: output data structure
+
     The basis of this algorithm is an algorithm by Rohlf:
+
     F. James Rohlf, Hierarchical clustering using the minimum spanning tree,
     The Computer Journal, vol. 16, 1973, p. 93–95.
 */
@@ -1377,6 +1421,7 @@ static void generic_linkage_vector(const t_index N,
     N: integer, number of data points
     dist: function pointer to the metric
     Z2: output data structure
+
     This algorithm is valid for the distance update methods
     "Ward", "centroid" and "median" only!
   */
@@ -1498,6 +1543,7 @@ static void generic_linkage_vector(const t_index N,
     case METHOD_VECTOR_WARD:
       /*
         Ward linkage.
+
         Shorter and longer distances can occur, not smaller than min(d1,d2)
         but maybe bigger than max(d1,d2).
       */
@@ -1536,6 +1582,7 @@ static void generic_linkage_vector(const t_index N,
     default:
       /*
         Centroid and median linkage.
+
         Shorter and longer distances can occur, not bigger than max(d1,d2)
         but maybe smaller than min(d1,d2).
       */
@@ -1573,6 +1620,7 @@ static void generic_linkage_vector_alternative(const t_index N,
     N: integer, number of data points
     dist: function pointer to the metric
     Z2: output data structure
+
     This algorithm is valid for the distance update methods
     "Ward", "centroid" and "median" only!
   */
@@ -1628,12 +1676,16 @@ static void generic_linkage_vector_alternative(const t_index N,
     /*
       The bookkeeping is different from the "stored matrix approach" algorithm
       generic_linkage.
+
       mindist[i] stores a lower bound on the minimum distance of the point i to
       all points of *lower* index:
+
           mindist[i] ≥ min_{j<i} D(i,j)
+
       Moreover, new nodes do not re-use one of the old indices, but they are
       given a new, unique index (SciPy convention: initial nodes are 0,…,N−1,
       new nodes are N,…,2N−2).
+
       Invalid nearest neighbors are not recognized by the fact that the stored
       distance is smaller than the actual distance, but the list active_nodes
       maintains a flag whether a node is inactive. If n_nghbr[i] points to an
@@ -1696,6 +1748,7 @@ static void generic_linkage_vector_alternative(const t_index N,
       if (method==METHOD_VECTOR_WARD) {
         /*
           Ward linkage.
+
           Shorter and longer distances can occur, not smaller than min(d1,d2)
           but maybe bigger than max(d1,d2).
         */
@@ -1712,6 +1765,7 @@ static void generic_linkage_vector_alternative(const t_index N,
       else {
         /*
           Centroid and median linkage.
+
           Shorter and longer distances can occur, not bigger than max(d1,d2)
           but maybe smaller than min(d1,d2).
         */
