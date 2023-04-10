@@ -6,7 +6,7 @@ EventName = car.CarEvent.EventName
 from common.realtime import DT_DMON # 0.05 = 20hz
 
 # ref (page15-16): https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:42018X1947&rid=2
-_AWARENESS_TIME = 30.  # 30 secs limit without user touching steering wheels make the car enter a terminal status
+_AWARENESS_TIME = 30.*10.  # 30 secs limit without user touching steering wheels make the car enter a terminal status
 _AWARENESS_PRE_TIME_TILL_TERMINAL = 15.  # a first alert is issued 15s before expiration
 _AWARENESS_PROMPT_TIME_TILL_TERMINAL = 6.  # a second alert is issued 6s before start decelerating the car
 
