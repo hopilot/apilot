@@ -1868,13 +1868,13 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         //painter.setPen(Qt::NoPen);
         painter.setPen(QPen(Qt::white, 2));
         painter.setBrush(blackColor(150));
-        rectGap = QRect(x + dxGap, y + 5, 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y + 5, 40, 64 / 4.);
         painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y + 5 + 64 * 1 / 4., 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y + 5 + 64 * 1 / 4., 40, 64 / 4.);
         painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y + 5 + 64 * 2 / 4., 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y + 5 + 64 * 2 / 4., 40, 64 / 4.);
         painter.drawRect(rectGap);
-        rectGap = QRect(x + dxGap, y + 5 + 64 * 3 / 4., 40, 64 / 3.);
+        rectGap = QRect(x + dxGap, y + 5 + 64 * 3 / 4., 40, 64 / 4.);
         painter.drawRect(rectGap);       
         QRect rectGapPos(x + dxGap, y + 5 + 64, 40, -std::clamp((float)gap, 0.0f, 4.0f) / 4. * 64);
         painter.setBrush(greenColor(255));
