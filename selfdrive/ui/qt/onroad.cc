@@ -13,7 +13,7 @@
 #include "selfdrive/ui/qt/maps/map_helpers.h"
 #endif
 
-//#define __TEST
+#define __TEST
 #ifdef __TEST
 double start_millis = 0.0;
 double check_millis[10] = { 0.0, };
@@ -1999,6 +1999,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         // kph
         float applyMaxSpeed = controls_state.getVCruiseOut();// scc_smoother.getApplyMaxSpeed();
         float cruiseMaxSpeed = controls_state.getVCruiseCluster();// scc_smoother.getCruiseMaxSpeed();
+        float curveSpeed = controls_state.getCurveSpeed();
         //float xCruiseTarget = lp.getXCruiseTarget() * 3.6;
 
         //bool is_cruise_set = (cruiseMaxSpeed > 0 && cruiseMaxSpeed < 255);
@@ -2086,16 +2087,23 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
         enabled = true;
         longActiveUser = 2;
         applyMaxSpeed = 109;
+        curveSpeed = 80;
 #endif
         configFont(painter, "Inter", 60, "Bold");
         if (enabled && (longActiveUser > 0 || (longOverride && blinkerOn))) str.sprintf("%d", (int)(cruiseMaxSpeed + 0.5));
         else str = "--";
         color = QColor(0, 255, 0, 255);
         drawTextWithColor(painter, bx+170, by+15, str, color);
-        if (enabled && longActiveUser>0 && applyMaxSpeed < cruiseMaxSpeed - 0.5) {
+        if (enabled && longActiveUser>0 && applyMaxSpeed > 0 && applyMaxSpeed < cruiseMaxSpeed - 0.5) {
             configFont(painter, "Inter", 50, "Bold");
             str.sprintf("%d", (int)(applyMaxSpeed + 0.5));
             drawTextWithColor(painter, bx + 250, by - 50, str, color);
+        }
+
+        if (enabled && curveSpeed < 200) {
+            configFont(painter, "Inter", 50, "Bold");
+            str.sprintf("%d", (int)(curveSpeed + 0.5));
+            drawTextWithColor(painter, bx + 250, by + 50, str, color);
         }
 
 #ifdef __TEST
