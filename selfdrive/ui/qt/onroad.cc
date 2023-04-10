@@ -2173,7 +2173,7 @@ void AnnotatedCameraWidget::drawLeadApilot(QPainter& painter, const cereal::Mode
       QFontMetrics fm(painter.font());
       QRect rcFont = fm.boundingRect("9");
 
-      if (s->show_dm_info < 1>) {
+      if (s->show_dm_info < 1) {
           bx = 80;
           by = height() - 60;
           painter.setPen(QPen(Qt::white, 3));
