@@ -288,7 +288,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "LongitudinalTuningKpV", PERSISTENT },
     { "LongitudinalTuningKiV", PERSISTENT },
     { "LongitudinalActuatorDelayLowerBound", PERSISTENT },
-    { "LongitudinalActuatorDelayUpperBound", PERSISTENT }, 
+    { "LongitudinalActuatorDelayUpperBound", PERSISTENT },        
     { "EnableRadarTracks", PERSISTENT },
     { "EnableAutoEngage", PERSISTENT },
     { "ApplyDynamicTFollow", PERSISTENT },

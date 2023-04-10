@@ -406,15 +406,15 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
         }
     }
   }
-  // mdps12(593)ì´ ì˜¤íŒŒì—ì„œ ì „ì†¡ë˜ê³  ìˆìœ¼ë©´.... forwardí•˜ì§€ ë§ì... carcontrollerì—ì„œ ë³´ë‚´ê³  ìˆìŒ..
+  // mdps12(593)ÀÌ ¿ÀÆÄ¿¡¼­ Àü¼ÛµÇ°í ÀÖÀ¸¸é.... forwardÇÏÁö ¸»ÀÚ... carcontroller¿¡¼­ º¸³»°í ÀÖÀ½..
   if (bus_num == mdpsConnectedBus && addr == 593) {
-      bus_fwd = 20;  // BUS0, 2ë¡œ ì „ì†¡
+      bus_fwd = 20;  // BUS0, 2·Î Àü¼Û
       if (now - last_ts_mdps12_from_op < 200000) {
           bus_fwd = -1;
       }
   }
   else if (bus_num == mdpsConnectedBus) {
-    //if (addr == 688 || addr == 897) bus_fwd = 20; // BUS0, 2ë¡œ ì „ì†¡: MDPSê°œì¡° BUS3
+    //if (addr == 688 || addr == 897) bus_fwd = 20; // BUS0, 2·Î Àü¼Û: MDPS°³Á¶ BUS3
       if (mdpsConnectedBus == 1) bus_fwd = 20; 
       else if (mdpsConnectedBus == 3) bus_fwd = 20; 
   }
@@ -422,7 +422,7 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 
       //int block_msg = is_lkas11_msg || is_lfahda_mfc_msg || is_scc_msg;
       int block_msg = is_lfahda_mfc_msg || is_scc_msg;
-      block_msg |= (LKAS11_forwarding) ? 0 : is_lkas11_msg;  // LKASë©”ì‹œì§€ì— ë¶ˆëŸ‰ì´ ìˆìœ¼ë©´ TXë¥¼ ì•ˆí•¨.. ì—¬ê¸°ì„œ ê·¸ëƒ¥ í¬ì›Œë”©í•´ë²„ë¦¬ì => ì‹œí—˜..
+      block_msg |= (LKAS11_forwarding) ? 0 : is_lkas11_msg;  // LKAS¸Ş½ÃÁö¿¡ ºÒ·®ÀÌ ÀÖÀ¸¸é TX¸¦ ¾ÈÇÔ.. ¿©±â¼­ ±×³É Æ÷¿öµùÇØ¹ö¸®ÀÚ => ½ÃÇè..
 
       if (apilot_connected) {
           if (!block_msg) {
@@ -450,7 +450,7 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
           puts("diff="); puth(diff); puts("\n");
       }
       if (diff > 0x15000) {
-          apilot_connected = false;  // Neokiiì½”ë“œ ì°¸ì¡°: ì˜¤í”ˆíŒŒì¼ëŸ¿ì´ ì£½ê±°ë‚˜ ì¬ë¶€íŒ…í•˜ë©´,,,, ê°•ì œë¡œ ëŠì–´ì¤Œ.
+          apilot_connected = false;  // NeokiiÄÚµå ÂüÁ¶: ¿ÀÇÂÆÄÀÏ·µÀÌ Á×°Å³ª ÀçºÎÆÃÇÏ¸é,,,, °­Á¦·Î ²÷¾îÁÜ.
           puts("apilot may be reboot...\n");
           controls_allowed = false;
       }

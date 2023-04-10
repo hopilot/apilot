@@ -14,7 +14,7 @@ def long_control_state_trans(CP, active, long_control_state, v_ego, v_target,
   # Ignore cruise standstill if car has a gas interceptor
   cruise_standstill = cruise_standstill and not CP.enableGasInterceptor
   accelerating = v_target_1sec > (v_target + 0.01)
-  planned_stop = (v_target < CP.vEgoStopping and ## apilot: ë‚´ë¦¬ë§‰, ì‹ í˜¸ì •ì§€ì‹œ ì§ˆì§ˆ ê°€ëŠ” í˜„ìƒ... v_targetìœ¼ë¡œ ë³´ë©´.. ê¸‰ì •ì§€, v_egoë¥¼ ë³´ë©´ ì§ˆì§ˆê°..
+  planned_stop = (v_target < CP.vEgoStopping and ## apilot: ³»¸®¸·, ½ÅÈ£Á¤Áö½Ã ÁúÁú °¡´Â Çö»ó... v_targetÀ¸·Î º¸¸é.. ±ŞÁ¤Áö, v_ego¸¦ º¸¸é ÁúÁú°¨..
                   v_target_1sec < CP.vEgoStopping and
                   not accelerating)
   stay_stopped = (v_ego < CP.vEgoStopping and
@@ -87,7 +87,7 @@ class LongControl:
       self.longitudinalTuningKiV = float(int(Params().get("LongitudinalTuningKiV", encoding="utf8"))) * 0.001
       self.CP.longitudinalTuning.kpV = [self.longitudinalTuningKpV]
       self.pid._k_p = (self.CP.longitudinalTuning.kpBP, self.CP.longitudinalTuning.kpV)
-      self.pid._k_i = ([0, 2.0, 200], [self.longitudinalTuningKiV, 0.0, 0.0]) # ì •ì§€ë•Œë§Œ.... ië¥¼ ì ìš©í•´ë³´ì... ì‹œí—˜..
+      self.pid._k_i = ([0, 2.0, 200], [self.longitudinalTuningKiV, 0.0, 0.0]) # Á¤Áö¶§¸¸.... i¸¦ Àû¿ëÇØº¸ÀÚ... ½ÃÇè..
     elif self.readParamCount == 30:
       self.longitudinalActuatorDelayLowerBound = float(int(Params().get("LongitudinalActuatorDelayLowerBound", encoding="utf8"))) * 0.01
       self.longitudinalActuatorDelayUpperBound = float(int(Params().get("LongitudinalActuatorDelayUpperBound", encoding="utf8"))) * 0.01

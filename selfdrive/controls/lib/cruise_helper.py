@@ -322,9 +322,9 @@ class CruiseHelper:
     if len(curvatures) == CONTROL_N_LAT:
       #curvature = abs(self.curvatureFilter.process(curvatures[self.autoCurveSpeedIndex]))  * self.autoCurveSpeedFactor
       curvature = self.curvatureFilter.process(np.max(np.abs(curvatures))) * self.autoCurveSpeedFactor
-      if abs(curvature) > 0.001:
+      if abs(curvature) > 0.0001:
         turnSpeed = interp(curvature, V_CURVE_LOOKUP_BP, V_CRUVE_LOOKUP_VALS)
-        turnSpeed = clip(turnSpeed, MIN_CURVE_SPEED, MAX_SET_SPEED_KPH)
+        turnSpeed = clip(turnSpeed, MIN_CURVE_SPEED, 255)
       else:
         turnSpeed = 300
     else:
@@ -744,3 +744,4 @@ def enable_radar_tracks(CP, logcan, sendcan):
         print("Failed to enable tracks" + str(e))
   print("END Try to enable radar tracks")
   # END try to enable radar tracks
+

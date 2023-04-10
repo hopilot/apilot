@@ -384,6 +384,7 @@ class CarState(CarStateBase):
 
       ("N", "EMS_366"),
 
+      ("OPKR_EV_Charge_Level", "EV_Info"),
     ]
     checks = [
       # address, frequency
