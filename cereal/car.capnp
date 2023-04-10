@@ -227,19 +227,9 @@ struct CarState {
   # neokii
   vCluRatio @47 :Float32;
   driverOverride @49 : Int32; #0: Normal, 1:Gas, 2:Brake
-  naviSafetyInfo @50 : NaviSafetyInfo;
-  engineRpm @51 : Float32;
-  chargeMeter @52 : Float32;
-  motorRpm @53 : Float32;
-
-  struct NaviSafetyInfo {
-    sign @0 : Int32; # OPKR_S_Sign
-    dist1 @1 : Int32; # OPKR_S_Dist  < 1023
-    speed2 @2 : Int32; # OPKR_SBR_LSpd < 150 
-    dist2 @3 : Int32; # OPKR_SBR_Dist < 65535
-    speedLimit @4: Int32; # SpeedLim_Nav_Clu
-    dist @5: Int32; # SafetyDist
-  }
+  engineRpm @50 : Float32;
+  chargeMeter @51 : Float32;
+  motorRpm @52 : Float32;
 
   struct Tpms {
     fl @0 :Float32;
@@ -550,8 +540,7 @@ struct CarParams {
 
   sccBus @72 : Int8;
   hasLfaHda @73 : Bool;
-  naviCluster @74 : Int8;
-  mdpsBus @75 : Int8;
+  mdpsBus @74 : Int8;
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;

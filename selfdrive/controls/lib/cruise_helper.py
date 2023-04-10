@@ -103,9 +103,6 @@ class CruiseHelper:
     self.autoNaviSpeedCtrlStart = float(Params().get("AutoNaviSpeedCtrlStart"))
     self.autoNaviSpeedCtrlEnd = float(Params().get("AutoNaviSpeedCtrlEnd"))
     self.autoRoadLimitCtrl = int(Params().get("AutoRoadLimitCtrl", encoding="utf8"))
-    self.naviSpeedLimitDecelRate = float(Params().get("NaviSpeedLimitDecelRate", encoding="utf8"))*0.01
-    #self.naviDecelMarginDist = float(int(Params().get("NaviDecelMarginDist", encoding="utf8")))
-    #self.naviDecelRate = float(int(Params().get("NaviDecelRate", encoding="utf8")))
     self.autoResumeFromGasSpeed = float(int(Params().get("AutoResumeFromGasSpeed", encoding="utf8")))
     self.autoResumeFromGas = Params().get_bool("AutoResumeFromGas")
     self.autoResumeFromBrakeRelease = Params().get_bool("AutoResumeFromBrakeRelease")
@@ -142,10 +139,8 @@ class CruiseHelper:
         self.autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
         self.autoRoadLimitCtrl = int(Params().get("AutoRoadLimitCtrl", encoding="utf8"))
       elif self.update_params_count == 2:
-        self.naviSpeedLimitDecelRate = float(Params().get("NaviSpeedLimitDecelRate", encoding="utf8"))*0.01
-        #self.naviDecelMarginDist = float(int(Params().get("NaviDecelMarginDist", encoding="utf8")))
+        pass
       elif self.update_params_count == 3:
-        #self.naviDecelRate = float(int(Params().get("NaviDecelRate", encoding="utf8")))
         self.autoResumeFromGasSpeed = float(int(Params().get("AutoResumeFromGasSpeed", encoding="utf8")))
       elif self.update_params_count == 4:
         self.autoResumeFromGas = Params().get_bool("AutoResumeFromGas")
@@ -297,19 +292,6 @@ class CruiseHelper:
           ButtonCnt = 0
     v_cruise_kph = clip(v_cruise_kph, self.cruiseSpeedMin, MAX_SET_SPEED_KPH)
     return button_type, LongPressed, v_cruise_kph
-
-  def update_speed_navi(self, CS, controls, v_cruise_kph):
-    navi = CS.naviSafetyInfo
-    #controls.debugText1 = 'S{}/{},D{}/{},N{}'.format(navi.sign, navi.speed2, navi.dist1, navi.dist2, navi.speedLimit)
-    v_ego_kph = int(CS.vEgo * CV.MS_TO_KPH + 0.5) + 3.0
-    v_kph_apply = v_cruise_kph
-    if self.naviSpeedLimitDecelRate > 0.0 and navi.speedLimit > 0 and navi.speedLimit < 255 and v_kph_apply > navi.speedLimit:
-      v_kph_apply = min(v_ego_kph, self.naviSpeedLimitTarget)
-      self.naviSpeedLimitTarget = max(navi.speedLimit, v_kph_apply - self.naviSpeedLimitDecelRate * 2.5 * DT_CTRL)
-    else:
-      self.naviSpeedLimitTarget = v_cruise_kph
-      return 0
-    return self.naviSpeedLimitTarget
 
   def update_speed_nda(self, CS, controls):
     clu11_speed = CS.vEgoCluster * CV.MS_TO_KPH
@@ -607,7 +589,6 @@ class CruiseHelper:
     self.frame = controls.sm.frame
     self.update_params(self.frame)
     self.naviSpeed, self.roadSpeed = self.update_speed_nda(CS, controls)
-    carNaviSpeed = self.update_speed_navi(CS, controls, v_cruise_kph)
     
     curveSpeed = 255
     if self.autoCurveSpeedCtrlUse > 0:
@@ -699,9 +680,6 @@ class CruiseHelper:
           pass
         self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.naviSpeed)
         self.ndaActive = 2 if self.ndaActive == 1 else 0
-      elif self.autoNaviSpeedCtrl > 1 and carNaviSpeed > 0:
-        self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, carNaviSpeed)
-        self.ndaActive = 2
       if self.roadSpeed > 30 and False: # 로드스피드리밋 사용안함..
         if self.autoRoadLimitCtrl == 1:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.roadSpeed)
