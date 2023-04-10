@@ -16,7 +16,7 @@ from cereal import log
 XState = log.LongitudinalPlan.XState
 
 if __name__ == '__main__':  # generating code
-  from pyextra.acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver
+  from third_party.acados.acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver
 else:
   from selfdrive.controls.lib.longitudinal_mpc_lib.c_generated_code.acados_ocp_solver_pyx import AcadosOcpSolverCython  # pylint: disable=no-name-in-module, import-error
 
@@ -473,8 +473,13 @@ class LongitudinalMpc:
       if not self.openpilotLongitudinalControl:
         if v_ego < 0.1:
           self.applyCruiseGap = 1
+        elif v_ego_kph < 60:
+          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-5.0, -2.0, -1.0], [4, self.applyCruiseGap, 1]))
+        elif v_ego_kph < 120:
+          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-10.0, -5.0, -1.0], [4, self.applyCruiseGap, 2]))
         else:
-          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-10.0, 0, 10.0], [4, self.applyCruiseGap, 1]))
+          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-20.0, -10.0, -1.0], [4, self.applyCruiseGap, 3]))
+      
         #elif a_ego < 0.1:
         #  self.applyCruiseGap = int(interp(a_ego, [-2.0, 0.0], [4, self.applyCruiseGap]))
         #else:

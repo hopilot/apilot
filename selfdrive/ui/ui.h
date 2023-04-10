@@ -110,7 +110,7 @@ typedef struct {
 } vertex_data;
 
 typedef struct {
-    float x, y, d, v;
+    float x, y, d, v, y_rel;
 } lead_vertex_data;
 
 typedef struct UIScene {
@@ -181,7 +181,7 @@ public:
   int  show_lane_info = 2;
   bool show_blind_spot = true;
   bool show_gap_info = true;
-  bool show_dm_info = false;
+  int show_dm_info = -1;
   int show_radar_info = 0;
   int show_mode = 1;
 

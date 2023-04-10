@@ -4,10 +4,11 @@ import numpy as np
 
 from casadi import SX, vertcat, sin, cos
 from common.realtime import sec_since_boot
+# WARNING: imports outside of constants will not trigger a rebuild
 from selfdrive.modeld.constants import T_IDXS
 
 if __name__ == '__main__':  # generating code
-  from pyextra.acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver
+  from third_party.acados.acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver
 else:
   from selfdrive.controls.lib.lateral_mpc_lib.c_generated_code.acados_ocp_solver_pyx import AcadosOcpSolverCython  # pylint: disable=no-name-in-module, import-error
 
