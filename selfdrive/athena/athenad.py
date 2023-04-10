@@ -25,7 +25,7 @@ from common.api import Api
 from common.file_helpers import CallbackReader
 from common.basedir import PERSIST
 from common.params import Params
-from common.realtime import sec_since_boot
+from common.realtime import sec_since_boot, set_core_affinity
 from selfdrive.hardware import HARDWARE, PC
 from selfdrive.loggerd.config import ROOT
 from selfdrive.loggerd.xattr_cache import getxattr, setxattr
@@ -529,6 +529,11 @@ def backoff(retries):
 
 
 def main():
+  try:
+    set_core_affinity([0, 1, 2, 3])
+  except Exception:
+    cloudlog.exception("failed to set core affinity")
+
   params = Params()
   dongle_id = params.get("DongleId", encoding='utf-8')
 

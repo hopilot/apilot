@@ -8,11 +8,12 @@ from cereal import car
 from common.numpy_fast import interp
 from common.params import Params
 from common.realtime import Ratekeeper, Priority, config_realtime_process
-from selfdrive.controls.lib.cluster.fastcluster_py import cluster_points_centroid
 from selfdrive.controls.lib.radar_helpers import Cluster, Track, RADAR_TO_CAMERA
 from selfdrive.swaglog import cloudlog
+from third_party.cluster.fastcluster_py import cluster_points_centroid
 from selfdrive.hardware import TICI
 from common.params import Params
+
 from selfdrive.controls.lib.lane_planner import TRAJECTORY_SIZE
 import numpy as np
 
@@ -45,7 +46,7 @@ class KalmanParams():
     self.K = [[interp(dt, dts, K0)], [interp(dt, dts, K1)]]
 
 
-def laplacian_cdf(x, mu, b):
+def laplacian_pdf(x, mu, b):
   b = max(b, 1e-4)
   return math.exp(-abs(x-mu)/b)
 
@@ -55,9 +56,9 @@ def match_vision_to_cluster(v_ego, lead, clusters):
   offset_vision_dist = lead.x[0] - RADAR_TO_CAMERA
 
   def prob(c):
-    prob_d = laplacian_cdf(c.dRel, offset_vision_dist, lead.xStd[0])
-    prob_y = laplacian_cdf(c.yRel, -lead.y[0], lead.yStd[0])
-    prob_v = laplacian_cdf(c.vRel + v_ego, lead.v[0], lead.vStd[0])
+    prob_d = laplacian_pdf(c.dRel, offset_vision_dist, lead.xStd[0])
+    prob_y = laplacian_pdf(c.yRel, -lead.y[0], lead.yStd[0])
+    prob_v = laplacian_pdf(c.vRel + v_ego, lead.v[0], lead.vStd[0])
 
     # This is isn't exactly right, but good heuristic
     return prob_d * prob_y * prob_v
@@ -250,7 +251,8 @@ class RadarD():
       radarState.leadTwo = get_lead(self.v_ego, self.ready, clusters, leads_v3[1], 1, low_speed_override=False)
 
       if self.ready and self.showRadarInfo: #self.extended_radar_enabled and self.ready:
-        ll,lc,lr = get_path_adjacent_leads(self.v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth, clusters)
+        #ll,lc,lr = get_path_adjacent_leads(self.v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth, clusters)
+        ll,lc,lr = get_path_adjacent_leads(self.v_ego, sm['modelV2'], 3.7, clusters)
         #try:
         #  if abs(sm['carState'].steeringAngleDeg) < 15 and radarState.leadOne.status and radarState.leadOne.modelProb > 0.5:
         #    check_dist = interp(radarState.leadOne.dRel, LEAD_PLUS_ONE_MIN_REL_DIST_BP, LEAD_PLUS_ONE_MIN_REL_DIST_V)
@@ -284,7 +286,7 @@ def radard_thread(sm=None, pm=None, can_sock=None):
   if can_sock is None:
     can_sock = messaging.sub_sock('can')
   if sm is None:
-    sm = messaging.SubMaster(['modelV2', 'carState', 'lateralPlan'], ignore_avg_freq=['modelV2', 'carState', 'lateralPlan'])  # Can't check average frequency, since radar determines timing
+    sm = messaging.SubMaster(['modelV2', 'carState'], ignore_avg_freq=['modelV2', 'carState'])  # Can't check average frequency, since radar determines timing
   if pm is None:
     pm = messaging.PubMaster(['radarState', 'liveTracks'])
 
